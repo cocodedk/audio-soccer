@@ -1,10 +1,10 @@
 // PURE game world: vectors, player and ball physics, possession, keeper, events. No DOM, no Web Audio.
 import * as C from './constants.js';
-import { moveBall } from './ball.js';
+import { moveBall, crossingY, aimedIn } from './ball.js';
 
 export * from './constants.js';
 export * from './describe.js';
-export { moveBall, lineOutcome } from './ball.js';
+export { moveBall, lineOutcome, crossingY, aimedIn, rollDistance, AIM_LOW, AIM_HIGH } from './ball.js';
 
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -84,32 +84,49 @@ export function updatePossession(w, dir, events) {
   if (b.vx * dir.x + b.vy * dir.y < C.PLAYER_SPEED) tap(w, dir, events);
 }
 
-// Space never kicks backward. In the attacking third it shoots at the goal: at the middle, or just
-// inside the left or right post while Left or Right is held. Further out it kicks straight up the
-// pitch, so lining up with the goal is the player's job. Any ball you have (within LOSE_DIST) can be
-// kicked, so a dribbled ball still rolling on after you stop is yours to shoot.
+// Space never kicks backward: straight up the pitch (+x), or KICK_ANGLE toward the side while Left or
+// Right is held (Up and Down are ignored). Aim help acts only when that line already crosses x = 40
+// within the mouth +- AIM_MARGIN: it is then corrected to cross no further than AIM_INSIDE_POST inside
+// the nearer post. Everywhere else, lining up with the goal is the player's job. Any ball you have
+// (within LOSE_DIST) can be kicked, so a dribbled ball still rolling on after you stop is yours to shoot.
+export function kickDir(b, dir) {
+  const a = Math.sign(dir.y) * C.KICK_ANGLE;
+  let dx = Math.cos(a), dy = Math.sin(a);
+  const run = C.PITCH_L - b.x, yc = crossingY(b.x, b.y, a);
+  if (run > 0.2 && aimedIn(yc)) {
+    dx = run; dy = clamp(yc, C.POST_LEFT + C.AIM_INSIDE_POST, C.POST_RIGHT - C.AIM_INSIDE_POST) - b.y;
+  }
+  const len = Math.hypot(dx, dy);
+  return { x: dx / len, y: dy / len };
+}
+
 export function kick(w, dir, events) {
   const b = w.ball;
   if (!w.hasBall) {
     events.push({ type: 'nokick' });
     return false;
   }
-  const aimY = dir.y < 0 ? C.POST_LEFT + C.AIM_INSIDE_POST : dir.y > 0 ? C.POST_RIGHT - C.AIM_INSIDE_POST : C.GOAL.y;
-  const inRange = b.x >= 2 * C.THIRD;
-  const dx = inRange ? Math.max(C.GOAL.x - b.x, 0.5) : 1, dy = inRange ? aimY - b.y : 0, len = Math.hypot(dx, dy);
-  b.vx = dx / len * C.KICK_SPEED; b.vy = dy / len * C.KICK_SPEED; b.shot = true;
+  const d = kickDir(b, dir);
+  b.vx = d.x * C.KICK_SPEED; b.vy = d.y * C.KICK_SPEED; b.shot = true;
   w.hasBall = false;
   events.push({ type: 'kick', x: b.x, y: b.y });
   return true;
 }
 
+// The keeper follows the ball's y (inside the band in front of the goal) at KEEPER_SPEED while the
+// player dribbles, and stands still from the moment a shot is kicked until the ball is saved, hits a
+// post or stops. He still shouts voy as a shot comes in.
 export function moveKeeper(w, dt, events) {
   const k = w.keeper;
   if (!k) return;
-  const target = clamp(w.ball.y, C.KEEPER_MIN_Y, C.KEEPER_MAX_Y);
-  const move = clamp(target - k.y, -C.KEEPER_SPEED * dt, C.KEEPER_SPEED * dt);
-  k.y += move;
-  k.moving = Math.abs(move) > 1e-6;
+  if (w.ball.shot) {
+    k.moving = false;
+  } else {
+    const target = clamp(w.ball.y, C.KEEPER_MIN_Y, C.KEEPER_MAX_Y);
+    const move = clamp(target - k.y, -C.KEEPER_SPEED * dt, C.KEEPER_SPEED * dt);
+    k.y += move;
+    k.moving = Math.abs(move) > 1e-6;
+  }
   const dg = dist(w.ball, C.GOAL);
   if (k.voyArmed && dg < C.VOY_DIST) {
     k.voyArmed = false;

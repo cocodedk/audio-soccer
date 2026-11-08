@@ -6,7 +6,9 @@ export const GOAL = { x: 40, y: 10 };
 export const POST_LEFT = 8.5;    // y of the left post (player's left, smaller y)
 export const POST_RIGHT = 11.5;  // y of the right post
 export const POST_TOLERANCE = 0.25;
-export const AIM_INSIDE_POST = 0.4; // Left/Right shots aim this far inside the post
+export const AIM_INSIDE_POST = 0.4; // aim help moves a shot no further than this far inside the nearer post
+export const AIM_MARGIN = 1;         // aim help only acts when the line crosses x = 40 within the mouth +- this
+export const KICK_ANGLE = Math.PI * 15 / 180; // Left or Right held while kicking angles the kick this far
 
 export const PLAYER_RADIUS = 0.3;
 export const PLAYER_SPEED = 4;        // m/s, normalised on diagonals
@@ -28,12 +30,13 @@ export const POST_BOUNCE = 0.6;
 export const SAVE_BOUNCE = 0.4;
 
 export const KEEPER_X = 39.6;
-export const KEEPER_SPEED = 2.2;
+export const KEEPER_SPEED = 1.3;      // m/s: slow enough that a lateral dribble leaves him behind
 export const KEEPER_MIN_Y = POST_LEFT - 1;
 export const KEEPER_MAX_Y = POST_RIGHT + 1;
-export const KEEPER_REACH = 0.9;
+export const KEEPER_REACH = 0.65;
 export const VOY_DIST = 6;            // the keeper shouts when the ball is this close to goal
 
+export const ROUND_CAP = 120;         // seconds of play after which a round ends as not found / not scored
 export const THIRD = PITCH_L / 3;
 export const BOARD_NEAR = 1.5;        // footsteps brush the board within this distance
 

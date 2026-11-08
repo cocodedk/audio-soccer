@@ -2,6 +2,9 @@
 // instantly, HRTF panners at game positions, the listener on the player, and the crowd bed.
 import { toAudio } from './world.js';
 
+const DULL_HZ = 2000;  // behind: keeps the tick's 2.5 kHz tone and the rattle's mid grain
+const CROWD_HZ = 550;  // the crowd bed sits below the ball's tick and rattle bands
+
 let ctx = null, master = null, bus = null, noiseBuf = null, crowd = null;
 
 // Create (first call) and resume the context. Call from a click or key handler.
@@ -73,14 +76,14 @@ function panner(at) {
 }
 
 // The input node for one sound. at: game point (spatial). pan: -1..1 stereo (non-spatial).
-// dull: lowpass near 1200 Hz, used for ball sounds behind the player.
+// dull: lowpass at DULL_HZ, used for ball sounds behind the player.
 export function output({ at = null, pan = 0, gain = 1, dull = false } = {}) {
   const g = ctx.createGain();
   g.gain.value = gain;
   let tail = g;
   if (dull) {
     const f = ctx.createBiquadFilter();
-    f.type = 'lowpass'; f.frequency.value = 1200;
+    f.type = 'lowpass'; f.frequency.value = DULL_HZ;
     tail.connect(f); tail = f;
   }
   if (at) {
@@ -95,12 +98,12 @@ export function output({ at = null, pan = 0, gain = 1, dull = false } = {}) {
   return g;
 }
 
-// Crowd bed: two decorrelated noise loops, panned apart, band-limited below 1500 Hz (always, so it
+// Crowd bed: two decorrelated noise loops, panned apart, band-limited below CROWD_HZ (always, so it
 // never reaches the ball's tick and rattle bands). Created on play, stopped on pause.
-export function crowdStart(level = 0.06) {
+export function crowdStart(level = 0.045) {
   if (!ctx || crowd) return;
   const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 650; bp.Q.value = 0.5;
-  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1500;
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = CROWD_HZ;
   const g = ctx.createGain(); g.gain.value = 0;
   const sources = [-0.8, 0.8].map((pan, i) => {
     const s = ctx.createBufferSource();

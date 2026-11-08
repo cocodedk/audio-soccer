@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Test the game logic
-        run: node --test prototype/test/world.test.mjs
+        run: node --test prototype/test/*.test.mjs
       # prototype/index.html follows the claude.ai Artifact contract (no doctype, html, head or body),
       # so the site wraps it: site/head.html opens the document with lang, SEO and share metadata,
       # site/foot.html adds the footer. HTML lets </head> and <body> be implied.

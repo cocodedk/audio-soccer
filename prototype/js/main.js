@@ -1,35 +1,45 @@
-// Wiring: menu, focus, headphone check, results, the game loop and the automation hook.
+// Wiring: focus, pausing, results, the game loop and the automation hook. The start-screen controls
+// are in menu.js and the results block in results.js.
 import { initSpeech, setMode, say } from './speech.js';
 import { ensureAudio } from './audio.js';
-import { play } from './sfx.js';
 import { createInput } from './input.js';
 import { createGame } from './game.js';
 import { createRenderer } from './render.js';
-import { LEVELS, resultsText, summarySpeech } from './levels.js';
+import { createResults } from './results.js';
+import { initMenu, fillVoices, showRate } from './menu.js';
+import { stopLearn } from './learn.js';
+import { getRate, setRate, stepRate } from './voices.js';
+import { LEVELS, ROUNDS } from './levels.js';
 import { arrowsToDir } from './world.js';
 
 // The page has no <html lang> (Artifact contract), so screen readers would read English in their own voice.
 if (!document.documentElement.lang) document.documentElement.lang = 'en';
 
 const $ = (s) => document.querySelector(s);
-const arena = $('#arena'), statusEl = $('#status'), resumeBtn = $('#resume');
-const resultsBox = $('#results'), summaryEl = $('#summary'), resultsText_ = $('#results-text');
-const copyStatus = $('#copy-status'), canvas = $('#pitch');
-const finished = []; // levels finished this session, for the results block
+const arena = $('#arena'), statusEl = $('#status'), resumeBtn = $('#resume'), canvas = $('#pitch');
 
-initSpeech($('#live-polite'), $('#live-assertive'));
 const modeNow = () => document.querySelector('input[name="voice-mode"]:checked')?.value || 'voice';
-setMode(modeNow());
-document.querySelectorAll('input[name="voice-mode"]').forEach((r) => r.addEventListener('change', () => setMode(modeNow())));
+const applyMode = () => setMode(modeNow());
+initSpeech($('#live-polite'), $('#live-assertive'), fillVoices);
+applyMode();
+document.querySelectorAll('input[name="voice-mode"]').forEach((r) => r.addEventListener('change', applyMode));
+initMenu({ applyMode });
 
 const renderer = createRenderer(canvas);
+const results = createResults({
+  box: $('#results'), summary: $('#summary'), text: $('#results-text'), copyStatus: $('#copy-status'),
+  heading: $('#h-results'), copyBtn: $('#copy'),
+}, () => ({ mode: modeNow(), rate: getRate(), hidden: canvas.hidden }));
 const game = createGame({ onLevelDone });
 const input = createInput(arena, onAction);
 
 // Focus moves before the game speaks, so a screen reader's focus announcement doesn't cut the line off.
 function startLevel(n) {
+  const left = game.partial(); // a level left half-played still counts in the results
+  if (left) results.add(left);
+  stopLearn();
   ensureAudio();
-  setMode(modeNow());
+  applyMode();
   resumeBtn.hidden = true;
   arena.focus();
   game.startLevel(n);
@@ -51,58 +61,33 @@ function pauseToMenu(moveFocus) {
     resumeBtn.textContent = `Resume level ${game.level}, round ${game.round}`;
     resumeBtn.hidden = false;
     say('Paused. Space resumes.', { priority: 'high' });
+    results.show(game.partial(true)); // kept levels, plus this one's rounds so far (the open one as paused)
   }
   if (moveFocus) (resumeBtn.hidden ? $('[data-level]') : resumeBtn).focus();
+}
+
+function changeSpeed(dir) {
+  const r = setRate(stepRate(getRate(), dir));
+  showRate();
+  say(`Speed ${r.toFixed(1)}`, { priority: 'high', key: 'rate' });
 }
 
 function onAction(name) {
   if (name === 'pause') pauseToMenu(true);
   else if (name === 'kick' && game.phase === 'paused') resumeGame();
+  else if (name === 'rateUp' || name === 'rateDown') changeSpeed(name === 'rateUp' ? 1 : -1);
   else game.action(name);
 }
 
 function onLevelDone({ level, rounds }) {
-  finished.push({ level, rounds });
-  summaryEl.textContent = summarySpeech(level, rounds);
-  resultsText_.value = resultsText(finished);
-  copyStatus.textContent = '';
-  resultsBox.hidden = false;
+  results.add({ level, rounds });
+  results.show(null, true);
   resumeBtn.hidden = true;
-  $('#h-results').focus();
 }
 
 document.querySelectorAll('[data-level]').forEach((b) => b.addEventListener('click', () => startLevel(Number(b.dataset.level))));
-
 resumeBtn.addEventListener('click', resumeGame);
-
-// A sound hard left, then hard right, each with its word spoken.
-$('#hp-check').addEventListener('click', () => {
-  if (!ensureAudio()) { say('This browser cannot play sound.', { priority: 'high' }); return; }
-  setMode(modeNow());
-  const side = (pan, word) => {
-    [0, 250, 500].forEach((ms) => setTimeout(() => play('kick', { pan, gain: 0.9 }), ms));
-    say(word, { priority: 'high' });
-  };
-  side(-1, 'Left');
-  setTimeout(() => side(1, 'Right'), 1500);
-});
-
 $('#hide-pic').addEventListener('change', (e) => { canvas.hidden = e.target.checked; });
-
-$('#copy').addEventListener('click', () => {
-  const text = resultsText_.value;
-  const selectIt = () => {
-    const keys = /Mac|iPhone|iPad/.test(navigator.platform || '') ? 'Command C' : 'Control C';
-    copyStatus.textContent = `Copying was blocked. The text is selected: press ${keys} to copy it.`;
-    resultsText_.focus();
-    resultsText_.select();
-  };
-  try {
-    navigator.clipboard.writeText(text).then(() => { copyStatus.textContent = 'Copied.'; }, selectIt);
-  } catch (e) {
-    selectIt();
-  }
-});
 
 // Leaving the game area, the tab or the window pauses: keys can't reach the game, so nothing plays on.
 arena.addEventListener('blur', () => pauseToMenu(false));
@@ -111,7 +96,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) pause
 // focus moves made by startLevel and resumeGame, which leave the pause right after, stay quiet.
 arena.addEventListener('focus', () => setTimeout(() => {
   if (game.phase === 'paused' && document.activeElement === arena) {
-    say('Paused. Press Space to resume, or Escape for the menu.', { priority: 'high' });
+    say('Paused. Space resumes, Escape for the menu.', { priority: 'high' });
   }
 }, 0));
 
@@ -119,7 +104,7 @@ function statusText() {
   const ph = game.phase;
   if (ph === 'idle') return game.level ? `Level ${game.level} done` : 'Choose a level to start';
   if (ph === 'paused') return 'Paused';
-  return `Level ${game.level}, ${LEVELS[game.level].name} · Round ${game.round} of 3 · ${game.time.toFixed(1)} s`;
+  return `Level ${game.level}, ${LEVELS[game.level].name} · Round ${game.round} of ${ROUNDS} · ${game.time.toFixed(1)} s`;
 }
 
 let last = performance.now(), shown = '';

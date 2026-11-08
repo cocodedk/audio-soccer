@@ -1,5 +1,10 @@
 // Pure text descriptions: clock positions, thirds, where-am-I, the goal guide. No DOM, no audio.
-import { GOAL, THIRD } from './constants.js';
+import { GOAL, THIRD, DRIBBLE_DIST, PITCH_L, KICK_SPEED, TAKE_MAX_SPEED, KICK_ANGLE } from './constants.js';
+import { crossingY, aimedIn, rollDistance, AIM_LOW, AIM_HIGH } from './ball.js';
+
+// How far a kick reaches the goal line with the speed of a real shot (it slows to a pass below
+// TAKE_MAX_SPEED): about 24 m. Further out the goal is too far to shoot at.
+export const SHOT_RANGE = rollDistance(KICK_SPEED, TAKE_MAX_SPEED);
 
 // 12 o'clock = toward the goal you attack (+x), 3 = your right (+y), 6 = behind, 9 = your left.
 export function clockHour(ahead, right) {
@@ -13,10 +18,11 @@ export function metresText(d) {
   return `${r} metre${r === 1 ? '' : 's'}`;
 }
 
-// A relative offset (metres ahead, metres to the right) as "2 o'clock, 3 metres", or "at your feet".
+// A relative offset (metres ahead, metres to the right) as "2 o'clock, 3 metres", or "at your feet"
+// (within DRIBBLE_DIST, the distance at which a free ball is taken).
 export function clockText(ahead, right) {
   const d = Math.hypot(ahead, right);
-  if (d < 1) return 'at your feet';
+  if (d < DRIBBLE_DIST) return 'at your feet';
   return `${clockHour(ahead, right)} o'clock, ${metresText(d)}`;
 }
 
@@ -31,30 +37,33 @@ export function thirdIndex(x) {
 export const THIRD_NAMES = ['Defending third', 'Middle third', 'Attacking third'];
 
 export function sideText(y) {
-  if (y < 3) return 'near the left board';
-  if (y > 17) return 'near the right board';
-  return 'in the centre';
+  if (y < 3) return 'by the left board';
+  if (y > 17) return 'by the right board';
+  return 'centre';
 }
 
-function placed(name, from, to) {
-  const c = clockTo(from, to);
-  return c === 'at your feet' ? `${name} at your feet.` : `${name} at ${c}.`;
-}
-
-// "Middle third, near the left board. Ball at 2 o'clock, 3 metres. Goal at 1 o'clock, 22 metres."
+// "Middle third, by the left board. Ball 2 o'clock, 3 metres. Goal, 23 metres, slightly right."
+// The goal part is guideText: it names the direction in words, which is what lining up needs.
 export function whereText(world) {
   const p = world.player;
-  const parts = [`${THIRD_NAMES[thirdIndex(p.x)]}, ${sideText(p.y)}.`, placed('Ball', p, world.ball), placed('Goal', p, GOAL)];
-  if (world.keeper) parts.push(placed('Keeper', p, world.keeper));
+  const from = world.hasBall ? world.ball : p; // a kick leaves from the ball, which can sit 2 m to one side
+  const parts = [`${THIRD_NAMES[thirdIndex(p.x)]}, ${sideText(p.y)}.`, `Ball ${clockTo(p, world.ball)}.`, `${guideText(p, from)}.`];
+  if (world.keeper) parts.push(`Keeper ${clockTo(p, world.keeper)}.`);
   return parts.join(' ');
 }
 
-// "Goal, 9 metres, slightly left" from the player's position.
-export function guideText(p) {
-  const ahead = GOAL.x - p.x, right = GOAL.y - p.y;
-  const a = Math.atan2(right, ahead) * 180 / Math.PI;
-  const side = a < 0 ? 'left' : 'right';
-  const abs = Math.abs(a);
-  const dir = abs < 8 ? 'straight ahead' : abs < 25 ? `slightly ${side}` : abs < 55 ? side : `hard ${side}`;
-  return `Goal, ${metresText(Math.hypot(ahead, right))}, ${dir}`;
+// What the goal part of W says, judged by the kick itself: "straight ahead" only when a straight kick
+// would score (with aim help), "slightly left/right" only when the 15 degree kick toward the goal
+// would, otherwise the side and how many metres to move. Beyond SHOT_RANGE: too far to shoot.
+//   "Goal, 9 metres, straight ahead" / "Goal, 23 metres, slightly right" /
+//   "Goal, 10 metres, move 6 metres right" / "Goal, 30 metres, too far to shoot"
+// p is where the player stands (the distance they hear); from is where a kick would leave (the ball).
+export function guideText(p, from = p) {
+  const m = metresText(Math.hypot(PITCH_L - p.x, GOAL.y - p.y)), head = `Goal, ${m}`;
+  if (PITCH_L - from.x > SHOT_RANGE) return `${head}, too far to shoot`;
+  if (aimedIn(from.y)) return `${head}, straight ahead`;
+  const side = from.y > GOAL.y ? 'left' : 'right', angle = side === 'left' ? -KICK_ANGLE : KICK_ANGLE;
+  if (aimedIn(crossingY(from.x, from.y, angle))) return `${head}, slightly ${side}`;
+  const move = from.y > AIM_HIGH ? from.y - AIM_HIGH : AIM_LOW - from.y; // to the nearest line a straight kick would score from
+  return `${head}, move ${metresText(Math.max(1, move))} ${side}`;
 }

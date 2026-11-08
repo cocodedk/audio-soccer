@@ -2,16 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   arrowsToDir, toAudio, clockHour, clockText, createWorld, step, lineOutcome, guideText, whereText,
-  PLAYER_RADIUS, KICK_SPEED, DRIBBLE_DIST,
+  PLAYER_RADIUS, KICK_SPEED,
 } from '../js/world.js';
-
-const close = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} != ${b}`);
-const run = (w, secs, input = {}, dt = 1 / 120) => {
-  const events = [];
-  for (let t = 0; t < secs; t += dt) events.push(...step(w, dt, input));
-  return events;
-};
-const types = (events) => events.map((e) => e.type);
+import { close, run, types } from './helpers.mjs';
 
 test('arrows map to pitch directions', () => {
   assert.deepEqual(arrowsToDir(['ArrowUp']), { x: 1, y: 0 });
@@ -49,19 +42,21 @@ test('clock positions: ahead 12, right 3, behind 6, left 9', () => {
   assert.ok([10, 11].includes(clockHour(5, -5)), '45 degrees left is half past 10');
 });
 
-test('clock text: "2 o\'clock, 3 metres" and "at your feet" under 1 m', () => {
+test('clock text: "2 o\'clock, 3 metres" and "at your feet" under the 0.8 m take distance', () => {
   const a = Math.PI / 3; // 60 degrees right of ahead
   assert.equal(clockText(3 * Math.cos(a), 3 * Math.sin(a)), "2 o'clock, 3 metres");
   assert.equal(clockText(0, 1.2), "3 o'clock, 1 metre");
   assert.equal(clockText(0.5, 0.5), 'at your feet');
+  assert.equal(clockText(0, 0.75), 'at your feet');
+  assert.equal(clockText(0, 0.85), "3 o'clock, 1 metre", 'a ball you cannot yet take is not at your feet');
 });
 
-test('where-am-I and the goal guide read naturally', () => {
+test('where-am-I and the goal guide read naturally, goal distance and side in words', () => {
   const w = createWorld({ player: { x: 18, y: 2 }, ball: { x: 19.5, y: 4.6 } });
-  assert.equal(whereText(w), "Middle third, near the left board. Ball at 2 o'clock, 3 metres. Goal at 1 o'clock, 23 metres.");
+  assert.equal(whereText(w), "Middle third, by the left board. Ball 2 o'clock, 3 metres. Goal, 23 metres, slightly right.");
+  const k = createWorld({ player: { x: 30, y: 10 }, ball: { x: 30.3, y: 10 }, keeper: true });
+  assert.equal(whereText(k), "Attacking third, centre. Ball at your feet. Goal, 10 metres, straight ahead. Keeper 12 o'clock, 10 metres.");
   assert.equal(guideText({ x: 31, y: 10 }), 'Goal, 9 metres, straight ahead');
-  assert.equal(guideText({ x: 31, y: 12 }), 'Goal, 9 metres, slightly left');
-  assert.equal(guideText({ x: 34, y: 2 }), 'Goal, 10 metres, right');
 });
 
 test('side boards clamp the player and bump once per contact', () => {
@@ -128,73 +123,4 @@ test('the keeper saves a shot within reach and shouts voy', () => {
   assert.ok(types(ev).includes('save'));
   assert.equal(w.scored, false);
   assert.ok(w.ball.vx <= 0);
-});
-
-test('Space shoots at the goal in the attacking third, inside a post with Left or Right, never backward', () => {
-  const shot = (keys, x = 30) => { const w = createWorld({ player: { x, y: 4 }, ball: { x: x + 0.5, y: 4 }, hasBall: true });
-    step(w, 1 / 120, { kick: true, dir: arrowsToDir(keys) }); return w.ball; };
-  const slope = (b) => b.vy / b.vx, mid = shot([]), back = shot(['ArrowDown']), left = shot(['ArrowLeft']), right = shot(['ArrowRight']);
-  close(slope(mid), 6 / 9.5, 0.01); close(slope(back), slope(mid), 0.01);
-  assert.ok(back.vx > 0 && left.vx > 0 && slope(left) < slope(mid) && slope(right) > slope(mid));
-  close(Math.hypot(right.vx, right.vy), KICK_SPEED, 0.1);
-  const far = shot(['ArrowRight'], 10); close(far.vy, 0); assert.ok(far.vx > 13, 'further out: straight up the pitch');
-  const w3 = createWorld({ player: { x: 10, y: 10 }, ball: { x: 30, y: 10 } });
-  assert.deepEqual(types(step(w3, 1 / 120, { kick: true })), ['nokick']);
-});
-
-test('dribble: a still ball is taken within 0.8 m, not beyond, and not when fast', () => {
-  const near = createWorld({ player: { x: 10, y: 10 }, ball: { x: 10 + DRIBBLE_DIST - 0.01, y: 10 } });
-  assert.ok(types(step(near, 1 / 120)).includes('take'));
-  assert.equal(near.hasBall, true);
-  const far = createWorld({ player: { x: 10, y: 10 }, ball: { x: 10 + DRIBBLE_DIST + 0.01, y: 10 } });
-  assert.ok(!types(step(far, 1 / 120)).includes('take'));
-  const fast = createWorld({ player: { x: 10, y: 10 }, ball: { x: 10.3, y: 10 } });
-  fast.ball.vy = 9;
-  assert.ok(!types(step(fast, 1 / 120)).includes('take'));
-});
-
-test('dribble: running with the ball taps it about 1 m ahead and keeps it', () => {
-  const w = createWorld({ player: { x: 5, y: 10 }, ball: { x: 5.5, y: 10 }, hasBall: true });
-  let maxGap = 0, taps = 0;
-  for (let t = 0; t < 3; t += 1 / 120) {
-    taps += step(w, 1 / 120, { dir: { x: 1, y: 0 } }).filter((e) => e.type === 'tap').length;
-    maxGap = Math.max(maxGap, w.ball.x - w.player.x);
-  }
-  assert.equal(w.hasBall, true);
-  assert.ok(taps >= 5 && taps <= 10, `taps ${taps}`);
-  assert.ok(maxGap > 0.8 && maxGap < 1.4, `gap ${maxGap}`);
-  close(w.player.x, 17, 0.1);
-});
-
-test('dribble: turning keeps the ball, and a dribbled ball stops near you', () => {
-  const w = createWorld({ player: { x: 5, y: 10 }, ball: { x: 5.5, y: 10 }, hasBall: true });
-  run(w, 1, { dir: arrowsToDir(['ArrowUp']) });
-  run(w, 1.5, { dir: arrowsToDir(['ArrowRight']) });
-  assert.equal(w.hasBall, true);
-  assert.ok(w.ball.y - w.player.y > 0.5, 'the ball went right with the player');
-  run(w, 3);
-  assert.ok(Math.hypot(w.ball.x - w.player.x, w.ball.y - w.player.y) < 3, 'still within reach after stopping');
-  assert.equal(w.hasBall, true);
-});
-
-test('dribble, stop for 1 s, then Space with no arrows kicks at the goal', () => {
-  for (const secs of [0.7, 1, 1.3, 1.9, 2.4, 3.1]) {
-    const w = createWorld({ player: { x: 5, y: 10 }, ball: { x: 5.5, y: 10 }, hasBall: true });
-    run(w, secs, { dir: arrowsToDir(['ArrowUp']) }); run(w, 1);
-    assert.ok(types(step(w, 1 / 120, { kick: true })).includes('kick') && w.ball.vx > 13, `after ${secs} s`);
-  }
-});
-
-test('dribble: turning right around takes the ball with you', () => {
-  const w = createWorld({ player: { x: 20, y: 10 }, ball: { x: 19.5, y: 10 }, hasBall: true });
-  run(w, 1, { dir: arrowsToDir(['ArrowDown']) });
-  run(w, 1, { dir: arrowsToDir(['ArrowUp']) });
-  assert.equal(w.hasBall, true);
-  assert.ok(w.ball.x > w.player.x, 'the ball is ahead again');
-});
-
-test('a kick still carries: straight from 16 m out it reaches the goal', () => {
-  const w = createWorld({ player: { x: 23.5, y: 10 }, ball: { x: 24, y: 10 }, hasBall: true });
-  step(w, 1 / 120, { kick: true });
-  assert.ok(types(run(w, 5)).includes('goal'));
 });

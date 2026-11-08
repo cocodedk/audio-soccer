@@ -54,6 +54,11 @@ h3 { font-size: 1.02rem; margin: 0 }
 .levels { display: grid; gap: 8px }
 .modes { border: 1px solid var(--rule); border-radius: 10px; padding: 8px 14px 12px; margin: 0; display: grid; gap: 6px }
 .modes legend { font-weight: 700; padding: 0 4px }
+.field { display: grid; gap: 4px }
+.field label { font-weight: 700 }
+select { font: 1rem var(--body); padding: 8px 10px; border: 2px solid var(--ink); border-radius: 10px;
+  background: var(--surface); color: var(--ink); max-width: 100% }
+.notice { padding: 10px 14px; border: 2px solid var(--accent); border-radius: 10px; font-weight: 700 }
 .check { display: flex; gap: 10px; align-items: center }
 .check input { width: 20px; height: 20px; accent-color: var(--accent-fill); flex: none }
 

@@ -117,7 +117,8 @@ td:first-child { font-weight: 700; white-space: nowrap }
 .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0 }
 .steps li { border-top: 4px solid var(--ink); padding-top: 10px; display: grid; gap: 6px; align-content: start }
 .steps .n { font-family: var(--display); font-weight: 900; font-size: 2.6rem; line-height: .9; color: var(--accent) }
-.steps li:first-child { border-top-style: dashed }
+.steps li:nth-child(-n+3) { border-top-style: dashed }
+a { color: var(--accent); text-underline-offset: 3px }
 ol.qs { margin: 0; padding-left: 1.4em; display: grid; gap: 6px; max-width: 66ch }
 footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .92rem; color: var(--muted) }
 @media (prefers-reduced-motion: no-preference) { .score { transition: color .3s } }
@@ -125,7 +126,7 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
 
 <div class="wrap">
   <header class="hero">
-    <p class="eyebrow">Design draft · 7 November 2026 · for blind and visually impaired players</p>
+    <p class="eyebrow">Design draft · 8 November 2026 · for blind and visually impaired players</p>
     <h1>Audio <em>Soccer</em></h1>
     <p class="lede">A 5-a-side soccer game you play by ear. Every pass, tackle and shot is a sound you can place, a live commentator calls the match, and TalkBack stays on the whole time.</p>
   </header>
@@ -141,7 +142,7 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
       <button class="btn primary" id="play" type="button">Play the sample attack</button>
       <label class="check" for="announce"><input type="checkbox" id="announce"> Read each caption with my screen reader</label>
     </div>
-    <p class="note" id="audio-note">Wear headphones. The 14-second sample uses rough synthesized stand-ins for the real sounds, and your browser's voice for the commentator and guide.</p>
+    <p class="note" id="audio-note">Wear headphones. The 14-second sample uses rough synthesized stand-ins for the real sounds, and your browser's voice for the commentator and guide. It places sounds with plain left and right panning and a muffled tone for behind. The real game and the browser trial use 3D headphone audio (HRTF), which places sounds more clearly.</p>
     <ol class="log" id="log" aria-label="What you hear, in order"></ol>
     <div class="sr" id="live" aria-live="off"></div>
   </div>
@@ -149,15 +150,16 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
   <section aria-labelledby="h-play">
     <h2 id="h-play">What you do</h2>
     <div class="prose">
-      <p>You control one player at a time: whoever on your team is closest to the ball. Control switches on its own, and a short sound plus the player's name tells you who you are now. Your teammates run themselves. There are only five things to do.</p>
+      <p>You control one player at a time, to start with whoever on your team is closest to the ball. Control moves to a teammate only when the ball is dead or when you ask for it, never in the middle of a run. When it moves, what you hear glides to the new player over a moment. A short sound travels from the old player to the new one, and then the player's name tells you who you are now. Your teammates run themselves. There are only six things to do.</p>
     </div>
     <div class="table-box">
       <table>
         <thead><tr><th scope="col">Action</th><th scope="col">With the ball</th><th scope="col">Without the ball</th></tr></thead>
         <tbody>
-          <tr><td>Steer</td><td>Dribble</td><td>Run toward a spot</td></tr>
-          <tr><td>Kick</td><td>Shoot when in range and facing goal. Otherwise pass to the teammate in the direction you're steering.</td><td class="muted">Nothing</td></tr>
-          <tr><td>Challenge</td><td class="muted">Nothing</td><td>Tackle. Running into the ball carrier also tackles, with an automatic "voy!"</td></tr>
+          <tr><td>Steer</td><td>Dribble</td><td>Run toward a spot. You keep control while you run there.</td></tr>
+          <tr><td>Kick</td><td>Straight up the pitch, never backward. Left or Right angles it 15°. A small aim help only nudges a shot that is already nearly on target into the goal.</td><td class="muted">Nothing</td></tr>
+          <tr><td>Pass</td><td>To the teammate who last called "here!"</td><td class="muted">Nothing</td></tr>
+          <tr><td>Challenge</td><td class="muted">Nothing</td><td>Tackle when the ball carrier is in reach. Running into the carrier also tackles, with an automatic "voy!" Otherwise it asks to switch to the teammate closest to the ball.</td></tr>
           <tr><td>Ask</td><td colspan="2">Hear the score, the time, where you are and where the ball is</td></tr>
           <tr><td>Pause</td><td colspan="2">Open the pause menu, an ordinary TalkBack screen</td></tr>
         </tbody>
@@ -193,7 +195,7 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
     <div class="axes">
       <div class="axis"><b>Left or right</b><span>Which ear. A ball on the left board knocks in your left ear.</span></div>
       <div class="axis"><b>Near or far</b><span>How loud. Far sounds also get a little echo.</span></div>
-      <div class="axis"><b>Ahead or behind</b><span>Bright or dull. Sounds behind you are muffled. The tester will judge if this works.</span></div>
+      <div class="axis"><b>Ahead or behind</b><span>Bright or dull. Sounds behind you are muffled. The real game also uses 3D headphone audio (HRTF), which places sounds ahead and behind more clearly. The tester will judge if this works.</span></div>
     </div>
     <h3>When a lot happens at once, the lower layers get quieter</h3>
     <ol class="layers">
@@ -247,7 +249,9 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
     <h2 id="h-build">Build order</h2>
     <p class="prose">Android first, same build as the chess app. Each step goes to the tester, and their feedback decides the next one.</p>
     <ol class="steps">
-      <li><span class="n">0</span><h3>Controls test</h3><p>Throwaway. The three control options and a left, right, ahead and behind sound test on the tester's phone.</p></li>
+      <li><span class="n">0a</span><h3>Navigation prototype</h3><p>Built. A browser page for a computer with headphones: find a still ball, take it to the goal, beat a keeper. It tests whether the sounds are enough to play by ear. <a href="https://cocodedk.github.io/audio-soccer/">Open the live prototype</a>.</p></li>
+      <li><span class="n">0b</span><h3>Phone controls test</h3><p>Throwaway. The three control options on the tester's phone with TalkBack on.</p></li>
+      <li><span class="n">0c</span><h3>3D audio on Android</h3><p>Throwaway. One sound placed ahead, behind, left and right on the tester's phone with headphones.</p></li>
       <li><span class="n">1</span><h3>Penalty shootout</h3><p>Five each. Aim and time your shot, or listen to the run-up and dive. Proves the sound, commentator and controls.</p></li>
       <li><span class="n">2</span><h3>Training pitch</h3><p>You, the ball, the goal and the goal guide. Learn to find the ball, dribble and shoot. Plus the sound gallery.</p></li>
       <li><span class="n">3</span><h3>Full match</h3><p>5-a-side against computer teams, with all the voices, difficulty and speed settings, and a league.</p></li>
@@ -265,7 +269,7 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
     </ol>
   </section>
 
-  <footer>Draft design, 7 November 2026. Teams and players are made up. Full text in <code>audio-soccer/docs/DESIGN.md</code>.</footer>
+  <footer>Draft design, 8 November 2026. Teams and players are made up. Full text in <code>audio-soccer/docs/DESIGN.md</code>.</footer>
 </div>
 
 <script>

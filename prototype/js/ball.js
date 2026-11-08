@@ -1,8 +1,26 @@
 // Pure ball physics: friction, side boards, end walls, goal, posts and keeper saves. No DOM, no audio.
 import {
   PITCH_L, PITCH_W, GOAL, POST_LEFT, POST_RIGHT, POST_TOLERANCE, FRICTION, SLOW_DRAG, SLOW_DRAG_UNTIL, STOP_SPEED,
-  BALL_BOUNCE, POST_BOUNCE, SAVE_BOUNCE, KEEPER_X, KEEPER_REACH,
+  BALL_BOUNCE, POST_BOUNCE, SAVE_BOUNCE, KEEPER_X, KEEPER_REACH, AIM_MARGIN,
 } from './constants.js';
+
+// Where a ball at (x, y) kicked at `angle` (radians, positive toward the player's right) crosses x = 40.
+export const crossingY = (x, y, angle) => y + Math.tan(angle) * (PITCH_L - x);
+
+// Aim help takes a line that crosses x = 40 within the mouth +- AIM_MARGIN (y 7.5 to 12.5) into the goal.
+export const AIM_LOW = POST_LEFT - AIM_MARGIN, AIM_HIGH = POST_RIGHT + AIM_MARGIN;
+export const aimedIn = (y) => y >= AIM_LOW && y <= AIM_HIGH;
+
+// Rolling deceleration at a given speed (m/s^2): friction, plus extra drag at low speed.
+export const decelAt = (speed) => FRICTION + SLOW_DRAG * Math.max(0, 1 - speed / SLOW_DRAG_UNTIL);
+
+// Metres a ball kicked at v0 rolls before it slows to vMin: the same law moveBall applies.
+export function rollDistance(v0, vMin = 0) {
+  let v = v0, d = 0;
+  const dt = 0.001;
+  while (v > vMin) { d += v * dt; v -= decelAt(v) * dt; }
+  return d;
+}
 
 // What happens to a ball crossing the line x = 40 at height y: 'post', 'goal' or 'wall'.
 export function lineOutcome(y) {
@@ -31,7 +49,7 @@ function goalLine(w, px, py, speed, events) {
     b.x = 2 * PITCH_L - b.x; b.vx = -b.vx * POST_BOUNCE; b.shot = false;
     events.push({ type: 'post', x: PITCH_L, y: y < GOAL.y ? POST_LEFT : POST_RIGHT, speed });
   } else if (outcome === 'goal' && w.keeper && Math.abs(w.keeper.y - y) <= KEEPER_REACH) {
-    b.x = KEEPER_X - 0.3; b.y = y;
+    b.x = KEEPER_X - 1.5; b.y = y;
     b.vx = -Math.abs(b.vx) * SAVE_BOUNCE; b.vy = b.vy * 0.3 + (y - w.keeper.y) * 2; b.shot = false;
     events.push({ type: 'save', x: PITCH_L, y, speed });
   } else if (outcome === 'goal') {
@@ -49,7 +67,7 @@ export function moveBall(w, dt, events) {
   const b = w.ball;
   const speed = Math.hypot(b.vx, b.vy);
   if (speed < STOP_SPEED) { b.vx = 0; b.vy = 0; b.shot = false; return; }
-  const decel = FRICTION + SLOW_DRAG * Math.max(0, 1 - speed / SLOW_DRAG_UNTIL);
+  const decel = decelAt(speed);
   const f = Math.max(0, speed - decel * dt) / speed;
   b.vx *= f; b.vy *= f;
   const px = b.x, py = b.y;

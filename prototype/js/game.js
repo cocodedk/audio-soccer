@@ -1,45 +1,49 @@
 // One play session: level and round flow, the world step, and world events turned into sound,
 // speech and stats. main.js owns the DOM; this module owns the game.
 import * as W from './world.js';
-import { LEVELS, ROUNDS, setupRound, newStats, startLine, summarySpeech } from './levels.js';
-import { say, cancel } from './speech.js';
+import { LEVELS, ROUNDS, setupRound, newStats, closeStats, startLines, summarySpeech } from './levels.js';
+import { say, cancel, isSaying } from './speech.js';
 import { crowdStart, stopAll } from './audio.js';
 import { createSoundscape } from './soundscape.js';
+import { createCues } from './cues.js';
+import { HELP_LINES } from './help.js';
 
 const SUB = 1 / 120;  // physics sub-step, seconds
 const BETWEEN = 3;    // pause between rounds, seconds
 
-export const HELP = 'Arrow up runs toward the goal, arrow down away from it. Left and right arrows go to your left and right. '
-  + 'Hold two arrows to run diagonally. Space kicks the ball up the pitch. In the attacking third it shoots at the goal, and holding left or right aims inside that post.'
-  + 'W tells you where you are. H repeats this help. Escape pauses, and Space resumes after a pause.';
-
-export function createGame({ onLevelDone }) {
-  const sound = createSoundscape();
+export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) {
+  const sound = createSoundscape(), cues = createCues();
   let level = 0, round = 0, phase = 'idle', world = null, stats = null, rounds = [], score = 0;
-  let wait = 0, resumeTo = 'play', third = 0, ballWasAhead = true, kickQueued = false;
+  let wait = 0, resumeTo = 'play', kickQueued = false, clock = false;
+
+  const whereLine = () => `Round ${round} of ${ROUNDS}. ${W.whereText(world)}`;
+  // Levels 2 and 3 have the crowd bed; level 1 is quiet so the ball's tick is never masked.
+  const crowd = () => { if (level > 1) crowdStart(); };
 
   function nextRound() {
     round += 1;
-    world = W.createWorld(setupRound(level));
-    stats = newStats();
+    const setup = setupRound(level, rand);
+    world = W.createWorld(setup);
+    stats = newStats(setup);
     phase = 'play';
-    third = W.thirdIndex(world.player.x);
-    ballWasAhead = world.ball.x >= world.player.x;
+    clock = false; // the round clock starts at the first arrow press (or kick)
     kickQueued = false;
     sound.reset();
-    say(startLine(level, round), { priority: 'high' });
+    cues.reset(world);
+    startLines(level, round).forEach((line, i) => say(line, i ? { wait: 20000 } : { priority: 'high' }));
   }
 
   function startLevel(n) {
     stopAll();
     cancel();
     level = n; round = 0; rounds = []; score = 0;
-    crowdStart();
+    crowd();
     nextRound();
   }
 
-  function endRound(line) {
-    rounds.push({ ...stats });
+  // how: 'success', 'giveup' or 'timeout' (see closeStats).
+  function endRound(how, line) {
+    rounds.push({ ...closeStats(level, stats, how) });
     phase = 'between';
     wait = BETWEEN;
     say(line, { priority: 'high' });
@@ -48,49 +52,42 @@ export function createGame({ onLevelDone }) {
   function finishLevel() {
     phase = 'idle';
     stopAll();
-    say(summarySpeech(level, rounds), { priority: 'high' });
+    say(summarySpeech(level, rounds), { priority: 'high', wait: 20000 });
     onLevelDone({ level, rounds: rounds.map((r) => ({ ...r })) });
+  }
+
+  // A ball hitting the end wall in front of the goal (levels 2 and 3): a shot is counted and called
+  // wide; a dribbled one is called too, at a lower rate.
+  function endWall(e) {
+    if (level < 2 || e.x !== W.PITCH_L) return;
+    const side = e.y < W.GOAL.y ? 'left' : 'right';
+    if (e.wide) { stats.wide += 1; say(`Wide ${e.wide}`, { key: 'wide', gap: 1000 }); }
+    else say(`Wide ${side} of the goal`, { key: 'wide', gap: 2500 });
   }
 
   function onEvent(e) {
     sound.event(e, world);
     switch (e.type) {
       case 'take':
-        if (LEVELS[level].endsOn === 'take') endRound(`Got it! ${stats.time.toFixed(1)} seconds.`);
+        if (LEVELS[level].endsOn === 'take') endRound('success', `Got it. ${stats.time.toFixed(1)} seconds.`);
         else say('Got the ball', { key: 'got', gap: 1500 });
         break;
       case 'kick': stats.kicks += 1; break;
       case 'bump': stats.bumps += 1; break;
-      case 'goal': score += 1; endRound('Goal!'); break;
-      case 'save': say('Saved!', { priority: 'high' }); break;
-      case 'post': say('Post!'); break;
-      case 'endwall': if (e.wide) say(`Wide ${e.wide}`); break;
-      case 'voy': say('Voy!', { pitch: 1.4, rate: 1.3 }); break;
-      case 'nokick':
-        say('You need the ball to kick', { priority: 'low', key: 'nokick', gap: 2000 });
-        break;
+      case 'goal': score += 1; endRound('success', 'Goal!'); break;
+      case 'save': stats.saves += 1; say('Saved!', { priority: 'high', key: 'saved', gap: 1500 }); break;
+      case 'post': say('Post!', { key: 'post', gap: 800 }); break;
+      case 'endwall': endWall(e); break;
+      case 'voy': say('Voy!', { pitch: 1.4, cue: true }); break;
+      case 'nokick': say('You need the ball to kick', { priority: 'low', key: 'nokick', gap: 2000 }); break;
       default: break;
     }
   }
 
-  // Spoken cues that come from watching the world: thirds, the ball passing behind, the goal guide.
-  function cues() {
-    const p = world.player, b = world.ball;
-    const up = W.thirdIndex(p.x - 0.5), down = W.thirdIndex(p.x + 0.5); // 0.5 m hysteresis
-    if (up > third || down < third) {
-      third = up > third ? up : down;
-      say(W.THIRD_NAMES[third]);
-    }
-    const ahead = b.x - p.x;
-    if (ballWasAhead && ahead < -1 && !world.hasBall) say('Ball behind you', { key: 'behind', gap: 4000 });
-    if (ahead > 0) ballWasAhead = true;
-    else if (ahead < -1) ballWasAhead = false;
-    if (world.hasBall && W.thirdIndex(p.x) === 2) say(W.guideText(p), { key: 'guide', gap: 4000 });
-  }
-
   function update(dt, dir) {
     if (phase === 'play') {
-      stats.time += dt;
+      if (!clock && (dir.x || dir.y || kickQueued)) clock = true;
+      if (clock) stats.time += dt;
       const n = Math.max(1, Math.ceil(dt / SUB)), h = dt / n;
       const kick = kickQueued;
       kickQueued = false;
@@ -100,7 +97,11 @@ export function createGame({ onLevelDone }) {
           if (phase !== 'play') break outer;
         }
       }
-      if (phase === 'play') { sound.update(world, dt); cues(); }
+      if (phase === 'play') {
+        sound.update(world, dt);
+        cues.update(world);
+        if (stats.time >= W.ROUND_CAP) endRound('timeout', 'Time is up.');
+      }
     } else if (phase === 'between') {
       wait -= dt;
       if (wait <= 0) { if (round < ROUNDS) nextRound(); else finishLevel(); }
@@ -108,9 +109,17 @@ export function createGame({ onLevelDone }) {
   }
 
   function action(name) {
-    if (name === 'help') { say(HELP); return; }
-    if (phase === 'play' && name === 'kick') kickQueued = true;
-    if (phase === 'play' && name === 'where') { stats.where += 1; say(W.whereText(world)); }
+    if (name === 'help') {
+      // Normal priority, so ordinary cues don't wipe it (events still cut in). It waits its turn behind
+      // the round's explanation; pressing H again while it is still going starts it over.
+      if (isSaying('help')) cancel();
+      HELP_LINES.forEach((line) => say(line, { key: 'help', many: true, wait: 30000 }));
+      return;
+    }
+    if (phase !== 'play') return;
+    if (name === 'kick') kickQueued = true;
+    else if (name === 'where') { stats.where += 1; say(whereLine(), { priority: 'high', key: 'where' }); }
+    else if (name === 'giveup') endRound('giveup', 'Round given up.');
   }
 
   function pause() {
@@ -125,16 +134,32 @@ export function createGame({ onLevelDone }) {
   function resume() {
     if (phase !== 'paused') return false;
     phase = resumeTo;
-    crowdStart();
+    crowd();
     sound.reset();
-    say(`Round ${round}. ${W.whereText(world)}`, { priority: 'high' });
+    say(resumeTo === 'between' ? 'Next round in a moment.' : whereLine(), { priority: 'high' });
     return true;
+  }
+
+  // The round in play (or paused from play) that the player has started: it is closed as 'left' in a copy,
+  // or marked paused for a look at the results during a pause (the round can still go on).
+  // A round nobody has touched yet (no key pressed, no W) carries no information and is left out.
+  function openRound(paused) {
+    const open = phase === 'play' || (phase === 'paused' && resumeTo === 'play');
+    return open && stats && (clock || stats.where > 0) ? [{ ...closeStats(level, { ...stats }, 'left'), paused }] : [];
+  }
+
+  // The rounds so far of a level that is not over, with the round in progress counted as left (or as
+  // paused, when paused is true), or null.
+  function partial(paused = false) {
+    if (!level || phase === 'idle') return null;
+    const all = [...rounds.map((r) => ({ ...r })), ...openRound(paused)];
+    return all.length ? { level, rounds: all, partial: true } : null;
   }
 
   function snapshot() {
     const w = world;
     return {
-      level, round, phase, playing: phase === 'play',
+      level, round, phase, playing: phase === 'play', clockRunning: clock,
       player: w ? { x: w.player.x, y: w.player.y } : null,
       ball: w ? { x: w.ball.x, y: w.ball.y, vx: w.ball.vx, vy: w.ball.vy } : null,
       hasBall: w ? w.hasBall : false,
@@ -145,7 +170,7 @@ export function createGame({ onLevelDone }) {
   }
 
   return {
-    startLevel, update, action, pause, resume, snapshot,
+    startLevel, update, action, pause, resume, partial, snapshot,
     get world() { return world; },
     get phase() { return phase; },
     get level() { return level; },
