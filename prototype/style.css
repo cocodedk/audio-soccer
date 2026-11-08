@@ -1,0 +1,79 @@
+/* Tokens follow docs/overview.html: bare :root is light, dark via prefers-color-scheme or data-theme. */
+:root {
+  --bg: #EDF1EA; --surface: #FAFBF8; --ink: #13201A; --muted: #4D5E55; --rule: #CBD5CC;
+  --accent: #9A5B00; --accent-fill: #F2A516; --on-accent: #13201A; --focus: #1A6E98;
+  --turf: #1E5A47;
+  --display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0E1613; --surface: #15201B; --ink: #E5EDE7; --muted: #9BAEA4; --rule: #2A3A33;
+  --accent: #F5B436; --accent-fill: #F5B436; --focus: #6CC0EA;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0E1613; --surface: #15201B; --ink: #E5EDE7; --muted: #9BAEA4; --rule: #2A3A33;
+  --accent: #F5B436; --accent-fill: #F5B436; --focus: #6CC0EA;
+  color-scheme: dark }
+
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px }
+.wrap { max-width: 1180px; margin: 0 auto }
+p { margin: 0 }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap }
+
+.hero { padding-block: 32px 24px; display: grid; gap: 12px }
+.eyebrow { font-family: var(--mono); font-size: .78rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted) }
+h1 { font-family: var(--display); font-weight: 900; font-size: clamp(2.8rem, 10vw, 5.6rem); line-height: .88;
+  text-transform: uppercase; margin: 0; text-wrap: balance }
+h1 em { font-style: normal; color: var(--accent) }
+.lede { max-width: 66ch; font-size: 1.1rem }
+h2 { font-family: var(--display); font-weight: 800; font-size: clamp(1.8rem, 5vw, 2.4rem); line-height: 1;
+  text-transform: uppercase; margin: 0 }
+h3 { font-size: 1.02rem; margin: 0 }
+
+.layout { display: grid; gap: 20px; align-items: start }
+@media (min-width: 900px) {
+  .layout { grid-template-columns: minmax(300px, 380px) 1fr }
+  .results { grid-column: 1 / -1 }
+}
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 18px;
+  display: grid; gap: 14px; align-content: start; min-width: 0 }
+.stage { display: grid; gap: 10px; min-width: 0 }
+
+.btn { font: 700 1rem var(--body); padding: 10px 18px; border-radius: 999px; border: 2px solid var(--ink);
+  background: transparent; color: var(--ink); cursor: pointer; text-align: left; justify-self: start; max-width: 100% }
+.btn.primary { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent) }
+.btn.level { width: 100% }
+.btn:hover { background: color-mix(in srgb, var(--accent-fill) 18%, transparent) }
+.btn.primary:hover { background: var(--accent-fill) }
+.levels { display: grid; gap: 8px }
+.modes { border: 1px solid var(--rule); border-radius: 10px; padding: 8px 14px 12px; margin: 0; display: grid; gap: 6px }
+.modes legend { font-weight: 700; padding: 0 4px }
+.check { display: flex; gap: 10px; align-items: center }
+.check input { width: 20px; height: 20px; accent-color: var(--accent-fill); flex: none }
+
+.keys { margin: 0; padding-left: 1.2em; display: grid; gap: 4px }
+kbd { font-family: var(--mono); font-size: .82rem; padding: 1px 6px; border: 1.5px solid var(--rule);
+  border-radius: 5px; background: var(--bg); white-space: nowrap }
+
+.arena { background: var(--surface); border: 2px solid var(--rule); border-radius: 14px; padding: 12px;
+  display: grid; gap: 10px; min-width: 0 }
+.arena:focus-visible, .arena:focus { outline: 3px solid var(--focus); outline-offset: 3px; border-color: var(--focus) }
+.status { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 1.3rem; line-height: 1.1;
+  font-variant-numeric: tabular-nums }
+canvas { width: 100%; max-width: 100%; aspect-ratio: 47 / 26; display: block; border-radius: 8px; background: var(--turf) }
+
+.results textarea { width: 100%; font: .95rem/1.5 var(--mono); color: var(--ink); background: var(--bg);
+  border: 1.5px solid var(--muted); border-radius: 8px; padding: 10px; resize: vertical }
+.results h2:focus { outline: none }
+.results h2:focus-visible { outline: 3px solid var(--focus) }
+.note { font-size: .92rem; color: var(--muted) }
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn { transition: background-color .15s }
+}

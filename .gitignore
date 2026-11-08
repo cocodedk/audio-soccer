@@ -1,0 +1,10 @@
+# Local machine and agent tooling
+.mcp.json
+.claude/
+.playwright-mcp/
+.zvec-grep/
+memory/
+
+# Build output
+_site/
+node_modules/

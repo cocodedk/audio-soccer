@@ -1,0 +1,537 @@
+<title>Audio Soccer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a stadium-style hero holding the live pitch and its sound log, then a single-column story
+   (play, sound, commentator, rules, build order) on a ~66ch measure with wider grids where content is a set. */
+:root {
+  --bg: #EDF1EA; --surface: #FAFBF8; --ink: #13201A; --muted: #4D5E55; --rule: #CBD5CC;
+  --accent: #9A5B00; --accent-fill: #F2A516; --on-accent: #13201A; --focus: #1A6E98;
+  --l-ball: #9A5B00; --l-call: #B33A26; --l-guide: #1A6E98; --l-comm: #5E4592; --l-crowd: #4C6655;
+  --turf: #1E5A47;
+  --display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0E1613; --surface: #15201B; --ink: #E5EDE7; --muted: #9BAEA4; --rule: #2A3A33;
+  --accent: #F5B436; --accent-fill: #F5B436; --focus: #6CC0EA;
+  --l-ball: #F5B436; --l-call: #F08A73; --l-guide: #6CC0EA; --l-comm: #B49BE8; --l-crowd: #9DB8A6;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0E1613; --surface: #15201B; --ink: #E5EDE7; --muted: #9BAEA4; --rule: #2A3A33;
+  --accent: #F5B436; --accent-fill: #F5B436; --focus: #6CC0EA;
+  --l-ball: #F5B436; --l-call: #F08A73; --l-guide: #6CC0EA; --l-comm: #B49BE8; --l-crowd: #9DB8A6;
+  color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 56px }
+.wrap { max-width: 1100px; margin: 0 auto }
+p { margin: 0 }
+.prose { max-width: 66ch; display: grid; gap: 12px }
+.muted { color: var(--muted) }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+
+.hero { padding-block: 40px 28px; display: grid; gap: 14px }
+.eyebrow { font-family: var(--mono); font-size: .78rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted) }
+h1 { font-family: var(--display); font-weight: 900; font-size: clamp(3.4rem, 11vw, 7rem); line-height: .86;
+  text-transform: uppercase; margin: 0; letter-spacing: .005em; text-wrap: balance }
+h1 em { font-style: normal; color: var(--accent) }
+.lede { max-width: 60ch; font-size: 1.16rem }
+h2 { font-family: var(--display); font-weight: 800; font-size: clamp(2.1rem, 5.5vw, 3rem); line-height: .95;
+  text-transform: uppercase; margin: 0; text-wrap: balance }
+h3 { font-size: 1.05rem; margin: 0 }
+section { padding-block: 44px; border-top: 1px solid var(--rule); display: grid; gap: 22px }
+
+.stage { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 14px; display: grid; gap: 14px }
+.scorebar { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 16px;
+  font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 1.45rem; line-height: 1 }
+.scorebar .score, .scorebar .clock { font-variant-numeric: tabular-nums }
+.scorebar .clock { color: var(--muted); font-size: 1.15rem }
+.score.flash { color: var(--accent) }
+canvas { width: 100%; max-width: 100%; aspect-ratio: 47 / 26; display: block; border-radius: 8px; background: var(--turf) }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px }
+.btn { font: 700 1rem var(--body); padding: 10px 20px; border-radius: 999px; border: 2px solid var(--ink);
+  background: transparent; color: var(--ink); cursor: pointer }
+.btn.primary { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent) }
+.check { display: flex; gap: 8px; align-items: center; font-size: .95rem; color: var(--muted) }
+.check input { width: 18px; height: 18px; accent-color: var(--accent-fill) }
+.note { font-size: .92rem; color: var(--muted) }
+
+.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
+.log li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 6px 8px; border-radius: 6px; color: var(--muted) }
+.log li.on { color: var(--ink) }
+.log li.now { background: color-mix(in srgb, var(--accent-fill) 16%, transparent) }
+.log .tm { font-family: var(--mono); font-size: .8rem; width: 3.4rem; font-variant-numeric: tabular-nums }
+.log .txt { flex: 1 1 24ch; min-width: 0 }
+.chip { display: inline-block; font-family: var(--mono); font-size: .7rem; letter-spacing: .07em; text-transform: uppercase;
+  padding: 1px 7px; border-radius: 4px; border: 1.5px solid currentColor; white-space: nowrap; width: max-content }
+.log .chip { width: 8.6rem; text-align: center }
+.chip[data-l="ball"] { color: var(--l-ball) } .chip[data-l="call"] { color: var(--l-call) }
+.chip[data-l="guide"] { color: var(--l-guide) } .chip[data-l="comm"] { color: var(--l-comm) }
+.chip[data-l="crowd"] { color: var(--l-crowd) }
+
+.table-box { overflow-x: auto }
+table { border-collapse: collapse; width: 100%; min-width: 560px }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--rule) }
+th { font-family: var(--mono); font-size: .75rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 500 }
+td:first-child { font-weight: 700; white-space: nowrap }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px }
+.card { border: 1.5px solid var(--rule); border-radius: 12px; padding: 16px; display: grid; gap: 8px; align-content: start; background: var(--surface) }
+.card svg { width: 46px; height: 46px; color: var(--ink) }
+.tag { font-family: var(--mono); font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; color: var(--accent) }
+.callout { border-left: 4px solid var(--accent-fill); padding: 4px 0 4px 14px; max-width: 66ch }
+
+.axes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px }
+.axis { display: grid; gap: 4px }
+.axis b { font-family: var(--display); font-size: 1.6rem; text-transform: uppercase; line-height: 1 }
+.layers { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; max-width: 72ch; counter-reset: l }
+.layers li { display: grid; grid-template-columns: 2rem 8.6rem 1fr; gap: 10px; align-items: baseline; counter-increment: l }
+.layers li::before { content: counter(l); font-family: var(--display); font-weight: 800; font-size: 1.5rem; line-height: 1 }
+.layers .chip { text-align: center; width: 8.6rem }
+@media (max-width: 520px) { .layers li { grid-template-columns: 2rem 1fr } .layers li span:last-child { grid-column: 2 } }
+
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px }
+.snd { display: grid; gap: 6px; text-align: left; padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--rule);
+  background: var(--surface); color: var(--ink); cursor: pointer; font: inherit }
+.snd b { font-size: 1.02rem } .snd span.m { color: var(--muted); font-size: .92rem; line-height: 1.4 }
+.snd.playing { border-color: var(--accent-fill); box-shadow: 0 0 0 2px var(--accent-fill) inset }
+
+.queue { display: grid; gap: 0; max-width: 66ch; border: 1.5px solid var(--rule); border-radius: 12px; overflow: hidden }
+.queue div { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 10px 14px; border-bottom: 1px solid var(--rule) }
+.queue div:last-child { border-bottom: 0 }
+.queue .tm { font-family: var(--mono); font-size: .82rem; width: 3.4rem; color: var(--muted) }
+.queue .what { flex: 1 1 26ch; min-width: 0 }
+.queue s { color: var(--muted) }
+
+.never { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px 28px }
+.never li { padding-left: 22px; position: relative }
+.never li::before { content: ""; position: absolute; left: 0; top: .55em; width: 10px; height: 10px; border-radius: 50%; background: var(--l-call) }
+
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0 }
+.steps li { border-top: 4px solid var(--ink); padding-top: 10px; display: grid; gap: 6px; align-content: start }
+.steps .n { font-family: var(--display); font-weight: 900; font-size: 2.6rem; line-height: .9; color: var(--accent) }
+.steps li:first-child { border-top-style: dashed }
+ol.qs { margin: 0; padding-left: 1.4em; display: grid; gap: 6px; max-width: 66ch }
+footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .92rem; color: var(--muted) }
+@media (prefers-reduced-motion: no-preference) { .score { transition: color .3s } }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <p class="eyebrow">Design draft · 7 November 2026 · for blind and visually impaired players</p>
+    <h1>Audio <em>Soccer</em></h1>
+    <p class="lede">A 5-a-side soccer game you play by ear. Every pass, tackle and shot is a sound you can place, a live commentator calls the match, and TalkBack stays on the whole time.</p>
+  </header>
+
+  <div class="stage" aria-labelledby="stage-title">
+    <h2 id="stage-title" class="sr">Sample attack</h2>
+    <div class="scorebar">
+      <span class="score" id="score">Your team 0 – 0 Northgate</span>
+      <span class="clock" id="clock">Sample attack · 0:00</span>
+    </div>
+    <canvas id="pitch" role="img" aria-label="Top-down view of the 40 by 20 metre pitch, boards along both long sides. Your team attacks from left to right. During the sample the dots move and the list below describes every sound."></canvas>
+    <div class="controls">
+      <button class="btn primary" id="play" type="button">Play the sample attack</button>
+      <label class="check" for="announce"><input type="checkbox" id="announce"> Read each caption with my screen reader</label>
+    </div>
+    <p class="note" id="audio-note">Wear headphones. The 14-second sample uses rough synthesized stand-ins for the real sounds, and your browser's voice for the commentator and guide.</p>
+    <ol class="log" id="log" aria-label="What you hear, in order"></ol>
+    <div class="sr" id="live" aria-live="off"></div>
+  </div>
+
+  <section aria-labelledby="h-play">
+    <h2 id="h-play">What you do</h2>
+    <div class="prose">
+      <p>You control one player at a time: whoever on your team is closest to the ball. Control switches on its own, and a short sound plus the player's name tells you who you are now. Your teammates run themselves. There are only five things to do.</p>
+    </div>
+    <div class="table-box">
+      <table>
+        <thead><tr><th scope="col">Action</th><th scope="col">With the ball</th><th scope="col">Without the ball</th></tr></thead>
+        <tbody>
+          <tr><td>Steer</td><td>Dribble</td><td>Run toward a spot</td></tr>
+          <tr><td>Kick</td><td>Shoot when in range and facing goal. Otherwise pass to the teammate in the direction you're steering.</td><td class="muted">Nothing</td></tr>
+          <tr><td>Challenge</td><td class="muted">Nothing</td><td>Tackle. Running into the ball carrier also tackles, with an automatic "voy!"</td></tr>
+          <tr><td>Ask</td><td colspan="2">Hear the score, the time, where you are and where the ball is</td></tr>
+          <tr><td>Pause</td><td colspan="2">Open the pause menu, an ordinary TalkBack screen</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Controls that work with TalkBack on</h3>
+    <p class="prose">TalkBack takes over single-finger swipes, so normal game controls don't work. Turning TalkBack off isn't an option. The first build tests these three on the tester's own phone.</p>
+    <div class="cards">
+      <div class="card">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="12" y="3" width="24" height="42" rx="4"/><circle cx="24" cy="24" r="1.6" fill="currentColor"/><circle cx="31" cy="15" r="4"/><path d="M24 24l5-6.5"/></svg>
+        <span class="tag">Option 1 · first choice</span>
+        <h3>Finger as joystick</h3>
+        <p>Rest a finger anywhere. Where it sits from the centre of the screen is the way you run. Double-tap to kick.</p>
+      </div>
+      <div class="card">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="14" y="4" width="22" height="40" rx="4" transform="rotate(18 25 24)"/><path d="M6 40c3-4 7-6 11-6M6 40l1-5M6 40l5 0"/></svg>
+        <span class="tag">Option 2</span>
+        <h3>Tilt to steer</h3>
+        <p>Tilt the phone the way you want to run. TalkBack doesn't touch the tilt sensor. Double-tap to kick.</p>
+      </div>
+      <div class="card">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="14" width="40" height="22" rx="11"/><path d="M14 21v8M10 25h8"/><circle cx="32" cy="23" r="2"/><circle cx="37" cy="28" r="2"/></svg>
+        <span class="tag">Option 3 · always supported</span>
+        <h3>Keyboard or gamepad</h3>
+        <p>Arrow keys or a stick to run, one button to kick. The most reliable option, for anyone who has one.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-sound">
+    <h2 id="h-sound">How it sounds</h2>
+    <p class="callout">You hear the match from your own player's position, always facing the goal you attack.</p>
+    <div class="axes">
+      <div class="axis"><b>Left or right</b><span>Which ear. A ball on the left board knocks in your left ear.</span></div>
+      <div class="axis"><b>Near or far</b><span>How loud. Far sounds also get a little echo.</span></div>
+      <div class="axis"><b>Ahead or behind</b><span>Bright or dull. Sounds behind you are muffled. The tester will judge if this works.</span></div>
+    </div>
+    <h3>When a lot happens at once, the lower layers get quieter</h3>
+    <ol class="layers">
+      <li><span class="chip" data-l="ball">Ball</span><span>The rattle while it moves, plus kicks, boards, posts and net. Never turned down.</span></li>
+      <li><span class="chip" data-l="call">Calls</span><span>"Voy!", footsteps closing in, teammates calling for the ball.</span></li>
+      <li><span class="chip" data-l="guide">Guide</span><span>Keeper, coach and goal guide calling short directions from where they stand.</span></li>
+      <li><span class="chip" data-l="comm">Commentator</span><span>Who has the ball, fouls, score, time and the drama.</span></li>
+      <li><span class="chip" data-l="crowd">Crowd</span><span>Rises as an attack nears either goal, groans at a miss, erupts at a goal.</span></li>
+    </ol>
+    <h3>Sound gallery</h3>
+    <p class="prose muted">The real game has a gallery like this, so players learn every sound before a match. These are rough stand-ins.</p>
+    <div class="gallery" id="gallery"></div>
+  </section>
+
+  <section aria-labelledby="h-comm">
+    <h2 id="h-comm">The commentator</h2>
+    <div class="prose">
+      <p>The commentator is part of the controls. They say what sound effects can't: who has the ball, a foul, the score, the time. Lines are short while the ball is moving, and the longer chat waits for a stoppage. They always duck under the ball, the calls and the guides.</p>
+      <p>Important moments jump the queue: a goal beats a shot, a shot beats a foul, a foul beats a pass. A line that's out of date by the time it would play is dropped, never said late:</p>
+    </div>
+    <div class="queue" role="table" aria-label="Example of the commentator queue">
+      <div role="row"><span class="tm" role="cell">0.0 s</span><span class="what" role="cell">Holm passes to you. Queued: "Holm finds you on the left…"</span></div>
+      <div role="row"><span class="tm" role="cell">0.3 s</span><span class="what" role="cell">You shoot. Said at once: <b>"Shot!"</b></span></div>
+      <div role="row"><span class="tm" role="cell">0.3 s</span><span class="what" role="cell"><s>"Holm finds you on the left…"</s> Dropped, it's out of date.</span></div>
+    </div>
+    <p class="prose muted">Commentary can be set to full, key moments only, or off. The voice is prepared in advance with offline text-to-speech, so the game needs no internet. English first.</p>
+  </section>
+
+  <section aria-labelledby="h-never">
+    <h2 id="h-never">Never needs sight</h2>
+    <ul class="never">
+      <li>No step needs sight: first launch, permissions, menus, results.</li>
+      <li>It never asks you to turn TalkBack off and never mutes your phone, so you can't get stuck in silence.</li>
+      <li>The ball is always the clearest sound. Nothing is allowed to bury it.</li>
+      <li>The commentator never lags behind play or talks over what you need to hear.</li>
+      <li>Pause is always one action away.</li>
+      <li>No internet, account, ads or tracking.</li>
+    </ul>
+    <p class="prose muted">Low-vision players and sighted friends get a simple high-contrast picture of the pitch, like the one above. It never carries anything the sound doesn't.</p>
+  </section>
+
+  <section aria-labelledby="h-rules">
+    <h2 id="h-rules">Borrowed from blind football</h2>
+    <div class="prose">
+      <p>The rules come from blind football, the real 5-a-side Paralympic sport, which was built around sound from the start. Four outfield players and a keeper per side. A pitch of about 40 by 20 metres with boards along both sides, so the ball rarely goes out. A ball that rattles. Players shout "voy!" when they go for the ball.</p>
+      <p>Each team has three guiding voices: the keeper in the defending third, the coach in the middle, and a guide behind the other team's goal. You heard the guide in the sample. The game still feels like a full match, with a stadium, a crowd and a league of made-up teams.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-build">
+    <h2 id="h-build">Build order</h2>
+    <p class="prose">Android first, same build as the chess app. Each step goes to the tester, and their feedback decides the next one.</p>
+    <ol class="steps">
+      <li><span class="n">0</span><h3>Controls test</h3><p>Throwaway. The three control options and a left, right, ahead and behind sound test on the tester's phone.</p></li>
+      <li><span class="n">1</span><h3>Penalty shootout</h3><p>Five each. Aim and time your shot, or listen to the run-up and dive. Proves the sound, commentator and controls.</p></li>
+      <li><span class="n">2</span><h3>Training pitch</h3><p>You, the ball, the goal and the goal guide. Learn to find the ball, dribble and shoot. Plus the sound gallery.</p></li>
+      <li><span class="n">3</span><h3>Full match</h3><p>5-a-side against computer teams, with all the voices, difficulty and speed settings, and a league.</p></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="h-qs">
+    <h2 id="h-qs">Questions for the tester</h2>
+    <ol class="qs">
+      <li>Phone or computer? Already asked by email.</li>
+      <li>Is 5-a-side right, or do you want the feel of regular 11-a-side?</li>
+      <li>Which audio games have you loved or hated, especially sports ones, and why?</li>
+      <li>Do you play with headphones?</li>
+      <li>Which language should the commentator speak?</li>
+    </ol>
+  </section>
+
+  <footer>Draft design, 7 November 2026. Teams and players are made up. Full text in <code>audio-soccer/docs/DESIGN.md</code>.</footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- audio ---------- */
+let ctx = null, master = null, noise = null, crowd = null;
+function audio() {
+  if (!ctx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    ctx = new AC();
+    master = ctx.createGain(); master.gain.value = 0.8; master.connect(ctx.destination);
+    noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d = noise.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  if (ctx.state === 'suspended') ctx.resume();
+  return ctx;
+}
+function out(pan = 0, gain = 1, bright = true) {
+  const g = ctx.createGain(); g.gain.value = gain;
+  const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = bright ? 16000 : 1000;
+  g.connect(f);
+  if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); f.connect(p); p.connect(master); }
+  else f.connect(master);
+  return g;
+}
+function burst(dest, { dur = .04, type = 'bandpass', freq = 3000, q = 1, gain = 1, at = 0, attack = .002 } = {}) {
+  const t = ctx.currentTime + at, s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+  s.buffer = noise; f.type = type; f.frequency.value = freq; f.Q.value = q;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + attack);
+  g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  s.connect(f); f.connect(g); g.connect(dest); s.start(t, Math.random() * 1.5); s.stop(t + dur + .05);
+}
+function tone(dest, { f0 = 140, f1 = 50, dur = .14, gain = 1, type = 'sine', at = 0 } = {}) {
+  const t = ctx.currentTime + at, o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + .05);
+}
+const sfx = {
+  rattle(pan, gain = 1, bright = true) { const d = out(pan, gain, bright);
+    for (let i = 0; i < 3; i++) burst(d, { dur: .018, freq: 4200 + Math.random() * 1500, q: 9, gain: .9, at: Math.random() * .05 }); },
+  kick(pan, gain = 1, bright = true) { const d = out(pan, gain, bright);
+    tone(d, { f0: 150, f1: 45, dur: .13 }); burst(d, { dur: .03, type: 'lowpass', freq: 1500, gain: .6 }); },
+  board(pan, gain = 1, bright = true) { const d = out(pan, gain, bright);
+    tone(d, { f0: 210, f1: 150, dur: .1, gain: .7, type: 'triangle' }); burst(d, { dur: .09, freq: 750, q: 3, gain: .9 }); },
+  net(pan, gain = 1) { const d = out(pan, gain, true); burst(d, { dur: .45, type: 'highpass', freq: 2600, gain: .5, attack: .05 }); },
+  step(pan, gain = 1, bright = true) { const d = out(pan, gain, bright); burst(d, { dur: .05, type: 'lowpass', freq: 420, gain: .9 }); },
+  whistle(times = 1) { const d = out(0, .3, true);
+    for (let i = 0; i < times; i++) { const t = ctx.currentTime + i * .45;
+      [2900, 3060].forEach(fr => { const o = ctx.createOscillator(), lfo = ctx.createOscillator(), lg = ctx.createGain(), g = ctx.createGain();
+        o.frequency.value = fr; lfo.frequency.value = 27; lg.gain.value = 110; lfo.connect(lg); lg.connect(o.frequency);
+        g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.5, t + .02);
+        g.gain.setValueAtTime(.5, t + .3); g.gain.exponentialRampToValueAtTime(.0001, t + .36);
+        o.connect(g); g.connect(d); o.start(t); lfo.start(t); o.stop(t + .4); lfo.stop(t + .4); }); } },
+};
+function play(name, ...a) { if (!ctx) return; try { sfx[name](...a); } catch (e) {} }
+function crowdStart() {
+  if (!ctx || crowd) return;
+  const s = ctx.createBufferSource(); s.buffer = noise; s.loop = true;
+  const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 700; bp.Q.value = .6;
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1600;
+  const g = ctx.createGain(); g.gain.value = 0;
+  s.connect(bp); bp.connect(lp); lp.connect(g); g.connect(master); s.start();
+  g.gain.linearRampToValueAtTime(.12, ctx.currentTime + .8);
+  crowd = { s, g, lp };
+}
+function crowdLevel(level, secs = .6) {
+  if (!crowd) return; const t = ctx.currentTime;
+  crowd.g.gain.cancelScheduledValues(t); crowd.g.gain.setValueAtTime(crowd.g.gain.value, t);
+  crowd.g.gain.linearRampToValueAtTime(level, t + secs);
+  crowd.lp.frequency.setTargetAtTime(level > .3 ? 4200 : 1600, t, .2);
+}
+function crowdStop() {
+  if (!crowd) return; const c = crowd; crowd = null; const t = ctx.currentTime;
+  c.g.gain.cancelScheduledValues(t); c.g.gain.setValueAtTime(c.g.gain.value, t);
+  c.g.gain.linearRampToValueAtTime(0, t + .5); c.s.stop(t + .6);
+}
+
+/* ---------- speech ---------- */
+let voice = null;
+function pickVoice() { try { const vs = speechSynthesis.getVoices();
+  voice = vs.find(v => /^en[-_]GB/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null; } catch (e) {} }
+try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {}
+function say(text, { pitch = 1, rate = 1.08 } = {}) {
+  try { const u = new SpeechSynthesisUtterance(text); if (voice) u.voice = voice; u.pitch = pitch; u.rate = rate; speechSynthesis.speak(u); } catch (e) {}
+}
+function hush() { try { speechSynthesis.cancel(); } catch (e) {} }
+
+/* ---------- the sample attack ---------- */
+const TEAM = [
+  { id: 'you', side: 'home', keys: [[0, 12, 7], [1.6, 12.5, 7.2], [2.6, 13.6, 7.2], [5.2, 23.4, 6.2], [6.6, 28.4, 3.8], [8.6, 31.6, 6.2], [14, 33, 7]] },
+  { id: 'holm', side: 'home', keys: [[0, 10, 14], [3, 15, 14], [9, 26, 13], [14, 28, 13]] },
+  { id: 'okafor', side: 'home', keys: [[0, 6, 10], [14, 15, 11]] },
+  { id: 'silva', side: 'home', keys: [[0, 16, 17], [6, 23, 16.5], [14, 31, 15]] },
+  { id: 'gk1', side: 'home', gk: true, keys: [[0, 1.5, 10], [14, 2, 10]] },
+  { id: 'd1', side: 'away', keys: [[0, 31, 9], [3.2, 29, 8.4], [5.2, 25.4, 6.8], [6.4, 25.6, 7.4], [14, 29, 9]] },
+  { id: 'd2', side: 'away', keys: [[0, 28, 15], [14, 31, 13]] },
+  { id: 'd3', side: 'away', keys: [[0, 22, 12], [14, 27, 11.5]] },
+  { id: 'd4', side: 'away', keys: [[0, 34, 5], [8.6, 35, 7.6], [14, 36, 8.5]] },
+  { id: 'gk2', side: 'away', gk: true, keys: [[0, 38.6, 10], [8.8, 38.6, 10.2], [9.1, 38.7, 11.3], [14, 38.6, 10.6]] },
+];
+const BALL = [[0, 10.6, 13.4], [1.6, 10.6, 13.4], [2.6, 13.9, 7.6], [3.9, 18.8, 7.1], [5.2, 23.9, 6.5], [5.75, 26.2, .45],
+  [6.6, 28.9, 3.5], [7.6, 30.4, 5.1], [8.6, 31.9, 6.4], [9.05, 40.5, 9.1], [14, 40.7, 9.1]];
+const GUIDE = { x: 42.3, y: 10 };
+const END = 14;
+const LAYER = { ball: 'Ball', call: 'Calls', guide: 'Guide', comm: 'Commentator', crowd: 'Crowd' };
+
+function at(keys, t) {
+  if (t <= keys[0][0]) return { x: keys[0][1], y: keys[0][2] };
+  for (let i = 1; i < keys.length; i++) if (t <= keys[i][0]) {
+    const a = keys[i - 1], b = keys[i], u = (t - a[0]) / (b[0] - a[0]);
+    return { x: a[1] + (b[1] - a[1]) * u, y: a[2] + (b[2] - a[2]) * u };
+  }
+  const l = keys[keys.length - 1]; return { x: l[1], y: l[2] };
+}
+const you = t => at(TEAM[0].keys, t);
+/* Listener stands on "you", facing the goal at x = 40, so smaller y is your left. */
+function rel(p, t) {
+  const me = you(t), dx = p.x - me.x, dy = p.y - me.y, dist = Math.hypot(dx, dy);
+  return { pan: clamp(dy / 7, -1, 1), gain: clamp(1.25 / (1 + dist / 6), .08, 1), bright: dx > -1 };
+}
+const kickHere = (t, g = 1) => { const r = rel(at(BALL, t), t); play('kick', r.pan, r.gain * g, r.bright); };
+
+const EVENTS = [
+  { t: .05, l: 'crowd', text: 'Whistle. The crowd settles in.', run: () => { play('whistle', 1); crowdStart(); } },
+  { t: .7, l: 'comm', text: '"Holm on the ball for the home side."', run: () => say('Holm on the ball for the home side.') },
+  { t: 1.6, l: 'ball', text: 'Holm passes to you. The rattle comes in from your right, slightly behind, so it sounds duller.', run: t => kickHere(t) },
+  { t: 2.6, l: 'ball', text: 'You take it. The rattle is right at your feet, in the centre.', run: t => kickHere(t, .6) },
+  { t: 3.3, l: 'call', text: 'Footsteps ahead, a little to your right. A defender is closing in.' },
+  { t: 4.8, l: 'call', text: '"Voy!" The defender is coming for the ball.', run: t => { say('Voy!', { pitch: 1.35, rate: 1.2 }); ring(at(TEAM[5].keys, t), CALL, t); } },
+  { t: 5.2, l: 'ball', text: 'You push the ball to your left…', run: t => kickHere(t, .8) },
+  { t: 5.75, l: 'ball', text: '…off the boards. A wooden knock, hard in your left ear.', run: t => { const r = rel(at(BALL, t), t); play('board', r.pan, r.gain, r.bright); } },
+  { t: 6.1, l: 'crowd', text: 'The crowd rises. An attack is building.', run: () => crowdLevel(.24, 1.5) },
+  { t: 6.6, l: 'ball', text: 'You collect it past the defender.', run: t => kickHere(t, .6) },
+  { t: 6.9, l: 'guide', text: 'The goal guide, behind the goal: "Goal, ten metres, left post!"', run: t => { say('Goal, ten metres. Left post!', { pitch: .8, rate: 1.15 }); ring(GUIDE, GUIDE_C, t); } },
+  { t: 8.6, l: 'ball', text: 'You shoot. The rattle races away ahead of you.', run: t => kickHere(t, 1.3) },
+  { t: 9.05, l: 'ball', text: 'The net.', run: t => { const r = rel(at(BALL, t), t); play('net', r.pan, 1); crowdLevel(.5, .3); goal(); } },
+  { t: 9.4, l: 'comm', text: '"Goal! Tucked inside the left post!" The guide is cut off: a goal beats everything.', run: () => { hush(); say('Goal! Tucked inside the left post!', { rate: 1.15, pitch: 1.1 }); } },
+  { t: 12.4, l: 'crowd', text: 'The cheer fades. Back to kick-off.', run: () => crowdLevel(.1, 1.6) },
+];
+
+/* ---------- drawing ---------- */
+const TURF = '#1E5A47', TURF2 = '#22654F', CHALK = '#F1F5EF', BOARD = '#A9C2CF', AMBER = '#F5B436', CALL = '#FF8E74', GUIDE_C = '#86D3F7';
+const W = { x0: -3.5, x1: 43.5, y0: -3, y1: 23 };
+const cv = $('#pitch'), c = cv.getContext('2d');
+let s = 0, rings = [];
+const X = x => (x - W.x0) * s, Y = y => (y - W.y0) * s;
+const font = (w, size) => `${w} ${Math.max(10, size * s)}px "Atkinson Hyperlegible", "Segoe UI", sans-serif`;
+function ring(p, color, t) { rings.push({ x: p.x, y: p.y, color, t, big: color !== AMBER }); }
+function fit() { const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); s = cv.width / (W.x1 - W.x0); draw(cur); }
+function circle(x, y, r) { c.beginPath(); c.arc(X(x), Y(y), r * s, 0, Math.PI * 2); }
+function draw(t) {
+  if (!s) return;
+  c.fillStyle = TURF; c.fillRect(0, 0, cv.width, cv.height);
+  c.fillStyle = TURF2; for (let i = 1; i < 10; i += 2) c.fillRect(X(i * 4), Y(0), 4 * s, 20 * s);
+  c.strokeStyle = CHALK; c.lineWidth = Math.max(1.5, .12 * s);
+  c.strokeRect(X(0), Y(0), 40 * s, 20 * s);
+  c.beginPath(); c.moveTo(X(20), Y(0)); c.lineTo(X(20), Y(20)); c.stroke();
+  circle(20, 10, 3); c.stroke();
+  c.beginPath(); c.arc(X(0), Y(10), 5 * s, -Math.PI / 2, Math.PI / 2); c.stroke();
+  c.beginPath(); c.arc(X(40), Y(10), 5 * s, Math.PI / 2, Math.PI * 1.5); c.stroke();
+  c.strokeRect(X(-1.2), Y(8.5), 1.2 * s, 3 * s); c.strokeRect(X(40), Y(8.5), 1.2 * s, 3 * s);
+  c.fillStyle = BOARD; c.fillRect(X(0), Y(-.55), 40 * s, .55 * s); c.fillRect(X(0), Y(20), 40 * s, .55 * s);
+  c.fillStyle = CHALK; c.font = font(700, .95); c.textBaseline = 'middle';
+  c.textAlign = 'left'; c.fillText('YOUR LEFT · BOARDS', X(.2), Y(-1.75)); c.fillText('YOUR RIGHT · BOARDS', X(.2), Y(21.75));
+  c.textAlign = 'right'; c.fillText('ATTACKING →', X(39.8), Y(-1.75));
+  c.fillStyle = GUIDE_C; c.textAlign = 'center'; c.fillText('GUIDE', X(GUIDE.x), Y(6.4));
+  c.beginPath(); c.moveTo(X(GUIDE.x), Y(GUIDE.y - .8)); c.lineTo(X(GUIDE.x + .7), Y(GUIDE.y)); c.lineTo(X(GUIDE.x), Y(GUIDE.y + .8)); c.lineTo(X(GUIDE.x - .7), Y(GUIDE.y)); c.closePath(); c.fill();
+  rings = rings.filter(r => t - r.t < (r.big ? 1.2 : .8) && t >= r.t);
+  for (const r of rings) {
+    const age = t - r.t, life = r.big ? 1.2 : .8, rad = reduced ? (r.big ? 2 : 1) : (r.big ? .9 + age * 4 : .5 + age * 3.2);
+    c.globalAlpha = reduced ? .7 : 1 - age / life; c.strokeStyle = r.color; c.lineWidth = Math.max(1.5, .14 * s);
+    circle(r.x, r.y, rad); c.stroke(); c.globalAlpha = 1;
+  }
+  for (const p of TEAM) {
+    const q = at(p.keys, t), home = p.side === 'home';
+    circle(q.x, q.y, .75); c.fillStyle = home ? '#F4F7F2' : '#16233A'; c.fill();
+    c.lineWidth = Math.max(1.5, .14 * s); c.strokeStyle = home ? '#16233A' : '#F4F7F2'; c.stroke();
+    if (p.gk) { c.fillStyle = home ? '#16233A' : '#F4F7F2'; c.font = font(700, .6); c.textAlign = 'center'; c.fillText('GK', X(q.x), Y(q.y) + .03 * s); }
+    if (p.id === 'you') { circle(q.x, q.y, 1.25); c.strokeStyle = AMBER; c.lineWidth = Math.max(2, .24 * s); c.stroke();
+      c.fillStyle = AMBER; c.font = font(700, .9); c.textAlign = 'center'; c.fillText('YOU', X(q.x), Y(q.y - 2)); }
+  }
+  const b = at(BALL, t); circle(b.x, b.y, .42); c.fillStyle = AMBER; c.fill(); c.lineWidth = Math.max(1, .1 * s); c.strokeStyle = '#3A2600'; c.stroke();
+}
+
+/* ---------- log, score, loop ---------- */
+const log = $('#log'), live = $('#live'), btn = $('#play');
+const fmt = t => `0:${t.toFixed(1).padStart(4, '0')}`;
+EVENTS.forEach((e, i) => { const li = document.createElement('li'); li.id = 'ev' + i;
+  li.innerHTML = `<span class="tm">${fmt(e.t)}</span><span class="chip" data-l="${e.l}">${LAYER[e.l]}</span><span class="txt"></span>`;
+  li.querySelector('.txt').textContent = e.text; log.appendChild(li); });
+$('#announce').addEventListener('change', e => live.setAttribute('aria-live', e.target.checked ? 'polite' : 'off'));
+function goal() { const sc = $('#score'); sc.textContent = 'Your team 1 – 0 Northgate'; sc.classList.add('flash'); }
+
+let raf = 0, start = 0, fired = 0, cur = 0, lastGrain = -1, lastStep = -1, running = false;
+function frame(now) {
+  const t = (now - start) / 1000; cur = t;
+  while (fired < EVENTS.length && EVENTS[fired].t <= t) {
+    const e = EVENTS[fired]; if (e.run) e.run(t);
+    log.querySelectorAll('.now').forEach(n => n.classList.remove('now'));
+    const li = $('#ev' + fired); li.classList.add('on', 'now'); live.textContent = e.text; fired++;
+  }
+  const b = at(BALL, t), b2 = at(BALL, t + .05), speed = Math.hypot(b2.x - b.x, b2.y - b.y) / .05;
+  if (speed > .4 && t - lastGrain >= clamp(.17 - speed * .006, .04, .17)) {
+    lastGrain = t; const r = rel(b, t); play('rattle', r.pan, r.gain * .9, r.bright); ring(b, AMBER, t);
+  }
+  const d1 = TEAM[5], d = at(d1.keys, t), dn = at(d1.keys, t + .05), me = you(t);
+  if (Math.hypot(dn.x - d.x, dn.y - d.y) / .05 > .5 && Math.hypot(d.x - me.x, d.y - me.y) < 9 && t - lastStep > .3) {
+    lastStep = t; const r = rel(d, t); play('step', r.pan, r.gain, r.bright);
+  }
+  $('#clock').textContent = 'Sample attack · ' + fmt(Math.min(t, END)).slice(0, -2);
+  draw(t);
+  if (t < END) raf = requestAnimationFrame(frame); else stop(true);
+}
+function startDemo() {
+  const ok = audio();
+  $('#audio-note').textContent = ok ? 'Wear headphones. The 14-second sample uses rough synthesized stand-ins for the real sounds, and your browser\'s voice for the commentator and guide.'
+    : 'This browser can\'t play sound here, so the sample runs silently. The list below describes every sound.';
+  hush(); rings = []; fired = 0; lastGrain = -1; lastStep = -1;
+  const sc = $('#score'); sc.textContent = 'Your team 0 – 0 Northgate'; sc.classList.remove('flash');
+  log.querySelectorAll('li').forEach(li => li.classList.remove('on', 'now'));
+  running = true; btn.textContent = 'Stop'; start = performance.now(); raf = requestAnimationFrame(frame);
+}
+function stop(finished) {
+  cancelAnimationFrame(raf); running = false; crowdStop();
+  if (!finished) hush();
+  btn.textContent = finished ? 'Play it again' : 'Play the sample attack';
+}
+btn.addEventListener('click', () => running ? stop(false) : startDemo());
+
+/* ---------- gallery ---------- */
+function rattleRun(dur, pan, gain, bright) { const every = .065, n = Math.floor(dur / every);
+  for (let i = 0; i < n; i++) setTimeout(() => { const p = i / (n - 1); play('rattle', pan(p), gain(p), typeof bright === 'function' ? bright(p) : bright); }, i * every * 1000); }
+const GALLERY = [
+  { l: 'ball', name: 'Left ear', m: 'Headphone check. You should hear this only on the left.', go: () => [0, 260, 520].forEach(ms => setTimeout(() => play('kick', -1, .9), ms)) },
+  { l: 'ball', name: 'Right ear', m: 'Headphone check. You should hear this only on the right.', go: () => [0, 260, 520].forEach(ms => setTimeout(() => play('kick', 1, .9), ms)) },
+  { l: 'ball', name: 'Ball ahead of you', m: 'Bright and crisp: the ball is in front of you.', go: () => rattleRun(1.4, () => 0, () => .8, true) },
+  { l: 'ball', name: 'Ball behind you', m: 'Same ball, muffled: it\'s behind you.', go: () => rattleRun(1.4, () => 0, () => .8, false) },
+  { l: 'ball', name: 'Pass, left to right', m: 'A kick on your left, then the rattle crosses in front of you.', go: () => { play('kick', -.9, .8); rattleRun(1.6, p => -.9 + p * 1.8, p => .5 + .4 * Math.sin(p * Math.PI), true); } },
+  { l: 'ball', name: 'Ball on the boards', m: 'A wooden knock. The ball hit the left side board.', go: () => { play('board', -.85, .9); setTimeout(() => play('board', -.6, .5), 700); } },
+  { l: 'call', name: 'Footsteps closing in', m: 'A defender running at you from ahead and to the right.', go: () => { for (let i = 0; i < 7; i++) setTimeout(() => play('step', .7 - i * .08, .25 + i * .11, true), i * 300); } },
+  { l: 'call', name: '"Voy!"', m: 'Someone is going for the ball. Here it\'s the defender.', go: () => say('Voy!', { pitch: 1.35, rate: 1.2 }) },
+  { l: 'guide', name: 'The goal guide', m: 'Stands behind the goal you attack and tells you where it is.', go: () => say('Goal, ten metres. Left post!', { pitch: .8, rate: 1.15 }) },
+  { l: 'crowd', name: 'Referee\'s whistle', m: 'Two short blasts: play stops.', go: () => play('whistle', 2) },
+  { l: 'crowd', name: 'Net and crowd', m: 'The ball in the net, and the stadium erupts.', go: () => { play('net', 0, 1); crowdStart(); crowdLevel(.5, .3); setTimeout(() => crowdLevel(.08, 1.4), 1300); setTimeout(crowdStop, 2900); } },
+  { l: 'comm', name: 'The commentator', m: 'A short line while play goes on.', go: () => say('Holm, down the left. Okafor in support.', { rate: 1.1 }) },
+];
+const gal = $('#gallery');
+GALLERY.forEach(g => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'snd';
+  b.innerHTML = `<span class="chip" data-l="${g.l}">${LAYER[g.l]}</span><b></b><span class="m"></span>`;
+  b.querySelector('b').textContent = g.name; b.querySelector('.m').textContent = g.m;
+  b.addEventListener('click', () => {
+    if (running) stop(false);
+    audio(); hush(); g.go();
+    b.classList.add('playing'); setTimeout(() => b.classList.remove('playing'), 1600);
+  });
+  gal.appendChild(b);
+});
+
+new ResizeObserver(fit).observe(cv);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => draw(cur));
+</script>

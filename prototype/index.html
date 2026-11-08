@@ -1,0 +1,69 @@
+<title>Audio Soccer Trial</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Big+Shoulders+Display:wght@800;900&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="style.css">
+
+<div class="wrap">
+  <header class="hero">
+    <p class="eyebrow">Trial &middot; keyboard and headphones</p>
+    <h1>Audio <em>Soccer</em> trial</h1>
+    <p class="lede">Put on headphones. This short test checks one thing: can you find the ball, take it to the goal and score using only your ears? You always face the goal you attack. The ball rattles when it rolls and ticks when it is still, the goal chimes every two seconds while you have the ball, and the side boards knock when you touch them. A voice tells you what happens.</p>
+  </header>
+
+  <main class="layout">
+    <section class="panel" aria-labelledby="h-menu">
+      <h2 id="h-menu">Play</h2>
+      <button class="btn" id="hp-check" type="button">Headphone check</button>
+      <fieldset class="modes">
+        <legend>Who reads the game to you</legend>
+        <label class="check"><input type="radio" name="voice-mode" value="voice" checked> Built-in voice</label>
+        <label class="check"><input type="radio" name="voice-mode" value="sr"> My screen reader speaks</label>
+      </fieldset>
+      <div class="levels" role="group" aria-labelledby="h-levels">
+        <h3 id="h-levels">Levels, three rounds each</h3>
+        <button class="btn level" type="button" data-level="1">Level 1: Find the ball</button>
+        <button class="btn level" type="button" data-level="2">Level 2: Score</button>
+        <button class="btn level" type="button" data-level="3">Level 3: Beat the keeper</button>
+        <!-- After the level buttons, so showing it on pause never moves a button under the pointer. -->
+        <button class="btn primary level" id="resume" type="button" hidden>Resume</button>
+      </div>
+      <h3 id="h-keys">Keys during play</h3>
+      <ul class="keys" aria-labelledby="h-keys">
+        <li><kbd>Up arrow</kbd> run toward the goal</li>
+        <li><kbd>Down arrow</kbd> run away from the goal</li>
+        <li><kbd>Left</kbd> and <kbd>Right arrow</kbd> run to your left or right; hold two arrows for a diagonal</li>
+        <li><kbd>Space</kbd> kick up the pitch; in the attacking third it shoots at the goal, and Left or Right aims inside that post</li>
+        <li><kbd>W</kbd> where am I</li>
+        <li><kbd>H</kbd> help</li>
+        <li><kbd>Escape</kbd> pause and come back here</li>
+      </ul>
+    </section>
+
+    <section class="stage" aria-labelledby="h-pitch">
+      <h2 id="h-pitch" class="sr">Pitch</h2>
+      <div class="arena" id="arena" tabindex="0" role="application"
+           aria-label="Audio Soccer pitch. Arrow keys run, Space kicks, W where am I, H help, Escape pause.">
+        <p class="status" id="status" aria-hidden="true">Choose a level to start</p>
+        <canvas id="pitch" role="img"
+                aria-label="Top-down picture of the pitch for sighted helpers. You attack to the right; your left is the top board."></canvas>
+      </div>
+      <label class="check"><input type="checkbox" id="hide-pic"> Hide the picture, to play by ear</label>
+    </section>
+
+    <section class="panel results" id="results" aria-labelledby="h-results" hidden>
+      <h2 id="h-results" tabindex="-1">Results</h2>
+      <p id="summary"></p>
+      <label for="results-text">Results to send us</label>
+      <textarea id="results-text" rows="5" readonly aria-describedby="copy-status"></textarea>
+      <button class="btn" id="copy" type="button">Copy results</button>
+      <p class="note" id="copy-status" role="status"></p>
+    </section>
+  </main>
+
+  <div class="sr" id="live-polite" aria-live="polite"></div>
+  <div class="sr" id="live-assertive" aria-live="assertive"></div>
+</div>
+
+<script type="module" src="js/main.js"></script>
