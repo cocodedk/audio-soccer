@@ -19,3 +19,20 @@ export const seeded = (a) => () => {
   t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 };
+
+// A fake speech engine, installed as the browser's: speak() records the line and keeps it "playing"
+// until finish() is called. Install it before importing speech.js.
+export function fakeSpeech() {
+  const spoken = [];
+  let playing = null;
+  globalThis.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
+  globalThis.speechSynthesis = {
+    speaking: false, pending: false,
+    cancel() { this.speaking = false; playing = null; },
+    speak(u) { spoken.push(u.text); playing = u; this.speaking = true; },
+    getVoices: () => [], addEventListener() {},
+  };
+  const finish = () => { const u = playing; speechSynthesis.speaking = false; playing = null; if (u && u.onend) u.onend({}); };
+  const finishAll = () => { for (let i = 0; i < 30 && playing; i++) finish(); };
+  return { spoken, finish, finishAll };
+}

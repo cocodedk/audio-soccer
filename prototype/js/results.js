@@ -3,18 +3,21 @@
 import { resultsText } from './report.js';
 import { summarySpeech } from './levels.js';
 import { loadPref, savePref } from './storage.js';
+import { getLang, t } from './i18n/index.js';
 
 const valid = (b) => b && Number.isInteger(b.level) && b.level >= 1 && b.level <= 3 && Array.isArray(b.rounds) && b.rounds.length > 0;
 
-// els: { box, summary, text, copyStatus, heading, copyBtn }. getMeta(): { mode, rate, hidden } now.
+// els: { box, summary, text, copyStatus, heading, copyBtn }. getMeta(): { mode, rate, hidden, sound, lang } now.
 export function createResults(els, getMeta) {
   const { box, summary, text, copyStatus, heading, copyBtn } = els;
-  let finished = [];
+  let finished = [], shown = null;
+
+  const sayIt = () => { summary.textContent = summarySpeech(shown.level, shown.rounds, !!shown.partial, getLang()); };
 
   // Draw blocks (finished levels, and an optional unfinished one) with the given voice settings.
   function draw(blocks, meta) {
-    const last = blocks[blocks.length - 1];
-    summary.textContent = summarySpeech(last.level, last.rounds, !!last.partial);
+    shown = blocks[blocks.length - 1];
+    sayIt();
     text.value = resultsText(blocks, meta);
     copyStatus.textContent = '';
     box.hidden = false;
@@ -35,18 +38,20 @@ export function createResults(els, getMeta) {
   copyBtn.addEventListener('click', () => {
     const selectIt = () => {
       const keys = /Mac|iPhone|iPad/.test(navigator.platform || '') ? 'Command C' : 'Control C';
-      copyStatus.textContent = `Copying was blocked. The text is selected: press ${keys} to copy it.`;
+      copyStatus.textContent = t('copy.blocked', { keys });
       text.focus();
       text.select();
     };
     try {
-      navigator.clipboard.writeText(text.value).then(() => { copyStatus.textContent = 'Copied.'; }, selectIt);
+      navigator.clipboard.writeText(text.value).then(() => { copyStatus.textContent = t('copy.done'); }, selectIt);
     } catch (e) {
       selectIt();
     }
   });
 
   return {
+    // The language changed: say the summary again in it (the report text stays English).
+    relabel() { if (shown) sayIt(); copyStatus.textContent = ''; },
     // A level is over, or was left unfinished and is being replaced: keep it for good.
     add(block) {
       if (!valid(block)) return;

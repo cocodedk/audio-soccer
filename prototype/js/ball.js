@@ -11,6 +11,9 @@ export const crossingY = (x, y, angle) => y + Math.tan(angle) * (PITCH_L - x);
 export const AIM_LOW = POST_LEFT - AIM_MARGIN, AIM_HIGH = POST_RIGHT + AIM_MARGIN;
 export const aimedIn = (y) => y >= AIM_LOW && y <= AIM_HIGH;
 
+// Which way the goal is from a ball at height y: 'ahead' when a straight kick goes in, else 'left' or 'right'.
+export const goalSide = (y) => (aimedIn(y) ? 'ahead' : y > GOAL.y ? 'left' : 'right');
+
 // Rolling deceleration at a given speed (m/s^2): friction, plus extra drag at low speed.
 export const decelAt = (speed) => FRICTION + SLOW_DRAG * Math.max(0, 1 - speed / SLOW_DRAG_UNTIL);
 

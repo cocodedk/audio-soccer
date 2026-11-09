@@ -1,6 +1,8 @@
-// Pure text descriptions: clock positions, thirds, where-am-I, the goal guide. No DOM, no audio.
+// Pure text descriptions: clock positions, thirds, where-am-I, the goal guide. No DOM, no audio. The
+// words come from the i18n tables: every text function takes a language code, English by default.
+import { tr } from './i18n/tables.js';
 import { GOAL, THIRD, DRIBBLE_DIST, PITCH_L, KICK_SPEED, TAKE_MAX_SPEED, KICK_ANGLE } from './constants.js';
-import { crossingY, aimedIn, rollDistance, AIM_LOW, AIM_HIGH } from './ball.js';
+import { crossingY, aimedIn, goalSide, rollDistance, AIM_LOW, AIM_HIGH } from './ball.js';
 
 // How far a kick reaches the goal line with the speed of a real shot (it slows to a pass below
 // TAKE_MAX_SPEED): about 24 m. Further out the goal is too far to shoot at.
@@ -13,42 +15,41 @@ export function clockHour(ahead, right) {
   return m === 0 ? 12 : m;
 }
 
-export function metresText(d) {
-  const r = Math.round(d);
-  return `${r} metre${r === 1 ? '' : 's'}`;
-}
+export const metresText = (d, lang = 'en') => tr(lang, 'metres', { n: Math.round(d) });
 
 // A relative offset (metres ahead, metres to the right) as "2 o'clock, 3 metres", or "at your feet"
 // (within DRIBBLE_DIST, the distance at which a free ball is taken).
-export function clockText(ahead, right) {
+export function clockText(ahead, right, lang = 'en') {
   const d = Math.hypot(ahead, right);
-  if (d < DRIBBLE_DIST) return 'at your feet';
-  return `${clockHour(ahead, right)} o'clock, ${metresText(d)}`;
+  if (d < DRIBBLE_DIST) return tr(lang, 'clock.feet');
+  return tr(lang, 'clock.at', { hour: clockHour(ahead, right), metres: metresText(d, lang) });
 }
 
-export function clockTo(from, to) {
-  return clockText(to.x - from.x, to.y - from.y);
+export function clockTo(from, to, lang = 'en') {
+  return clockText(to.x - from.x, to.y - from.y, lang);
 }
 
 export function thirdIndex(x) {
   return x < THIRD ? 0 : x < 2 * THIRD ? 1 : 2;
 }
 
-export const THIRD_NAMES = ['Defending third', 'Middle third', 'Attacking third'];
+export const thirdName = (i, lang = 'en') => tr(lang, `thirds.${i}`);
 
-export function sideText(y) {
-  if (y < 3) return 'by the left board';
-  if (y > 17) return 'by the right board';
-  return 'centre';
+export function sideText(y, lang = 'en') {
+  return tr(lang, `side.${y < 3 ? 'left' : y > 17 ? 'right' : 'centre'}`);
 }
 
 // "Middle third, by the left board. Ball 2 o'clock, 3 metres. Goal, 23 metres, slightly right."
 // The goal part is guideText: it names the direction in words, which is what lining up needs.
-export function whereText(world) {
+export function whereText(world, lang = 'en') {
   const p = world.player;
   const from = world.hasBall ? world.ball : p; // a kick leaves from the ball, which can sit 2 m to one side
-  const parts = [`${THIRD_NAMES[thirdIndex(p.x)]}, ${sideText(p.y)}.`, `Ball ${clockTo(p, world.ball)}.`, `${guideText(p, from)}.`];
-  if (world.keeper) parts.push(`Keeper ${clockTo(p, world.keeper)}.`);
+  const parts = [
+    tr(lang, 'where.place', { third: thirdName(thirdIndex(p.x), lang), side: sideText(p.y, lang) }),
+    tr(lang, 'where.ball', { pos: clockTo(p, world.ball, lang) }),
+    tr(lang, 'where.guide', { text: guideText(p, from, lang) }),
+  ];
+  if (world.keeper) parts.push(tr(lang, 'where.keeper', { pos: clockTo(p, world.keeper, lang) }));
   return parts.join(' ');
 }
 
@@ -58,12 +59,13 @@ export function whereText(world) {
 //   "Goal, 9 metres, straight ahead" / "Goal, 23 metres, slightly right" /
 //   "Goal, 10 metres, move 6 metres right" / "Goal, 30 metres, too far to shoot"
 // p is where the player stands (the distance they hear); from is where a kick would leave (the ball).
-export function guideText(p, from = p) {
-  const m = metresText(Math.hypot(PITCH_L - p.x, GOAL.y - p.y)), head = `Goal, ${m}`;
-  if (PITCH_L - from.x > SHOT_RANGE) return `${head}, too far to shoot`;
-  if (aimedIn(from.y)) return `${head}, straight ahead`;
-  const side = from.y > GOAL.y ? 'left' : 'right', angle = side === 'left' ? -KICK_ANGLE : KICK_ANGLE;
-  if (aimedIn(crossingY(from.x, from.y, angle))) return `${head}, slightly ${side}`;
+export function guideText(p, from = p, lang = 'en') {
+  const m = metresText(Math.hypot(PITCH_L - p.x, GOAL.y - p.y), lang), head = tr(lang, 'guide.head', { m });
+  if (PITCH_L - from.x > SHOT_RANGE) return tr(lang, 'guide.far', { head });
+  const way = goalSide(from.y);
+  if (way === 'ahead') return tr(lang, 'guide.ahead', { head });
+  const left = way === 'left', side = tr(lang, `dir.${way}`), angle = left ? -KICK_ANGLE : KICK_ANGLE;
+  if (aimedIn(crossingY(from.x, from.y, angle))) return tr(lang, 'guide.slightly', { head, side });
   const move = from.y > AIM_HIGH ? from.y - AIM_HIGH : AIM_LOW - from.y; // to the nearest line a straight kick would score from
-  return `${head}, move ${metresText(Math.max(1, move))} ${side}`;
+  return tr(lang, 'guide.move', { head, m: metresText(Math.max(1, move), lang), side });
 }

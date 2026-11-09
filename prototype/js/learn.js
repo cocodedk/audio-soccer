@@ -1,10 +1,16 @@
-// The start-screen sound tour and the headphone check. Both go through the same HRTF path as play
+// The start-screen sound tour and the headphone check. Both go through the same path as play
 // (play() with an `at` point, the listener placed with setListener), so what you learn is what you hear.
+// The tour skips what needs panning in speakers mode and teaches the side calls and the quickening
+// beeps instead.
 import { setListener } from './audio.js';
 import { play } from './sfx.js';
-import { ballOpts, tickOpts } from './soundscape.js';
+import { ballOpts, tickOpts, chimeOpts } from './soundscape.js';
 import { say, cancel } from './speech.js';
 import { getRate } from './voices.js';
+import { speakersOn } from './soundmode.js';
+import { beaconEvery } from './speakers.js';
+import { loadClips, playClip, SIDE_WORDS } from './clips.js';
+import { getLang, t } from './i18n/index.js';
 import { GOAL } from './world.js';
 
 const ME = { x: 20, y: 10 };
@@ -26,8 +32,8 @@ export function headphoneCheck() {
     [0, 250, 500].forEach((ms) => later(() => play('kick', { at: { x: ME.x, y }, gain: 0.9 }), ms));
     say(word, { priority: 'high' });
   };
-  side(ME.y - 3, 'Left');
-  later(() => side(ME.y + 3, 'Right'), 1500);
+  side(ME.y - 3, t('learn.left'));
+  later(() => side(ME.y + 3, t('learn.right')), 1500);
 }
 
 const ahead = { x: ME.x + 5, y: ME.y }, behind = { x: ME.x - 5, y: ME.y };
@@ -41,17 +47,36 @@ const rolling = () => {
 const knock = (y) => () => play('board', { at: { x: ME.x, y }, gain: 1 });
 const feet = () => [0, 350, 700, 1050].forEach((ms) => later(() => play('step', { gain: 0.22 }), ms));
 
+// Where the listener stands for the quickening chimes, and where they play (so only the rate changes).
+const NEAR_GOAL = { x: 34, y: 10 };
+
+// The goal chime from 30, 18 and 6 m: two seconds apart, then one second, then half a second.
+const chimes = () => {
+  let at = 0;
+  [30, 18, 6, 6, 6].forEach((d) => {
+    const every = beaconEvery(d);
+    later(() => play('chime', chimeOpts(NEAR_GOAL, every)), at);
+    at += every * 1000;
+  });
+};
+
+// The four side-call clips, as the game plays them: ahead, left, right, behind.
+const sideClips = () => loadClips()?.then(() => SIDE_WORDS.forEach((word, i) => later(() => playClip(word, getLang()), i * 800)));
+
 // name: what the voice says first. at: where the listener stands. go: the sound. ms: how long it lasts.
-const STEPS = [
-  { name: 'Ball ticking, ahead of you.', go: () => ticks(ahead), ms: 2000 },
-  { name: 'The same ball, behind you. It sounds duller.', go: () => ticks(behind), ms: 2000 },
-  { name: 'Ball rolling from your left to your right.', go: rolling, ms: 1700 },
-  { name: 'The goal chime, ahead.', go: () => play('chime', { at: GOAL, gain: 0.4 }), ms: 1500 },
-  { name: 'A knock on the left board.', at: { x: ME.x, y: 3 }, go: knock(0), ms: 900 },
-  { name: 'And on the right board.', at: { x: ME.x, y: 17 }, go: knock(20), ms: 900 },
-  { name: 'Your footsteps.', go: feet, ms: 1500 },
-  { name: 'The keeper shouts voy.', go: () => say('Voy!', { priority: 'high', pitch: 1.4 }), ms: 1200 },
-];
+// pan: needs left and right, so only headphones play it.
+const steps = () => [
+  { name: t('learn.calls'), go: sideClips, ms: SIDE_WORDS.length * 800, speakers: true },
+  { name: t('learn.ahead'), go: () => ticks(ahead), ms: 2000 },
+  { name: t('learn.behind'), go: () => ticks(behind), ms: 2000 },
+  { name: t('learn.roll'), go: rolling, ms: 1700, pan: true },
+  { name: t('learn.chime'), go: () => play('chime', chimeOpts(GOAL)), ms: 1500, pan: true },
+  { name: t('learn.chimeNear'), at: NEAR_GOAL, go: chimes, ms: 4500, speakers: true },
+  { name: t(speakersOn() ? 'learn.board' : 'learn.boardL'), at: { x: ME.x, y: 3 }, go: knock(0), ms: 900 },
+  { name: t('learn.boardR'), at: { x: ME.x, y: 17 }, go: knock(20), ms: 900, pan: true },
+  { name: t('learn.feet'), go: feet, ms: 1500 },
+  { name: t('learn.voy'), go: () => say(t('voy'), { priority: 'high', pitch: 1.4 }), ms: 1200 },
+].filter((x) => (speakersOn() ? !x.pan : !x.speakers));
 
 export function stopLearn() {
   run += 1;
@@ -63,7 +88,7 @@ export function stopLearn() {
 export async function learnSounds() {
   const id = ++run;
   cancel();
-  for (const step of STEPS) {
+  for (const step of steps()) {
     if (id !== run) return;
     setListener(step.at || ME);
     say(step.name, { priority: 'high', wait: 20000 });
@@ -72,5 +97,5 @@ export async function learnSounds() {
     step.go();
     await sleep(step.ms);
   }
-  if (id === run) say('That is all the sounds.', { priority: 'high', wait: 20000 });
+  if (id === run) say(t('learn.end'), { priority: 'high', wait: 20000 });
 }

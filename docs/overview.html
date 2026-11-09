@@ -126,7 +126,7 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
 
 <div class="wrap">
   <header class="hero">
-    <p class="eyebrow">Design draft · 8 November 2026 · for blind and visually impaired players</p>
+    <p class="eyebrow">Design draft · 9 November 2026 · for blind and visually impaired players</p>
     <h1>Audio <em>Soccer</em></h1>
     <p class="lede">A 5-a-side soccer game you play by ear. Every pass, tackle and shot is a sound you can place, a live commentator calls the match, and TalkBack stays on the whole time.</p>
   </header>
@@ -142,7 +142,7 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
       <button class="btn primary" id="play" type="button">Play the sample attack</button>
       <label class="check" for="announce"><input type="checkbox" id="announce"> Read each caption with my screen reader</label>
     </div>
-    <p class="note" id="audio-note">Wear headphones. The 14-second sample uses rough synthesized stand-ins for the real sounds, and your browser's voice for the commentator and guide. It places sounds with plain left and right panning and a muffled tone for behind. The real game and the browser trial use 3D headphone audio (HRTF), which places sounds more clearly.</p>
+    <p class="note" id="audio-note">Headphones are optional. The 14-second sample uses rough synthesized stand-ins for the real sounds, and your browser's voice for the commentator and guide. It pans sounds left and right and muffles sounds behind you; on speakers the panning mostly blurs, which is why the real game says directions out loud.</p>
     <ol class="log" id="log" aria-label="What you hear, in order"></ol>
     <div class="sr" id="live" aria-live="off"></div>
   </div>
@@ -150,7 +150,7 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
   <section aria-labelledby="h-play">
     <h2 id="h-play">What you do</h2>
     <div class="prose">
-      <p>You control one player at a time, to start with whoever on your team is closest to the ball. Control moves to a teammate only when the ball is dead or when you ask for it, never in the middle of a run. When it moves, what you hear glides to the new player over a moment. A short sound travels from the old player to the new one, and then the player's name tells you who you are now. Your teammates run themselves. There are only six things to do.</p>
+      <p>You control one player at a time, to start with whoever on your team is closest to the ball. Control moves to a teammate only when the ball is dead or when you ask for it, never in the middle of a run. When it moves, what you hear glides to the new player over a moment. A short sound plays, then the player's name tells you who you are now and a word tells you where the ball is. Your teammates run themselves. There are only six things to do.</p>
     </div>
     <div class="table-box">
       <table>
@@ -193,9 +193,9 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
     <h2 id="h-sound">How it sounds</h2>
     <p class="callout">You hear the match from your own player's position, always facing the goal you attack.</p>
     <div class="axes">
-      <div class="axis"><b>Left or right</b><span>Which ear. A ball on the left board knocks in your left ear.</span></div>
-      <div class="axis"><b>Near or far</b><span>How loud. Far sounds also get a little echo.</span></div>
-      <div class="axis"><b>Ahead or behind</b><span>Bright or dull. Sounds behind you are muffled. The real game also uses 3D headphone audio (HRTF), which places sounds ahead and behind more clearly. The tester will judge if this works.</span></div>
+      <div class="axis"><b>Left or right</b><span>Spoken. When the ball or the goal moves to another side, one word says where: ahead, left, right or behind. It works on a phone speaker. With headphones you also hear it in that ear.</span></div>
+      <div class="axis"><b>Near or far</b><span>How fast. The ball's tick and the goal's beacon speed up as you get closer, like a parking sensor. Far sounds are also quieter.</span></div>
+      <div class="axis"><b>Ahead or behind</b><span>Bright or dull. Sounds behind you are muffled, which works on one speaker, and the coach calls &ldquo;behind you!&rdquo;. Loud moments like the goal roar are capped so they never hurt.</span></div>
     </div>
     <h3>When a lot happens at once, the lower layers get quieter</h3>
     <ol class="layers">
@@ -221,7 +221,7 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
       <div role="row"><span class="tm" role="cell">0.3 s</span><span class="what" role="cell">You shoot. Said at once: <b>"Shot!"</b></span></div>
       <div role="row"><span class="tm" role="cell">0.3 s</span><span class="what" role="cell"><s>"Holm finds you on the left…"</s> Dropped, it's out of date.</span></div>
     </div>
-    <p class="prose muted">Commentary can be set to full, key moments only, or off. The voice is prepared in advance with offline text-to-speech, so the game needs no internet. English first.</p>
+    <p class="prose muted">Commentary can be set to full, key moments only, or off. The voice is prepared in advance with offline text-to-speech, so the game needs no internet. English and Persian.</p>
   </section>
 
   <section aria-labelledby="h-never">
@@ -249,9 +249,8 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
     <h2 id="h-build">Build order</h2>
     <p class="prose">Android first, same build as the chess app. Each step goes to the tester, and their feedback decides the next one.</p>
     <ol class="steps">
-      <li><span class="n">0a</span><h3>Navigation prototype</h3><p>Built. A browser page for a computer with headphones: find a still ball, take it to the goal, beat a keeper. It tests whether the sounds are enough to play by ear. <a href="https://cocodedk.github.io/audio-soccer/">Open the live prototype</a>.</p></li>
-      <li><span class="n">0b</span><h3>Phone controls test</h3><p>Throwaway. The three control options on the tester's phone with TalkBack on.</p></li>
-      <li><span class="n">0c</span><h3>3D audio on Android</h3><p>Throwaway. One sound placed ahead, behind, left and right on the tester's phone with headphones.</p></li>
+      <li><span class="n">0a</span><h3>Navigation prototype</h3><p>Built. A browser page for a computer, on speakers or headphones, in English or Persian: find a still ball, take it to the goal, beat a keeper. It tests whether the sounds are enough to play by ear. <a href="https://cocodedk.github.io/audio-soccer/">Open the live prototype</a>.</p></li>
+      <li><span class="n">0b</span><h3>Phone controls test</h3><p>Throwaway. The three control options on the tester's phone with TalkBack on, on the phone's speaker, plus two vibration cues.</p></li>
       <li><span class="n">1</span><h3>Penalty shootout</h3><p>Five each. Aim and time your shot, or listen to the run-up and dive. Proves the sound, commentator and controls.</p></li>
       <li><span class="n">2</span><h3>Training pitch</h3><p>You, the ball, the goal and the goal guide. Learn to find the ball, dribble and shoot. Plus the sound gallery.</p></li>
       <li><span class="n">3</span><h3>Full match</h3><p>5-a-side against computer teams, with all the voices, difficulty and speed settings, and a league.</p></li>
@@ -264,12 +263,12 @@ footer { padding-block: 28px 0; border-top: 1px solid var(--rule); font-size: .9
       <li>Phone or computer? Already asked by email.</li>
       <li>Is 5-a-side right, or do you want the feel of regular 11-a-side?</li>
       <li>Which audio games have you loved or hated, especially sports ones, and why?</li>
-      <li>Do you play with headphones?</li>
-      <li>Which language should the commentator speak?</li>
+      <li>Is the Persian voice right?</li>
+      <li>Are any sounds too loud on your speakers?</li>
     </ol>
   </section>
 
-  <footer>Draft design, 8 November 2026. Teams and players are made up. Full text in <code>audio-soccer/docs/DESIGN.md</code>.</footer>
+  <footer>Draft design, 9 November 2026: built for speakers, in English and Persian. Teams and players are made up. Full text in <code>audio-soccer/docs/DESIGN.md</code>.</footer>
 </div>
 
 <script>
@@ -492,7 +491,7 @@ function frame(now) {
 }
 function startDemo() {
   const ok = audio();
-  $('#audio-note').textContent = ok ? 'Wear headphones. The 14-second sample uses rough synthesized stand-ins for the real sounds, and your browser\'s voice for the commentator and guide.'
+  $('#audio-note').textContent = ok ? 'Headphones are optional. The 14-second sample uses rough synthesized stand-ins for the real sounds, and your browser\'s voice for the commentator and guide.'
     : 'This browser can\'t play sound here, so the sample runs silently. The list below describes every sound.';
   hush(); rings = []; fired = 0; lastGrain = -1; lastStep = -1;
   const sc = $('#score'); sc.textContent = 'Your team 0 – 0 Northgate'; sc.classList.remove('flash');
@@ -510,8 +509,8 @@ btn.addEventListener('click', () => running ? stop(false) : startDemo());
 function rattleRun(dur, pan, gain, bright) { const every = .065, n = Math.floor(dur / every);
   for (let i = 0; i < n; i++) setTimeout(() => { const p = i / (n - 1); play('rattle', pan(p), gain(p), typeof bright === 'function' ? bright(p) : bright); }, i * every * 1000); }
 const GALLERY = [
-  { l: 'ball', name: 'Left ear', m: 'Headphone check. You should hear this only on the left.', go: () => [0, 260, 520].forEach(ms => setTimeout(() => play('kick', -1, .9), ms)) },
-  { l: 'ball', name: 'Right ear', m: 'Headphone check. You should hear this only on the right.', go: () => [0, 260, 520].forEach(ms => setTimeout(() => play('kick', 1, .9), ms)) },
+  { l: 'ball', name: 'Left ear', m: 'Optional headphone check. With headphones you should hear this only on the left.', go: () => [0, 260, 520].forEach(ms => setTimeout(() => play('kick', -1, .9), ms)) },
+  { l: 'ball', name: 'Right ear', m: 'Optional headphone check. With headphones you should hear this only on the right.', go: () => [0, 260, 520].forEach(ms => setTimeout(() => play('kick', 1, .9), ms)) },
   { l: 'ball', name: 'Ball ahead of you', m: 'Bright and crisp: the ball is in front of you.', go: () => rattleRun(1.4, () => 0, () => .8, true) },
   { l: 'ball', name: 'Ball behind you', m: 'Same ball, muffled: it\'s behind you.', go: () => rattleRun(1.4, () => 0, () => .8, false) },
   { l: 'ball', name: 'Pass, left to right', m: 'A kick on your left, then the rattle crosses in front of you.', go: () => { play('kick', -.9, .8); rattleRun(1.6, p => -.9 + p * 1.8, p => .5 + .4 * Math.sin(p * Math.PI), true); } },

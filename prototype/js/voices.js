@@ -1,16 +1,18 @@
 // Voice and speech-rate choice. The helpers are pure; the small state at the bottom is persisted.
 import { loadPref, savePref } from './storage.js';
+import { getLang } from './i18n/index.js';
 
 export const RATES = [1.0, 1.3, 1.6, 2.0, 2.5];
 export const DEFAULT_RATE = 1.3;
 
 const isGB = (v) => /^en[-_]GB/i.test(v.lang);
 
-// English voices, best first: local ones (a network voice adds latency and needs internet), then
-// British, then by name.
-export function englishVoices(list) {
+// The voices of one language (voice.lang starts with its code: en, fa), best first: local ones (a
+// network voice adds latency and needs internet), then British for English, then by name.
+export function pickVoices(list, lang) {
+  const own = new RegExp(`^${lang}`, 'i');
   return list
-    .filter((v) => /^en/i.test(v.lang))
+    .filter((v) => own.test(v.lang))
     .sort((a, b) => (Number(!!b.localService) - Number(!!a.localService)) || (Number(isGB(b)) - Number(isGB(a))) || a.name.localeCompare(b.name));
 }
 
@@ -21,12 +23,17 @@ export function stepRate(rate, dir) {
   return RATES[Math.min(RATES.length - 1, Math.max(0, at + dir))];
 }
 
-let voices = [], voice = null;
+let all = [], voices = [], voice = null;
 let rate = (() => { const r = Number(loadPref('rate')); return RATES.includes(r) ? r : DEFAULT_RATE; })();
+
+// The saved voice of English stays under the old key, so a choice made before languages still holds.
+const voiceKey = (lang) => (lang === 'en' ? 'voice' : `voice-${lang}`);
 
 export const getRate = () => rate;
 export const currentVoice = () => voice;
 export const listVoices = () => voices;
+// The engine has voices at all (its list has loaded), but none for the current language.
+export const missingVoice = () => all.length > 0 && voices.length === 0;
 
 export function setRate(r) {
   if (RATES.includes(r)) { rate = r; savePref('rate', r); }
@@ -35,12 +42,18 @@ export function setRate(r) {
 
 export function setVoice(uri) {
   const v = voices.find((x) => x.voiceURI === uri);
-  if (v) { voice = v; savePref('voice', uri); }
+  if (v) { voice = v; savePref(voiceKey(getLang()), uri); }
 }
 
-// Take the engine's voice list: keep the English ones, and the saved choice if it is still there.
-export function refreshVoices(all) {
-  voices = englishVoices(all);
-  const saved = loadPref('voice');
+// Keep the voices of one language, and the saved choice if it is still there.
+export function chooseVoices(lang = getLang()) {
+  voices = pickVoices(all, lang);
+  const saved = loadPref(voiceKey(lang));
   voice = voices.find((v) => v.voiceURI === saved) || voices[0] || null;
+}
+
+// Take the engine's voice list.
+export function refreshVoices(list) {
+  all = list;
+  chooseVoices();
 }

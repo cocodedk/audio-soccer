@@ -4,11 +4,14 @@
 // and AltGr+9 on Danish and German layouts (Windows reports AltGr as Ctrl+Alt) and Option+key on a Mac,
 // and e.key already names the character the layout produced. Ctrl alone never passes (Ctrl+- zooms).
 const ARROWS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+// A key that types a non-Latin letter (W gives ص on a Persian layout) is named by its place instead.
+const BY_PLACE = { KeyW: 'w', KeyH: 'h', KeyG: 'g', BracketLeft: '[', BracketRight: ']', Minus: '-', Equal: '=' };
 
 export function keyName(e) {
   if (ARROWS.has(e.key)) return e.key;
   if (e.key === ' ' || e.code === 'Space') return 'kick';
-  const k = (e.key || '').toLowerCase();
+  const key = e.key || '';
+  const k = (/[^\x00-\x7f]/.test(key) ? BY_PLACE[e.code] || key : key).toLowerCase();
   if (k === 'w') return 'where';
   if (k === 'h') return 'help';
   if (k === 'g') return 'giveup';

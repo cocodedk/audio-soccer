@@ -2,6 +2,7 @@
 // player's own screen reader). Priority queue: high > normal > low. A higher line cancels lower ones;
 // a line still unsaid after its wait (1.5 s unless the caller asks for more) is dropped, never said late.
 import { currentVoice, getRate, refreshVoices } from './voices.js';
+import { getLang, LANG_TAG } from './i18n/index.js';
 
 const PRI = { low: 0, normal: 1, high: 2 };
 const MAX_WAIT = 1500;
@@ -53,6 +54,7 @@ export function cancel() {
 // Appending or dropping a zero-width space makes repeated text still announce.
 function announce(item) {
   const key = item.p >= PRI.high ? 'assertive' : 'polite';
+  item.onSpoken?.();
   if (!regions?.[key]) return;
   if (item.key) lastSaid[item.key] = now();
   pending[key].push(/[.!?]$/.test(item.text) ? item.text : `${item.text}.`);
@@ -69,11 +71,12 @@ function speakNow(item) {
   const s = synth();
   if (!canSpeak()) { current = null; announce(item); return; }
   if (item.key) lastSaid[item.key] = now(); // a line counts as said only once it is actually spoken
+  item.onSpoken?.();
   try {
     const u = new SpeechSynthesisUtterance(item.text);
     const v = currentVoice();
     if (v) u.voice = v;
-    u.lang = v ? v.lang : 'en-GB';
+    u.lang = v ? v.lang : LANG_TAG[getLang()];
     u.rate = getRate();
     u.pitch = item.pitch;
     // pump() only starts a line when it takes the engine to be idle: anything still playing is a
@@ -117,17 +120,18 @@ function pump() {
 // True while a line with this key is being spoken or waits in the queue (built-in voice only).
 export const isSaying = (key) => current?.key === key || queue.some((q) => q.key === key);
 
-// say(text, { priority, key, gap, pitch, wait, cue, many }). key + gap (ms) rate-limit a kind of line, measured
+// say(text, { priority, key, gap, pitch, wait, cue, many, onSpoken }). key + gap (ms) rate-limit a kind of line, measured
 // from when it was last spoken; a newer line with the same key replaces one still queued, unless
 // many is set (a sequence of lines sharing one key, such as the help). wait is how
 // long (ms) the line may sit unsaid. cue: an ambient cue (thirds, ball behind, goal guide), spoken in
 // the built-in voice only, because a live region can neither expire a late line nor cancel it.
-export function say(text, { priority = 'normal', key = null, gap = 0, pitch = 1, wait = MAX_WAIT, cue = false, many = false } = {}) {
+// onSpoken is called when the line is actually spoken (or posted to a live region), not when queued.
+export function say(text, { priority = 'normal', key = null, gap = 0, pitch = 1, wait = MAX_WAIT, cue = false, many = false, onSpoken = null } = {}) {
   if (cue && mode === 'sr') return false;
   const t = now();
   if (key && gap && lastSaid[key] !== undefined && t - lastSaid[key] < gap) return false;
   const p = PRI[priority] ?? PRI.normal;
-  const item = { text, p, key, at: t, pitch, wait };
+  const item = { text, p, key, at: t, pitch, wait, onSpoken };
   // Screen reader mode, or no speech engine at all: the live regions carry the line.
   if (mode === 'sr' || !canSpeak()) { announce(item); return true; }
   queue = queue.filter((q) => q.p >= p && !(key && !many && q.key === key));

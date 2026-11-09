@@ -2,34 +2,36 @@
 // are in menu.js and the results block in results.js.
 import { initSpeech, setMode, say } from './speech.js';
 import { ensureAudio } from './audio.js';
+import { loadClips } from './clips.js';
 import { createInput } from './input.js';
 import { createGame } from './game.js';
 import { createRenderer } from './render.js';
 import { createResults } from './results.js';
 import { initMenu, fillVoices, showRate } from './menu.js';
+import { createLanguage, modeNow } from './language.js';
 import { stopLearn } from './learn.js';
 import { getRate, setRate, stepRate } from './voices.js';
-import { LEVELS, ROUNDS } from './levels.js';
+import { getSoundMode } from './soundmode.js';
+import { getLang, t, to } from './i18n/index.js';
+import { ROUNDS } from './levels.js';
 import { arrowsToDir } from './world.js';
-
-// The page has no <html lang> (Artifact contract), so screen readers would read English in their own voice.
-if (!document.documentElement.lang) document.documentElement.lang = 'en';
 
 const $ = (s) => document.querySelector(s);
 const arena = $('#arena'), statusEl = $('#status'), resumeBtn = $('#resume'), canvas = $('#pitch');
 
-const modeNow = () => document.querySelector('input[name="voice-mode"]:checked')?.value || 'voice';
 const applyMode = () => setMode(modeNow());
-initSpeech($('#live-polite'), $('#live-assertive'), fillVoices);
+// The page text, <html lang dir> and the live regions' language are set here, before anything speaks.
+const language = createLanguage({ applyMode, onChange: relabelGame });
+initSpeech($('#live-polite'), $('#live-assertive'), () => { fillVoices(); language.check(); });
 applyMode();
 document.querySelectorAll('input[name="voice-mode"]').forEach((r) => r.addEventListener('change', applyMode));
 initMenu({ applyMode });
 
-const renderer = createRenderer(canvas);
+const renderer = createRenderer(canvas, () => to('canvas'));
 const results = createResults({
   box: $('#results'), summary: $('#summary'), text: $('#results-text'), copyStatus: $('#copy-status'),
   heading: $('#h-results'), copyBtn: $('#copy'),
-}, () => ({ mode: modeNow(), rate: getRate(), hidden: canvas.hidden }));
+}, () => ({ mode: modeNow(), rate: getRate(), hidden: canvas.hidden, sound: getSoundMode(), lang: getLang() }));
 const game = createGame({ onLevelDone });
 const input = createInput(arena, onAction);
 
@@ -39,6 +41,7 @@ function startLevel(n) {
   if (left) results.add(left);
   stopLearn();
   ensureAudio();
+  loadClips();
   applyMode();
   resumeBtn.hidden = true;
   arena.focus();
@@ -58,18 +61,28 @@ function resumeGame() {
 function pauseToMenu(moveFocus) {
   if (game.pause()) {
     input.releaseAll();
-    resumeBtn.textContent = `Resume level ${game.level}, round ${game.round}`;
+    resumeBtn.textContent = resumeLabel();
     resumeBtn.hidden = false;
-    say('Paused. Space resumes.', { priority: 'high' });
+    say(t('paused'), { priority: 'high' });
     results.show(game.partial(true)); // kept levels, plus this one's rounds so far (the open one as paused)
   }
   if (moveFocus) (resumeBtn.hidden ? $('[data-level]') : resumeBtn).focus();
 }
 
+const resumeLabel = () => t('resume', { level: game.level, round: game.round });
+
+// The language changed: redraw what is built in code here.
+function relabelGame() {
+  if (!resumeBtn.hidden) resumeBtn.textContent = resumeLabel();
+  results.relabel();
+  shown = '';
+  renderer.draw(game.world);
+}
+
 function changeSpeed(dir) {
   const r = setRate(stepRate(getRate(), dir));
   showRate();
-  say(`Speed ${r.toFixed(1)}`, { priority: 'high', key: 'rate' });
+  say(t('speed', { rate: r.toFixed(1) }), { priority: 'high', key: 'rate' });
 }
 
 function onAction(name) {
@@ -96,15 +109,16 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) pause
 // focus moves made by startLevel and resumeGame, which leave the pause right after, stay quiet.
 arena.addEventListener('focus', () => setTimeout(() => {
   if (game.phase === 'paused' && document.activeElement === arena) {
-    say('Paused. Space resumes, Escape for the menu.', { priority: 'high' });
+    say(t('pausedBack'), { priority: 'high' });
   }
 }, 0));
 
 function statusText() {
   const ph = game.phase;
-  if (ph === 'idle') return game.level ? `Level ${game.level} done` : 'Choose a level to start';
-  if (ph === 'paused') return 'Paused';
-  return `Level ${game.level}, ${LEVELS[game.level].name} · Round ${game.round} of ${ROUNDS} · ${game.time.toFixed(1)} s`;
+  if (ph === 'idle') return game.level ? t('status.done', { level: game.level }) : t('status.idle');
+  if (ph === 'paused') return t('status.paused');
+  const name = t(`levels.${game.level}.name`);
+  return t('status.play', { level: game.level, name, round: game.round, total: ROUNDS, time: game.time.toFixed(1) });
 }
 
 let last = performance.now(), shown = '';

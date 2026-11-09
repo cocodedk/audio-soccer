@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { resultsText, roundLine } from '../js/report.js';
 import { newStats, closeStats, summarySpeech } from '../js/levels.js';
 import { tickEvery, ballOpts } from '../js/soundscape.js';
-import { englishVoices, stepRate, RATES, DEFAULT_RATE } from '../js/voices.js';
+import { pickVoices, stepRate, RATES, DEFAULT_RATE } from '../js/voices.js';
 import { loadPref, savePref } from '../js/storage.js';
 import { close } from './helpers.mjs';
 
@@ -79,7 +79,7 @@ test('ball sounds behind the listener are dull, and louder to make up for it', (
 
 test('voices: English only, local first, then British; rate steps stay inside the list', () => {
   const v = (name, lang, localService) => ({ name, lang, localService, voiceURI: name });
-  const list = englishVoices([v('Net US', 'en-US', false), v('Fr', 'fr-FR', true), v('Local US', 'en-US', true), v('Net GB', 'en-GB', false), v('Local GB', 'en_GB', true)]);
+  const list = pickVoices([v('Net US', 'en-US', false), v('Fr', 'fr-FR', true), v('Local US', 'en-US', true), v('Net GB', 'en-GB', false), v('Local GB', 'en_GB', true)], 'en');
   assert.deepEqual(list.map((x) => x.name), ['Local GB', 'Local US', 'Net GB', 'Net US']);
   assert.deepEqual(RATES, [1.0, 1.3, 1.6, 2.0, 2.5]);
   assert.equal(DEFAULT_RATE, 1.3);

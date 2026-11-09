@@ -6,7 +6,7 @@ import { say, cancel, isSaying } from './speech.js';
 import { crowdStart, stopAll } from './audio.js';
 import { createSoundscape } from './soundscape.js';
 import { createCues } from './cues.js';
-import { HELP_LINES } from './help.js';
+import { getLang, t, tl } from './i18n/index.js';
 
 const SUB = 1 / 120;  // physics sub-step, seconds
 const BETWEEN = 3;    // pause between rounds, seconds
@@ -16,7 +16,7 @@ export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) 
   let level = 0, round = 0, phase = 'idle', world = null, stats = null, rounds = [], score = 0;
   let wait = 0, resumeTo = 'play', kickQueued = false, clock = false;
 
-  const whereLine = () => `Round ${round} of ${ROUNDS}. ${W.whereText(world)}`;
+  const whereLine = () => t('where.round', { round, total: ROUNDS, text: W.whereText(world, getLang()) });
   // Levels 2 and 3 have the crowd bed; level 1 is quiet so the ball's tick is never masked.
   const crowd = () => { if (level > 1) crowdStart(); };
 
@@ -30,7 +30,7 @@ export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) 
     kickQueued = false;
     sound.reset();
     cues.reset(world);
-    startLines(level, round).forEach((line, i) => say(line, i ? { wait: 20000 } : { priority: 'high' }));
+    startLines(level, round, getLang()).forEach((line, i) => say(line, i ? { wait: 20000 } : { priority: 'high' }));
   }
 
   function startLevel(n) {
@@ -52,7 +52,7 @@ export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) 
   function finishLevel() {
     phase = 'idle';
     stopAll();
-    say(summarySpeech(level, rounds), { priority: 'high', wait: 20000 });
+    say(summarySpeech(level, rounds, false, getLang()), { priority: 'high', wait: 20000 });
     onLevelDone({ level, rounds: rounds.map((r) => ({ ...r })) });
   }
 
@@ -60,26 +60,26 @@ export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) 
   // wide; a dribbled one is called too, at a lower rate.
   function endWall(e) {
     if (level < 2 || e.x !== W.PITCH_L) return;
-    const side = e.y < W.GOAL.y ? 'left' : 'right';
-    if (e.wide) { stats.wide += 1; say(`Wide ${e.wide}`, { key: 'wide', gap: 1000 }); }
-    else say(`Wide ${side} of the goal`, { key: 'wide', gap: 2500 });
+    const side = (k) => t(`dir.${k}`);
+    if (e.wide) { stats.wide += 1; say(t('wide', { side: side(e.wide) }), { key: 'wide', gap: 1000 }); }
+    else say(t('wideGoal', { side: side(e.y < W.GOAL.y ? 'left' : 'right') }), { key: 'wide', gap: 2500 });
   }
 
   function onEvent(e) {
     sound.event(e, world);
     switch (e.type) {
       case 'take':
-        if (LEVELS[level].endsOn === 'take') endRound('success', `Got it. ${stats.time.toFixed(1)} seconds.`);
-        else say('Got the ball', { key: 'got', gap: 1500 });
+        if (LEVELS[level].endsOn === 'take') endRound('success', t('gotIt', { time: stats.time.toFixed(1) }));
+        else say(t('gotBall'), { key: 'got', gap: 1500 });
         break;
       case 'kick': stats.kicks += 1; break;
       case 'bump': stats.bumps += 1; break;
-      case 'goal': score += 1; endRound('success', 'Goal!'); break;
-      case 'save': stats.saves += 1; say('Saved!', { priority: 'high', key: 'saved', gap: 1500 }); break;
-      case 'post': say('Post!', { key: 'post', gap: 800 }); break;
+      case 'goal': score += 1; endRound('success', t('goal')); break;
+      case 'save': stats.saves += 1; say(t('saved'), { priority: 'high', key: 'saved', gap: 1500 }); break;
+      case 'post': say(t('post'), { key: 'post', gap: 800 }); break;
       case 'endwall': endWall(e); break;
-      case 'voy': say('Voy!', { pitch: 1.4, cue: true }); break;
-      case 'nokick': say('You need the ball to kick', { priority: 'low', key: 'nokick', gap: 2000 }); break;
+      case 'voy': say(t('voy'), { pitch: 1.4, cue: true }); break;
+      case 'nokick': say(t('noKick'), { priority: 'low', key: 'nokick', gap: 2000 }); break;
       default: break;
     }
   }
@@ -100,7 +100,7 @@ export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) 
       if (phase === 'play') {
         sound.update(world, dt);
         cues.update(world);
-        if (stats.time >= W.ROUND_CAP) endRound('timeout', 'Time is up.');
+        if (stats.time >= W.ROUND_CAP) endRound('timeout', t('timeUp'));
       }
     } else if (phase === 'between') {
       wait -= dt;
@@ -113,13 +113,13 @@ export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) 
       // Normal priority, so ordinary cues don't wipe it (events still cut in). It waits its turn behind
       // the round's explanation; pressing H again while it is still going starts it over.
       if (isSaying('help')) cancel();
-      HELP_LINES.forEach((line) => say(line, { key: 'help', many: true, wait: 30000 }));
+      tl('help').forEach((line) => say(line, { key: 'help', many: true, wait: 30000 }));
       return;
     }
     if (phase !== 'play') return;
     if (name === 'kick') kickQueued = true;
     else if (name === 'where') { stats.where += 1; say(whereLine(), { priority: 'high', key: 'where' }); }
-    else if (name === 'giveup') endRound('giveup', 'Round given up.');
+    else if (name === 'giveup') endRound('giveup', t('gaveUp'));
   }
 
   function pause() {
@@ -136,7 +136,7 @@ export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) 
     phase = resumeTo;
     crowd();
     sound.reset();
-    say(resumeTo === 'between' ? 'Next round in a moment.' : whereLine(), { priority: 'high' });
+    say(resumeTo === 'between' ? t('nextRound') : whereLine(), { priority: 'high' });
     return true;
   }
 

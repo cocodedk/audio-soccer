@@ -12,16 +12,28 @@ goal and score using sound alone?
 
 ## The browser trial
 
-You need a computer with a keyboard, headphones and a current browser (Chrome, Edge or Firefox).
-It works with a screen reader (NVDA, JAWS, VoiceOver) or with the browser's own voice.
+You need a computer with a keyboard and a current browser (Chrome, Edge or Firefox). Speakers work,
+and headphones are optional. It works with a screen reader (NVDA, JAWS, VoiceOver) or with the
+browser's own voice.
 
-1. Open the trial. Press **Headphone check**: you should hear "left" in your left ear, then "right"
-   in your right ear. Then press **Learn the sounds** to hear each sound named.
-2. Choose whether your screen reader or the browser's voice speaks, and set the speech speed.
-3. Start **Level 1: Find the ball**. Focus moves into the game. The clock starts when you first move.
-4. Arrow keys run, **Space** kicks, **W** says where you are, **G** gives up the round, **H** repeats
+1. Open the trial. Press **Learn the sounds** to hear each sound named.
+2. Choose **Sound**: **Speakers** (the default) or **Headphones**. With speakers nothing is panned
+   left and right. Distance comes through as volume, the ball's tick and the goal's chime beep faster
+   as you close in, and a short recorded word says where your target is, the ball or, once you have
+   it, the goal: "ahead", "left", "right" or "behind". The word plays at once, even while your screen
+   reader is still talking, so it is never late. With headphones the sounds are placed in 3D (HRTF), and a
+   **Headphone check** button appears: you should hear "left" in your left ear, then "right" in your
+   right ear. Loud sounds are capped either way.
+3. Choose **Language**: English or فارسی (Persian). Everything the game shows and says follows it.
+   The results you copy and send back stay in English. If your browser has no Persian voice, the
+   trial switches to "My screen reader speaks" by itself and says so in Persian, so your own screen
+   reader, which has a Persian voice, reads the game. Choosing English again puts your earlier voice
+   setting back.
+4. Choose whether your screen reader or the browser's voice speaks, and set the speech speed.
+5. Start **Level 1: Find the ball**. Focus moves into the game. The clock starts when you first move.
+6. Arrow keys run, **Space** kicks, **W** says where you are, **G** gives up the round, **H** repeats
    the keys, **[** and **]** (or **-** and **+**) change the speech speed, **Escape** pauses.
-5. After each level, press **Copy results** and send them back.
+7. After each level, press **Copy results** and send them back.
 
 If the arrow keys read the page instead of moving the player, switch your screen reader to focus
 mode (NVDA: NVDA+Space). With VoiceOver, turn Quick Nav off by pressing Left and Right together.

@@ -1,15 +1,16 @@
 // Top-down canvas picture of the pitch for sighted helpers and low-vision players. It shows only
-// what the sound already says: the pitch, the player, the ball and the keeper.
+// what the sound already says: the pitch, the player, the ball and the keeper. labels() gives the words
+// drawn on it ({ left, right, attack, you, keeper }) in the current language.
 const TURF = '#1E5A47', TURF2 = '#22654F', CHALK = '#F1F5EF', BOARD = '#A9C2CF', AMBER = '#F5B436';
 const HOME = '#F4F7F2', NAVY = '#16233A';
 const FRAME = { x0: -3.5, x1: 43.5, y0: -3, y1: 23 };
 
-export function createRenderer(cv) {
+export function createRenderer(cv, labels) {
   const c = cv.getContext('2d');
   let s = 0, last = null;
   const X = (x) => (x - FRAME.x0) * s;
   const Y = (y) => (y - FRAME.y0) * s;
-  const font = (w, size) => `${w} ${Math.max(10, size * s)}px "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif`;
+  const font = (w, size) => `${w} ${Math.max(10, size * s)}px "Atkinson Hyperlegible", "Segoe UI", Tahoma, system-ui, sans-serif`;
   const circle = (x, y, r) => { c.beginPath(); c.arc(X(x), Y(y), r * s, 0, Math.PI * 2); };
 
   function fit() {
@@ -23,6 +24,7 @@ export function createRenderer(cv) {
   }
 
   function pitch() {
+    c.direction = 'ltr'; // not the page's (resizing resets it): a Persian label is one right-to-left run either way
     c.fillStyle = TURF; c.fillRect(0, 0, cv.width, cv.height);
     c.fillStyle = TURF2;
     for (let i = 1; i < 10; i += 2) c.fillRect(X(i * 4), Y(0), 4 * s, 20 * s);
@@ -40,10 +42,10 @@ export function createRenderer(cv) {
     c.fillRect(X(0), Y(20), 40 * s, 0.55 * s);
     c.fillStyle = CHALK; c.font = font(700, 0.95); c.textBaseline = 'middle';
     c.textAlign = 'left';
-    c.fillText('YOUR LEFT · BOARDS', X(0.2), Y(-1.75));
-    c.fillText('YOUR RIGHT · BOARDS', X(0.2), Y(21.75));
+    c.fillText(labels().left, X(0.2), Y(-1.75));
+    c.fillText(labels().right, X(0.2), Y(21.75));
     c.textAlign = 'right';
-    c.fillText('ATTACKING →', X(39.8), Y(-1.75));
+    c.fillText(labels().attack, X(39.8), Y(-1.75));
   }
 
   function person(x, y, fill, stroke, label) {
@@ -60,12 +62,12 @@ export function createRenderer(cv) {
     if (!s || cv.hidden) return;
     pitch();
     if (!w) return;
-    if (w.keeper) person(w.keeper.x, w.keeper.y, NAVY, HOME, 'GK');
+    if (w.keeper) person(w.keeper.x, w.keeper.y, NAVY, HOME, labels().keeper);
     const p = w.player;
     person(p.x, p.y, HOME, NAVY, null);
     circle(p.x, p.y, 1.25); c.strokeStyle = AMBER; c.lineWidth = Math.max(2, 0.24 * s); c.stroke();
     c.fillStyle = AMBER; c.font = font(700, 0.9); c.textAlign = 'center';
-    c.fillText('YOU', X(p.x), Y(p.y < 3 ? p.y + 2.2 : p.y - 2));
+    c.fillText(labels().you, X(p.x), Y(p.y < 3 ? p.y + 2.2 : p.y - 2));
     circle(w.ball.x, w.ball.y, 0.42); c.fillStyle = AMBER; c.fill();
     c.lineWidth = Math.max(1, 0.1 * s); c.strokeStyle = '#3A2600'; c.stroke();
   }

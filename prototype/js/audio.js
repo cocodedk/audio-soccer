@@ -1,11 +1,17 @@
-// Web Audio engine: one context, master -> compressor -> destination, a game bus that can be cut
-// instantly, HRTF panners at game positions, the listener on the player, and the crowd bed.
-import { toAudio } from './world.js';
+// Web Audio engine: one context, master -> limiter -> destination, a game bus that can be cut
+// instantly, the listener on the player, and the crowd bed. Headphones mode places each sound with an
+// HRTF panner; speakers mode pans nothing and applies the panner's distance curve as a plain gain.
+import { toAudio, dist } from './world.js';
+import { speakersOn } from './soundmode.js';
+import { distanceGain } from './speakers.js';
 
 const DULL_HZ = 2000;  // behind: keeps the tick's 2.5 kHz tone and the rattle's mid grain
 const CROWD_HZ = 550;  // the crowd bed sits below the ball's tick and rattle bands
 
-let ctx = null, master = null, bus = null, noiseBuf = null, crowd = null;
+// The master compressor as a limiter, so no sound peaks far above the rest (the tester's ears are sensitive).
+const LIMITER = { threshold: -20, knee: 0, ratio: 20, attack: 0.003, release: 0.25 };
+
+let ctx = null, master = null, bus = null, noiseBuf = null, crowd = null, listener = null;
 
 // Create (first call) and resume the context. Call from a click or key handler.
 export function ensureAudio() {
@@ -14,6 +20,7 @@ export function ensureAudio() {
     if (!AC) return null;
     try { ctx = new AC(); } catch (e) { return null; }
     const comp = ctx.createDynamicsCompressor();
+    for (const k in LIMITER) comp[k].value = LIMITER[k];
     master = ctx.createGain();
     master.gain.value = 0.9;
     master.connect(comp);
@@ -59,6 +66,7 @@ function faceTheGoal() {
 // Put the listener on the player. Called every frame.
 export function setListener(p) {
   if (!ctx) return;
+  listener = { x: p.x, y: p.y };
   const a = toAudio(p), L = ctx.listener;
   setParam3(L, ['positionX', 'positionY', 'positionZ'], [a.x, a.y, a.z], (v) => L.setPosition(...v));
 }
@@ -76,20 +84,22 @@ function panner(at) {
 }
 
 // The input node for one sound. at: game point (spatial). pan: -1..1 stereo (non-spatial).
-// dull: lowpass at DULL_HZ, used for ball sounds behind the player.
+// dull: lowpass at DULL_HZ, used for ball sounds behind the player. In speakers mode `at` only sets the
+// volume (by distance from the listener) and pan is ignored: the sound stays centred.
 export function output({ at = null, pan = 0, gain = 1, dull = false } = {}) {
+  const speakers = speakersOn();
   const g = ctx.createGain();
-  g.gain.value = gain;
+  g.gain.value = speakers && at && listener ? gain * distanceGain(dist(listener, at)) : gain;
   let tail = g;
   if (dull) {
     const f = ctx.createBiquadFilter();
     f.type = 'lowpass'; f.frequency.value = DULL_HZ;
     tail.connect(f); tail = f;
   }
-  if (at) {
+  if (!speakers && at) {
     const p = panner(at);
     tail.connect(p); tail = p;
-  } else if (pan && ctx.createStereoPanner) {
+  } else if (!speakers && pan && ctx.createStereoPanner) {
     const sp = ctx.createStereoPanner();
     sp.pan.value = pan;
     tail.connect(sp); tail = sp;
@@ -98,17 +108,18 @@ export function output({ at = null, pan = 0, gain = 1, dull = false } = {}) {
   return g;
 }
 
-// Crowd bed: two decorrelated noise loops, panned apart, band-limited below CROWD_HZ (always, so it
-// never reaches the ball's tick and rattle bands). Created on play, stopped on pause.
+// Crowd bed: two decorrelated noise loops, panned apart (one loop, centred, in speakers mode),
+// band-limited below CROWD_HZ (always, so it never reaches the ball's tick and rattle bands). Created
+// on play, stopped on pause.
 export function crowdStart(level = 0.045) {
   if (!ctx || crowd) return;
   const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 650; bp.Q.value = 0.5;
   const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = CROWD_HZ;
   const g = ctx.createGain(); g.gain.value = 0;
-  const sources = [-0.8, 0.8].map((pan, i) => {
+  const sources = (speakersOn() ? [0] : [-0.8, 0.8]).map((pan, i) => {
     const s = ctx.createBufferSource();
     s.buffer = noiseBuf; s.loop = true;
-    const sp = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain();
+    const sp = !pan || !ctx.createStereoPanner ? ctx.createGain() : ctx.createStereoPanner();
     if (sp.pan) sp.pan.value = pan;
     s.connect(sp); sp.connect(bp);
     s.start(0, i * 0.9);

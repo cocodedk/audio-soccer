@@ -1,12 +1,15 @@
-// Levels, round setup, per-round stats and the lines spoken at the start and end of a level.
+// Levels, round setup, per-round stats and the lines spoken at the start and end of a level. The win
+// word is for the copied report; what is spoken and shown comes from the i18n tables (a language code
+// can be passed, English by default).
 import { PLAYER_SPEED } from './constants.js';
+import { tr, trList } from './i18n/tables.js';
 
 export const ROUNDS = 3;
 
 export const LEVELS = {
-  1: { name: 'Find the ball', task: 'Find the ball.', keeper: false, endsOn: 'take', win: 'found', miss: 'not found' },
-  2: { name: 'Score', task: 'Score a goal.', keeper: false, endsOn: 'goal', win: 'scored', miss: 'not scored' },
-  3: { name: 'Beat the keeper', task: 'Beat the keeper.', keeper: true, endsOn: 'goal', win: 'scored', miss: 'not scored' },
+  1: { keeper: false, endsOn: 'take', win: 'found' },
+  2: { keeper: false, endsOn: 'goal', win: 'scored' },
+  3: { keeper: true, endsOn: 'goal', win: 'scored' },
 };
 
 const between = (rand, a, b) => a + rand() * (b - a);
@@ -48,16 +51,15 @@ export function closeStats(level, s, how) {
 }
 
 // Spoken at the start of a round. The explanations come in round 1 only.
-const EXTRA = {
-  2: ['Space kicks straight up the pitch. Line up with the goal, within about twenty metres, and kick.'],
-  3: ['Space kicks straight up the pitch.',
-    "The keeper sets himself on the ball and can't move once you kick. Get the goal slightly to your left or right, hold that arrow, and kick."],
-};
-export const startLines = (level, round) => [`Round ${round}. ${LEVELS[level].task}`, ...(round === 1 ? EXTRA[level] || [] : [])];
+export const startLines = (level, round, lang = 'en') => [
+  tr(lang, 'roundIntro', { round, task: tr(lang, `levels.${level}.task`) }),
+  ...(round === 1 ? trList(lang, `extra.${level}`) : []),
+];
 
 // "Level 1 done. Times: 12.4, not found, 10.2."
-export function summarySpeech(level, rounds, partial = false) {
-  const times = rounds.map((r) => (r.success ? r.time.toFixed(1) : LEVELS[level].miss)).join(', ');
-  const head = partial ? `Level ${level} stopped after ${rounds.length} of ${ROUNDS} rounds.` : `Level ${level} done.`;
-  return `${head} Times: ${times}.`;
+export function summarySpeech(level, rounds, partial = false, lang = 'en') {
+  const miss = tr(lang, `levels.${level}.miss`);
+  const list = rounds.map((r) => (r.success ? r.time.toFixed(1) : miss)).join(tr(lang, 'summary.sep'));
+  const head = partial ? tr(lang, 'summary.stopped', { level, n: rounds.length, total: ROUNDS }) : tr(lang, 'summary.done', { level });
+  return tr(lang, 'summary.times', { head, list });
 }

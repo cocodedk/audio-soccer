@@ -29,3 +29,9 @@ test('other keys still ignore Ctrl, Alt and Meta so shortcuts keep working', () 
   }
   assert.equal(key('x').ok, false);
 });
+
+test('on a Persian layout W, H, G and the speed keys still work, found by their place on the keyboard', () => {
+  const fa = [['ص', 'KeyW', 'where'], ['ا', 'KeyH', 'help'], ['ل', 'KeyG', 'giveup'], ['ج', 'BracketLeft', 'rateDown'], ['چ', 'BracketRight', 'rateUp']];
+  for (const [k, code, name] of fa) assert.equal(keyName({ key: k, code }), name, code);
+  assert.equal(keyName({ key: 'ث', code: 'KeyE' }), null);
+});

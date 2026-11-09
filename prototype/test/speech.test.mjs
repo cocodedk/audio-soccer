@@ -1,18 +1,8 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { fakeSpeech } from './helpers.mjs';
 
-// A fake speech engine: speak() records the line and keeps it "playing" until finish() is called.
-const spoken = [];
-let playing = null;
-globalThis.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
-globalThis.speechSynthesis = {
-  speaking: false, pending: false,
-  cancel() { this.speaking = false; playing = null; },
-  speak(u) { spoken.push(u.text); playing = u; this.speaking = true; },
-  getVoices: () => [], addEventListener() {},
-};
-const finish = () => { const u = playing; speechSynthesis.speaking = false; playing = null; if (u && u.onend) u.onend({}); };
-const finishAll = () => { for (let i = 0; i < 30 && playing; i++) finish(); };
+const { spoken, finish, finishAll } = fakeSpeech();
 
 const { say, cancel, isSaying, setMode } = await import('../js/speech.js');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
