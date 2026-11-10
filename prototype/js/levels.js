@@ -3,6 +3,7 @@
 // can be passed, English by default).
 import { PLAYER_SPEED } from './constants.js';
 import { tr, trList } from './i18n/tables.js';
+import { closeKicks } from './kicks.js';
 
 export const ROUNDS = 3;
 
@@ -30,9 +31,9 @@ export function setupRound(level, rand = Math.random) {
 }
 
 // One round's record. startDist and startBehind describe where the ball was at the start (they matter
-// in level 1; in levels 2 and 3 the player starts with the ball).
+// in level 1; in levels 2 and 3 the player starts with the ball). shots: one record per kick (kicks.js).
 export const newStats = (setup) => ({
-  time: 0, where: 0, bumps: 0, kicks: 0, wide: 0, saves: 0,
+  time: 0, where: 0, bumps: 0, kicks: 0, wide: 0, saves: 0, shots: [],
   startDist: Math.hypot(setup.ball.x - setup.player.x, setup.ball.y - setup.player.y),
   startBehind: setup.ball.x < setup.player.x,
   success: false, gaveUp: false, timedOut: false, left: false, efficiency: null,
@@ -46,6 +47,7 @@ export function closeStats(level, s, how) {
   s.gaveUp = how !== 'success';
   s.timedOut = how === 'timeout';
   s.left = how === 'left';
+  s.shots = closeKicks(s.shots, how);
   s.efficiency = level === 1 && s.success && s.time > 0 ? s.startDist / (PLAYER_SPEED * s.time) : null;
   return s;
 }

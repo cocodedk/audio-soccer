@@ -17,6 +17,7 @@ export default {
   },
   // spoken side calls (speakers mode) and ambient cues
   call: { ahead: 'ahead', left: 'left', right: 'right', behind: 'behind' },
+  boardCall: { left: 'left board', right: 'right board' },
   behind: 'Ball behind you',
   // game events
   gotIt: 'Got it. {time} seconds.', gotBall: 'Got the ball', goal: 'Goal!', saved: 'Saved!', post: 'Post!',
@@ -69,6 +70,7 @@ export default {
   voiceDefault: 'Default voice', voiceIs: 'This is the voice.', noSound: 'This browser cannot play sound.',
   touch: 'This needs a computer with a keyboard. It does not work on a phone or tablet.',
   copy: { blocked: 'Copying was blocked. The text is selected: press {keys} to copy it.', done: 'Copied.' },
-  lang: { set: 'English', fallback: 'This browser has no Persian voice. From now on your screen reader speaks the game.' },
+  clear: { confirm: 'Press Clear results again within 15 seconds to delete all results.', done: 'Results cleared.', kept: 'Results cleared. The level in progress is kept.' },
+  lang: { set: 'English', fallback: 'There is no Persian voice on this device. From now on your screen reader speaks the game.' },
   canvas: { left: 'YOUR LEFT · BOARDS', right: 'YOUR RIGHT · BOARDS', attack: 'ATTACKING →', you: 'YOU', keeper: 'GK' },
 };

@@ -87,10 +87,11 @@ test('level texts in Persian: intros, summary with Persian digits', () => {
 });
 
 test('the copied report stays English whatever the language, and says which sound and language were used', () => {
-  const blocks = [{ level: 1, rounds: [{ ...closeStats(1, { ...newStats({ player: { x: 1, y: 1 }, ball: { x: 5, y: 5 } }), time: 8 }, 'success') }] }];
-  const head = resultsText(blocks, { mode: 'sr', rate: 1.3, hidden: false, sound: 'speakers', lang: 'fa' }).split('\n')[0];
-  assert.equal(head, 'Audio Soccer trial. Voice: own screen reader. Speech speed 1.3. Picture shown. Sound: speakers. Language: Persian.');
-  assert.doesNotMatch(resultsText(blocks, { mode: 'voice', rate: 1, hidden: true }), /Sound:|Language:/, 'older saved results have neither');
+  const rounds = [{ ...closeStats(1, { ...newStats({ player: { x: 1, y: 1 }, ball: { x: 5, y: 5 } }), time: 8 }, 'success') }];
+  const meta = { mode: 'sr', rate: 1.3, hidden: false, sound: 'speakers', lang: 'fa' };
+  const how = resultsText([{ level: 1, rounds, meta }], 'UA').split('\n')[2];
+  assert.equal(how, 'Voice: own screen reader. Speech speed 1.3. Picture shown. Sound: speakers. Language: Persian.');
+  assert.doesNotMatch(resultsText([{ level: 1, rounds, meta: { mode: 'voice', rate: 1, hidden: true } }], 'UA'), /Sound:|Language:/, 'older saved results have neither');
 });
 
 test('voices: Persian ones for Persian, local first; English ones keep the British-first rule', () => {

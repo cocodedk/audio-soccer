@@ -3,7 +3,7 @@
 import { ensureAudio } from './audio.js';
 import { loadClips } from './clips.js';
 import { say } from './speech.js';
-import { getRate, setRate, listVoices, currentVoice, setVoice } from './voices.js';
+import { getRate, setRate, listVoices, currentVoice, setVoice, local } from './voices.js';
 import { getSoundMode, setSoundMode, speakersOn } from './soundmode.js';
 import { headphoneCheck, learnSounds, stopLearn } from './learn.js';
 import { t } from './i18n/index.js';
@@ -23,7 +23,7 @@ export function fillVoices() {
   voiceEl.textContent = '';
   if (!list.length) voiceEl.add(new Option(t('voiceDefault'), ''));
   for (const v of list) {
-    voiceEl.add(new Option(`${v.name}, ${v.lang}${v.localService ? '' : `, ${t('online')}`}`, v.voiceURI, false, v === cur));
+    voiceEl.add(new Option(`${v.name}, ${v.lang}${local(v) ? '' : `, ${t('online')}`}`, v.voiceURI, false, v === cur));
   }
   voiceEl.disabled = !list.length;
 }

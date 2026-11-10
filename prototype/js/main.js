@@ -30,15 +30,17 @@ initMenu({ applyMode });
 const renderer = createRenderer(canvas, () => to('canvas'));
 const results = createResults({
   box: $('#results'), summary: $('#summary'), text: $('#results-text'), copyStatus: $('#copy-status'),
-  heading: $('#h-results'), copyBtn: $('#copy'),
+  heading: $('#h-results'), copyBtn: $('#copy'), clearBtn: $('#clear-results'), onEmpty: resultsGone,
 }, () => ({ mode: modeNow(), rate: getRate(), hidden: canvas.hidden, sound: getSoundMode(), lang: getLang() }));
 const game = createGame({ onLevelDone });
+let leftWith = null; // { meta, at } of the moment the level in progress was paused
 const input = createInput(arena, onAction);
 
 // Focus moves before the game speaks, so a screen reader's focus announcement doesn't cut the line off.
 function startLevel(n) {
-  const left = game.partial(); // a level left half-played still counts in the results
-  if (left) results.add(left);
+  const left = game.partial(); // a level left half-played still counts in the results, with the
+  if (left) results.add({ ...left, ...leftWith }); // settings and time of when it was paused
+  leftWith = null;
   stopLearn();
   ensureAudio();
   loadClips();
@@ -52,6 +54,7 @@ function resumeGame() {
   if (game.phase !== 'paused') return;
   ensureAudio();
   resumeBtn.hidden = true;
+  leftWith = null;
   arena.focus();
   game.resume();
 }
@@ -63,10 +66,17 @@ function pauseToMenu(moveFocus) {
     input.releaseAll();
     resumeBtn.textContent = resumeLabel();
     resumeBtn.hidden = false;
+    leftWith = results.now();
     say(t('paused'), { priority: 'high' });
     results.show(game.partial(true)); // kept levels, plus this one's rounds so far (the open one as paused)
   }
   if (moveFocus) (resumeBtn.hidden ? $('[data-level]') : resumeBtn).focus();
+}
+
+// The results were cleared and the panel is going: take focus out of it first, then say so.
+function resultsGone(msg) {
+  if ($('#results').contains(document.activeElement)) (resumeBtn.hidden ? $('[data-level]') : resumeBtn).focus();
+  say(msg, { priority: 'high' });
 }
 
 const resumeLabel = () => t('resume', { level: game.level, round: game.round });

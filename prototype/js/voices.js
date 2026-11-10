@@ -6,6 +6,8 @@ export const RATES = [1.0, 1.3, 1.6, 2.0, 2.5];
 export const DEFAULT_RATE = 1.3;
 
 const isGB = (v) => /^en[-_]GB/i.test(v.lang);
+// On the device unless the browser says it is online: one that leaves localService out counts as local.
+export const local = (v) => v.localService !== false;
 
 // The voices of one language (voice.lang starts with its code: en, fa), best first: local ones (a
 // network voice adds latency and needs internet), then British for English, then by name.
@@ -13,7 +15,7 @@ export function pickVoices(list, lang) {
   const own = new RegExp(`^${lang}`, 'i');
   return list
     .filter((v) => own.test(v.lang))
-    .sort((a, b) => (Number(!!b.localService) - Number(!!a.localService)) || (Number(isGB(b)) - Number(isGB(a))) || a.name.localeCompare(b.name));
+    .sort((a, b) => (Number(local(b)) - Number(local(a))) || (Number(isGB(b)) - Number(isGB(a))) || a.name.localeCompare(b.name));
 }
 
 // One step up (dir 1) or down (-1) the list of rates, staying inside it.
@@ -32,8 +34,10 @@ const voiceKey = (lang) => (lang === 'en' ? 'voice' : `voice-${lang}`);
 export const getRate = () => rate;
 export const currentVoice = () => voice;
 export const listVoices = () => voices;
-// The engine has voices at all (its list has loaded), but none for the current language.
-export const missingVoice = () => all.length > 0 && voices.length === 0;
+// The engine has voices at all (its list has loaded), but none on this device for the current
+// language. An online-only language counts as missing: online voices may be blocked (the tester is
+// in Iran) and then never speak.
+export const missingVoice = () => all.length > 0 && !voices.some(local);
 
 export function setRate(r) {
   if (RATES.includes(r)) { rate = r; savePref('rate', r); }

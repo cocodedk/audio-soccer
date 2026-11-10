@@ -78,6 +78,15 @@ const steps = () => [
   { name: t('learn.voy'), go: () => say(t('voy'), { priority: 'high', pitch: 1.4 }), ms: 1200 },
 ].filter((x) => (speakersOn() ? !x.pan : !x.speakers));
 
+// How long to let a step's name be heard before its sound. The built-in voice's speed is known, so it
+// gets a wait that scales with its rate. In screen-reader mode the player's own reader speaks the name,
+// after a 100 ms live-region delay and at a speed we cannot know, and slower readers are common, so the
+// wait assumes a slow reader instead: 1 s plus 100 ms per character, whatever the built-in rate.
+export const nameWait = (name, sr, rate) => (sr ? 1000 + name.length * 100 : 500 + name.length * 70 / rate);
+// The voice mode radio, as language.js modeNow() reads it. Importing language.js here would loop back
+// through menu.js to this file and reach the DOM on load.
+const srMode = () => globalThis.document?.querySelector('input[name="voice-mode"]:checked')?.value === 'sr';
+
 export function stopLearn() {
   run += 1;
   timers.forEach(clearTimeout);
@@ -92,7 +101,7 @@ export async function learnSounds() {
     if (id !== run) return;
     setListener(step.at || ME);
     say(step.name, { priority: 'high', wait: 20000 });
-    await sleep(500 + step.name.length * 70 / getRate());
+    await sleep(nameWait(step.name, srMode(), getRate()));
     if (id !== run) return;
     step.go();
     await sleep(step.ms);

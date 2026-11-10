@@ -60,3 +60,21 @@ test('ambient cues are dropped in screen reader mode', () => {
   setMode('voice');
   assert.equal(say('Middle third', { cue: true }), true);
 });
+
+test('an outcome line cuts off a long Ask answer instead of expiring behind it', async () => {
+  say('The ball is at 2 o\'clock, 14 metres. The goal is at 12 o\'clock, 30 metres.', { priority: 'high', key: 'where' });
+  await wait(500);
+  say('Got it. 12.3 seconds.', { priority: 'high', cut: true });
+  await wait(3000); // the Ask answer is never finished; the outcome must not wait for it
+  assert.equal(spoken[spoken.length - 1], 'Got it. 12.3 seconds.');
+});
+
+test('an outcome line is not left behind a high line already waiting in the queue', async () => {
+  say('Round one. Find the ball and score.', { priority: 'high' });
+  await wait(200);
+  say('The ball is at 2 o\'clock, 14 metres.', { priority: 'high', key: 'where' }); // waits: high does not cut high
+  await wait(400);
+  say('Goal! 4.1 seconds.', { priority: 'high', cut: true });
+  await wait(3000);
+  assert.ok(spoken.includes('Goal! 4.1 seconds.'));
+});

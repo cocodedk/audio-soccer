@@ -37,13 +37,16 @@ export function createLanguage({ applyMode, onChange }) {
   noticeEl.lang = 'fa';
   noticeEl.dir = 'rtl';
 
-  // Persian with no Persian voice in the browser: switch to the screen reader and say so, once the
-  // browser's voice list is known. Returns true when it did. A player already on their screen reader
+  // Persian with no Persian voice on the device (online-only counts as none, see missingVoice):
+  // switch to the screen reader and say so, once the browser's voice list is known. Returns true when it did. A player already on their screen reader
   // keeps it; so does one whose browser has a Persian voice.
   function check() {
     if (!pending || getLang() !== 'fa') return false;
     if (!missingVoice()) { if (listVoices().length) pending = false; return false; }
     pending = false;
+    // The player chose the built-in voice for Persian themselves on an earlier visit: their online voice
+    // works for them, so it is not taken away on every reload. Not when there is no Persian voice at all.
+    if (loadPref('mode-picked-fa') === 'voice' && listVoices().length) return false;
     if (modeNow() !== 'voice') return false;
     savePref('restore-mode', 'voice');
     pickMode('sr');
@@ -69,8 +72,10 @@ export function createLanguage({ applyMode, onChange }) {
   document.querySelectorAll('input[name="lang"]').forEach((r) => r.addEventListener('change', () => { if (r.checked) choose(r.value); }));
   // A voice mode the player picks themselves is theirs: it is not undone by going back to English.
   // The fallback notice goes with it.
+  // The voice mode isn't saved, so the choice made in Persian is kept for check() on the next visit.
   document.querySelectorAll('input[name="voice-mode"]').forEach((r) => r.addEventListener('change', () => {
     savePref('restore-mode', '');
+    if (getLang() === 'fa') savePref('mode-picked-fa', r.value);
     noticeEl.hidden = true;
   }));
 

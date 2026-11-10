@@ -10,8 +10,10 @@ computer.
 | Language | Voice | Licence of the voice's training data | Text rendered |
 |---|---|---|---|
 | English (`en`) | Piper `en_US-ljspeech-high` | LJ Speech, public domain | Ahead. Left. Right. Behind. |
-| Persian (`fa`) | Piper `fa_IR-amir-medium` | Amir dataset (datacula), CC0 | جِلو. چپ. راست. پُشتِ سَر. |
+| Persian (`fa`) | Piper `fa_IR-amir-medium` | Amir dataset (datacula), CC0 | `[[ dʒelˈo ]]`. چپ. راست. `[[ pˈoːʃte sˈar ]]`. |
 
-The Persian texts carry vowel marks so the voice says "jelo" and "poshte sar" (without them it says
-"jolo" and drops the "e"). Rendered offline with `piper-tts` on 2026-11-09; human-recorded words can
+Two Persian words are rendered from phonemes, because the voice gets them wrong from text. "Ahead":
+it reads جِلو as "jelu" and جلو as "jolo", so `[[ dʒelˈo ]]` gives "jelo". "Behind": from پُشتِ سَر its
+short "o" sounds like "pushte sar", so `[[ pˈoːʃte sˈar ]]` lengthens it to "poshte sar" (chosen by ear
+by the owner). Rendered offline with `piper-tts` on 2026-11-09; human-recorded words can
 replace these files at any time under the same names.

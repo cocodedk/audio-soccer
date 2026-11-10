@@ -15,7 +15,8 @@ export function loadClips() {
   if (!ctx || loading) return loading;
   loading = Promise.all(LANGS.flatMap((lang) => SIDE_WORDS.map(async (word) => {
     try {
-      const res = await fetch(`sounds/side-${word}.${lang}.wav`);
+      // no-cache: ask the server each time, so a re-recorded clip is never served stale from the browser.
+      const res = await fetch(`sounds/side-${word}.${lang}.wav`, { cache: 'no-cache' });
       buffers[`${word}.${lang}`] = await ctx.decodeAudioData(await res.arrayBuffer());
     } catch (e) { /* this word stays spoken */ }
   }))).then(() => { settled = true; });
