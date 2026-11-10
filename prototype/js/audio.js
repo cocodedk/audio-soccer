@@ -1,4 +1,4 @@
-// Web Audio engine: one context, master -> limiter -> destination, a game bus that can be cut
+// Web Audio engine: one context, limiter -> master -> destination, a game bus that can be cut
 // instantly, the listener on the player, and the crowd bed. Headphones mode places each sound with an
 // HRTF panner; speakers mode pans nothing and applies the panner's distance curve as a plain gain.
 import { toAudio, dist } from './world.js';
@@ -9,9 +9,16 @@ const DULL_HZ = 2000;  // behind: keeps the tick's 2.5 kHz tone and the rattle's
 const CROWD_HZ = 550;  // the crowd bed sits below the ball's tick and rattle bands
 
 // The master compressor as a limiter, so no sound peaks far above the rest (the tester's ears are sensitive).
-const LIMITER = { threshold: -20, knee: 0, ratio: 20, attack: 0.003, release: 0.25 };
+// It must leave ordinary cues alone: in speakers mode volume carries distance and the ball must stay the
+// clearest sound. At -20 dB it squeezed the still ball's tick (near vs far: 10.5 dB in, 4 dB out) and its
+// automatic makeup gain (+11 dB) lifted the quiet chime. The threshold sits just above the loudest cues:
+// the near tick's noise makes its peak vary, about -11 to -7.8 dBFS over 30 renders, so -9 still squeezed
+// one in six. The browser adds makeup gain we can't turn off, so MASTER, after the limiter, takes it back:
+// a full-scale input peaks at about -7.4 dBFS, under the old chain's -6.7.
+const LIMITER = { threshold: -7.5, knee: 0, ratio: 20, attack: 0.003, release: 0.25 };
+const MASTER = 0.57;
 
-let ctx = null, master = null, bus = null, noiseBuf = null, crowd = null, listener = null;
+let ctx = null, limiter = null, master = null, bus = null, noiseBuf = null, crowd = null, listener = null;
 
 // Create (first call) and resume the context. Call from a click or key handler.
 export function ensureAudio() {
@@ -19,12 +26,12 @@ export function ensureAudio() {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return null;
     try { ctx = new AC(); } catch (e) { return null; }
-    const comp = ctx.createDynamicsCompressor();
-    for (const k in LIMITER) comp[k].value = LIMITER[k];
+    limiter = ctx.createDynamicsCompressor();
+    for (const k in LIMITER) limiter[k].value = LIMITER[k];
     master = ctx.createGain();
-    master.gain.value = 0.9;
-    master.connect(comp);
-    comp.connect(ctx.destination);
+    master.gain.value = MASTER;
+    limiter.connect(master);
+    master.connect(ctx.destination);
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -40,7 +47,7 @@ export const noise = () => noiseBuf;
 
 function newBus() {
   const g = ctx.createGain();
-  g.connect(master);
+  g.connect(limiter);
   return g;
 }
 

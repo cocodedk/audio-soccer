@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resultsText, roundLine } from '../js/report.js';
+import { resultsText, roundLine, settingsLine, browserName, isoMinute } from '../js/report.js';
 import { newStats, closeStats, summarySpeech } from '../js/levels.js';
 import { tickEvery, ballOpts } from '../js/soundscape.js';
 import { pickVoices, stepRate, RATES, DEFAULT_RATE } from '../js/voices.js';
@@ -31,30 +31,37 @@ test('newStats records the start distance and whether the ball began behind', ()
   assert.equal(newStats({ player: { x: 20, y: 5 }, ball: { x: 12, y: 5 } }).startBehind, true);
   const s = newStats(setup);
   for (const k of ['time', 'where', 'bumps', 'kicks', 'wide', 'saves']) assert.equal(s[k], 0, k);
+  assert.deepEqual(s.shots, []);
 });
 
-test('results text: one header, every round, given-up and timed-out rounds included', () => {
-  const l1 = { level: 1, rounds: [round(1, 'success', 8), round(1, 'giveup', 30.04), round(1, 'timeout', 120)] };
-  const l2 = { level: 2, rounds: [round(2, 'success', 14.2, { kicks: 2, wide: 1 })] };
+test('results text: a browser header, each level with its own settings and time, every round', () => {
+  const l1 = { level: 1, meta: META, at: '2026-11-09T14:05Z', rounds: [round(1, 'success', 8), round(1, 'giveup', 30.04), round(1, 'timeout', 120)] };
+  const shots = [{ dist: 18, offset: 2.1, aim: 'straight', outcome: 'wide right' }, { dist: 9.2, offset: -0.3, aim: 'left', outcome: 'goal' }];
+  const l2 = { level: 2, meta: { ...META, sound: 'headphones', lang: 'fa' }, at: '2026-11-09T14:12Z', rounds: [round(2, 'success', 14.2, { kicks: 2, wide: 1, shots })] };
   const l3 = { level: 3, partial: true, rounds: [round(3, 'giveup', 9, { saves: 2, kicks: 3 }), round(3, 'left', 4.5)] };
-  const text = resultsText([l1, l2, l3], META);
+  const ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
+  const text = resultsText([l1, l2, l3], ua);
   const lines = text.split('\n');
-  assert.equal(lines[0], 'Audio Soccer trial. Voice: built-in voice. Speech speed 1.3. Picture hidden.');
-  assert.equal(text.match(/Speech speed/g).length, 1, 'voice settings once');
+  assert.equal(lines[0], 'Audio Soccer trial. Browser: (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36.');
   assert.equal(lines[1], 'Level 1, Find the ball');
-  assert.equal(lines[2], 'Round 1: found in 8.0 s. Start 16 m, ball ahead. Path efficiency 0.50. Asked where 2. Bumps 1.');
-  assert.equal(lines[3], 'Round 2: not found, gave up at 30.0 s. Start 16 m, ball ahead. Asked where 2. Bumps 1.');
-  assert.equal(lines[4], 'Round 3: not found, time up at 120.0 s. Start 16 m, ball ahead. Asked where 2. Bumps 1.');
-  assert.equal(lines[5], 'Level 2, Score');
-  assert.equal(lines[6], 'Round 1: scored in 14.2 s. Kicks 2. Wide 1. Asked where 2. Bumps 1.');
-  assert.equal(lines[7], 'Level 3, Beat the keeper (stopped after 2 of 3 rounds)');
-  assert.equal(lines[8], 'Keeper: follows the ball, stops at the kick.');
-  assert.equal(lines[9], 'Round 1: not scored, gave up at 9.0 s. Kicks 3. Wide 0. Saved 2. Asked where 2. Bumps 1.');
-  assert.equal(lines[10], 'Round 2: not scored, left the round at 4.5 s. Kicks 0. Wide 0. Saved 0. Asked where 2. Bumps 1.');
+  assert.equal(lines[2], 'Ended 2026-11-09T14:05Z. Voice: built-in voice. Speech speed 1.3. Picture hidden.');
+  assert.equal(lines[3], 'Round 1: found in 8.0 s. Start 16 m, ball ahead. Path efficiency 0.50. Asked where 2. Bumps 1.');
+  assert.equal(lines[4], 'Round 2: not found, gave up at 30.0 s. Start 16 m, ball ahead. Asked where 2. Bumps 1.');
+  assert.equal(lines[5], 'Round 3: not found, time up at 120.0 s. Start 16 m, ball ahead. Asked where 2. Bumps 1.');
+  assert.equal(lines[6], 'Level 2, Score');
+  assert.equal(lines[7], 'Ended 2026-11-09T14:12Z. Voice: built-in voice. Speech speed 1.3. Picture hidden. Sound: headphones. Language: Persian.');
+  assert.equal(lines[8], 'Round 1: scored in 14.2 s. Kicks 2: 18 m, 2.1 m right, straight, wide right; 9 m, 0.3 m left, left, goal. Wide 1. Asked where 2. Bumps 1.');
+  assert.equal(lines[9], 'Level 3, Beat the keeper (stopped after 2 of 3 rounds)', 'an old block with no settings or time adds no line');
+  assert.equal(lines[10], 'Keeper: follows the ball, stops at the kick.');
+  assert.equal(lines[11], 'Round 1: not scored, gave up at 9.0 s. Kicks 3. Wide 0. Saved 2. Asked where 2. Bumps 1.');
+  assert.equal(lines[12], 'Round 2: not scored, left the round at 4.5 s. Kicks 0. Wide 0. Saved 0. Asked where 2. Bumps 1.');
   assert.equal(text.match(/Keeper:/g).length, 1, 'the keeper line is level 3 only');
-  assert.ok(text.length < 1200, 'short enough for an email');
-  assert.match(resultsText([l1], { mode: 'sr', rate: 2, hidden: false }), /Voice: own screen reader\. Speech speed 2\.0\. Picture shown\./);
+  assert.ok(text.length < 1500, 'short enough for an email');
+  assert.match(settingsLine({ mode: 'sr', rate: 2, hidden: false }), /^Voice: own screen reader\. Speech speed 2\.0\. Picture shown\.$/);
   assert.match(roundLine(1, 0, { ...l1.rounds[0], startBehind: true }), /ball behind/);
+  assert.equal(browserName(''), 'unknown');
+  assert.ok(browserName('x'.repeat(400)).length <= 160);
+  assert.equal(isoMinute(new Date(Date.UTC(2026, 10, 9, 14, 5, 59))), '2026-11-09T14:05Z');
 });
 
 test('level summary speech names missed rounds', () => {

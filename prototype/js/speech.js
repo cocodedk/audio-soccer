@@ -126,7 +126,9 @@ export const isSaying = (key) => current?.key === key || queue.some((q) => q.key
 // long (ms) the line may sit unsaid. cue: an ambient cue (thirds, ball behind, goal guide), spoken in
 // the built-in voice only, because a live region can neither expire a late line nor cancel it.
 // onSpoken is called when the line is actually spoken (or posted to a live region), not when queued.
-export function say(text, { priority = 'normal', key = null, gap = 0, pitch = 1, wait = MAX_WAIT, cue = false, many = false, onSpoken = null } = {}) {
+// cut: an outcome ("Goal!", "Saved!") cuts off the line being spoken even at equal priority, so it is
+// never left waiting behind a long line (an Ask answer, the round intro) until it expires.
+export function say(text, { priority = 'normal', key = null, gap = 0, pitch = 1, wait = MAX_WAIT, cue = false, many = false, cut = false, onSpoken = null } = {}) {
   if (cue && mode === 'sr') return false;
   const t = now();
   if (key && gap && lastSaid[key] !== undefined && t - lastSaid[key] < gap) return false;
@@ -135,7 +137,10 @@ export function say(text, { priority = 'normal', key = null, gap = 0, pitch = 1,
   // Screen reader mode, or no speech engine at all: the live regions carry the line.
   if (mode === 'sr' || !canSpeak()) { announce(item); return true; }
   queue = queue.filter((q) => q.p >= p && !(key && !many && q.key === key));
-  if (current && current.p < p) { current = null; hush(); }
+  // An outcome also drops waiting lines of its own priority (a queued Ask answer), or they would play
+  // first and it would expire unsaid behind them.
+  if (cut) queue = queue.filter((q) => q.p > p);
+  if (current && (current.p < p || (cut && current.p <= p))) { current = null; hush(); }
   queue.push(item);
   pump();
   return true;

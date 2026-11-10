@@ -90,6 +90,8 @@ test('level 2: a wide shot is counted; level 3: a save is counted; efficiency on
   tick(game, 2);
   const w = game.snapshot().stats.current;
   assert.deepEqual([w.kicks, w.wide, w.saves], [1, 1, 0]);
+  assert.deepEqual(w.shots.map((k) => [k.offset, k.aim, k.outcome]), [[-6, 'straight', 'wide left']], 'each kick is recorded');
+  assert.ok(w.shots[0].dist > 9 && w.shots[0].dist < 10.5, 'metres to the goal line');
 
   const k = newGame(3).game;
   k.startLevel(3);
@@ -98,6 +100,7 @@ test('level 2: a wide shot is counted; level 3: a save is counted; efficiency on
   tick(k, 2);
   const s = k.snapshot().stats.current;
   assert.deepEqual([s.kicks, s.saves], [1, 1]);
+  assert.equal(s.shots[0].outcome, 'saved');
   k.action('giveup');
   assert.equal(k.snapshot().stats.rounds[0].efficiency, null);
 });
@@ -151,4 +154,16 @@ test('level 3 start lines explain the keeper; level 2 says about twenty metres; 
   assert.deepEqual(startLines(3, 2), ['Round 2. Beat the keeper.']);
   assert.equal(startLines(1, 1).length, 1);
   assert.ok(startLines(2, 1).some((l) => /straight up the pitch/.test(l) && /twenty metres/.test(l)));
+});
+
+test('level 2: a kick that stops short, then is taken and dribbled in, is recorded short, not goal', () => {
+  const { game, done } = newGame(2);
+  game.startLevel(2);
+  Object.assign(game.world.player, { x: 2.5, y: 10 }); Object.assign(game.world.ball, { x: 3, y: 10 });
+  game.update(0.05, UP);
+  game.action('kick'); game.update(0.05, NONE);
+  const shots = game.snapshot().stats.current.shots;
+  for (let i = 0; i < 4000 && !game.world.scored; i++) game.update(0.05, UP);
+  assert.ok(game.world.scored, 'the player dribbled the ball in');
+  assert.deepEqual(shots.map((k) => k.outcome), ['short']);
 });

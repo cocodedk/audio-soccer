@@ -29,4 +29,5 @@ export default {
   canvasLabel: 'Top-down picture of the pitch for sighted helpers. You attack to the right; your left is the top board.',
   hidePic: 'Hide the picture, to play by ear',
   results: 'Results', resultsLabel: 'Results to send us', copy: 'Copy results',
+  clear: 'Clear results',
 };

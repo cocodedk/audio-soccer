@@ -6,6 +6,7 @@ import { say, cancel, isSaying } from './speech.js';
 import { crowdStart, stopAll } from './audio.js';
 import { createSoundscape } from './soundscape.js';
 import { createCues } from './cues.js';
+import { kickRecord, settleKick } from './kicks.js';
 import { getLang, t, tl } from './i18n/index.js';
 
 const SUB = 1 / 120;  // physics sub-step, seconds
@@ -46,7 +47,7 @@ export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) 
     rounds.push({ ...closeStats(level, stats, how) });
     phase = 'between';
     wait = BETWEEN;
-    say(line, { priority: 'high' });
+    say(line, { priority: 'high', cut: true });
   }
 
   function finishLevel() {
@@ -65,17 +66,19 @@ export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) 
     else say(t('wideGoal', { side: side(e.y < W.GOAL.y ? 'left' : 'right') }), { key: 'wide', gap: 2500 });
   }
 
-  function onEvent(e) {
+  // dir: the arrows held this step (a kick records whether Left or Right angled it).
+  function onEvent(e, dir) {
     sound.event(e, world);
+    settleKick(stats.shots, e);
     switch (e.type) {
       case 'take':
         if (LEVELS[level].endsOn === 'take') endRound('success', t('gotIt', { time: stats.time.toFixed(1) }));
         else say(t('gotBall'), { key: 'got', gap: 1500 });
         break;
-      case 'kick': stats.kicks += 1; break;
+      case 'kick': stats.kicks += 1; stats.shots.push(kickRecord(e, dir)); break;
       case 'bump': stats.bumps += 1; break;
       case 'goal': score += 1; endRound('success', t('goal')); break;
-      case 'save': stats.saves += 1; say(t('saved'), { priority: 'high', key: 'saved', gap: 1500 }); break;
+      case 'save': stats.saves += 1; say(t('saved'), { priority: 'high', key: 'saved', gap: 1500, cut: true }); break;
       case 'post': say(t('post'), { key: 'post', gap: 800 }); break;
       case 'endwall': endWall(e); break;
       case 'voy': say(t('voy'), { pitch: 1.4, cue: true }); break;
@@ -93,7 +96,7 @@ export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) 
       kickQueued = false;
       outer: for (let i = 0; i < n; i++) {
         for (const e of W.step(world, h, { dir, kick: kick && i === 0 })) {
-          onEvent(e);
+          onEvent(e, dir);
           if (phase !== 'play') break outer;
         }
       }
