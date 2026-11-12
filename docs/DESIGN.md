@@ -296,7 +296,7 @@ My calls:
 Each slice goes to the tester and waits for their feedback before the next one starts.
 
 0a. **Navigation prototype** (built, in `prototype/`, live at
-    https://cocodedk.github.io/audio-soccer/): a browser page for a computer with a keyboard,
+    https://soccer.cocode.dk/): a browser page for a computer with a keyboard,
     played on speakers by default. A clear "computer only" notice sits at the top. A sound setting
     switches between speakers (no panning, side calls as short recorded clips, beacons that speed
     up as you near them, and a gentle distance fade with a floor, so a far ball stays audible) and
@@ -317,7 +317,7 @@ Each slice goes to the tester and waits for their feedback before the next one s
     sounds are enough to play by ear on speakers before any Android work.
 
 0b. **Phone controls test** (built, throwaway, in `prototype/phone/`, live at
-    https://cocodedk.github.io/audio-soccer/phone/): a page in the phone's browser, played on the
+    https://soccer.cocode.dk/phone/): a page in the phone's browser, played on the
     phone's speaker, that reuses the trial's game, sounds, clips, speech and two languages: nothing
     to install. With TalkBack on, the start screen is an ordinary page with a Start button. Start
     tries up to three voices in turn until one really starts speaking: the chosen language first (a

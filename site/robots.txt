@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://cocodedk.github.io/audio-soccer/sitemap.xml
+Sitemap: https://soccer.cocode.dk/sitemap.xml
