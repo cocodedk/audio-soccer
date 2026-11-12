@@ -47,12 +47,37 @@ keeper. Space never kicks backward: it kicks straight up the pitch, and holding 
 it 15° to that side. A shot that is already nearly on target gets a small nudge into the goal, so
 lining up with the goal by ear is part of the test.
 
+## Phone controls test
+
+**Try it on an Android phone:** https://cocodedk.github.io/audio-soccer/phone/
+
+A throwaway test, played on the phone's speaker with the screen reader off. It answers which touch
+steering works by ear, whether vibration helps, and whether the game's own voice is enough to get
+around without the screen reader.
+
+1. With TalkBack on, choose English or فارسی and press **Start**. The game checks that a voice on the
+   phone really speaks (online voices don't count). With no Persian voice it speaks English and says
+   so; with no voice at all the page says so and TalkBack stays on.
+2. The game asks you to turn TalkBack off and swipe up. TalkBack would keep that swipe for itself, so
+   when the page gets it, TalkBack is off and the whole screen becomes one touch surface.
+3. A spoken menu: **Drag to steer**, **Tilt to steer**, **Finish**. Swipe right or left to move,
+   double-tap to choose.
+4. Each scheme plays the trial's level 2, three rounds. Drag from where your finger lands (up the
+   screen is toward the goal), or tilt the phone from how you hold it as the round starts. A tap
+   kicks, two fingers say where you are, three go back to the menu. The phone buzzes once when the
+   ball comes into reach and twice when you are lined up with the goal.
+5. **Finish** asks you to turn TalkBack back on and shows the results to copy and send back.
+
+To run it locally: `python3 -m http.server --directory prototype`, then open
+http://localhost:8000/phone/.
+
 ## In this repository
 
 - [`docs/DESIGN.md`](docs/DESIGN.md): the game design.
 - [`docs/overview.html`](docs/overview.html): an explainer page with a sample attack and a sound gallery.
 - [`prototype/`](prototype/): the browser trial. Plain JavaScript modules, no build step.
   Run the logic tests with `node --test prototype/test/*.test.mjs`.
+- [`prototype/phone/`](prototype/phone/): the phone controls test, built on the trial's modules.
 - [`site/`](site/): what GitHub Pages adds around the trial (page head, footer, share image, sitemap).
 
 To run the trial locally: `python3 -m http.server --directory prototype`, then open

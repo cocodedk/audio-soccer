@@ -316,14 +316,25 @@ Each slice goes to the tester and waits for their feedback before the next one s
     speech rate and choose the voice. It answers whether the
     sounds are enough to play by ear on speakers before any Android work.
 
-0b. **Phone controls test** (throwaway): the touch candidates on the tester's phone with TalkBack
-    off, played on the phone's speaker, plus the two vibration cues and one self-spoken menu, so the
-    whole "screen reader off, game speaks, screen reader back on" round trip is tried once. Because
-    nothing in it needs TalkBack's events any more, it is a page in the phone's browser that reuses
-    the trial's sounds, clips and two languages: nothing to install, and it deploys like the trial.
-    If the browser gets in the way (its own swipe gestures, no voice, no vibration), it becomes a
-    small throwaway APK instead. Output: the chosen control scheme, whether the buzzes help, and
-    whether the game's own voice is enough to get around without the screen reader.
+0b. **Phone controls test** (built, throwaway, in `prototype/phone/`, live at
+    https://cocodedk.github.io/audio-soccer/phone/): a page in the phone's browser, played on the
+    phone's speaker, that reuses the trial's game, sounds, clips, speech and two languages: nothing
+    to install. With TalkBack on, the start screen is an ordinary page with a Start button. Start
+    checks that the phone's speech engine really speaks, with voices on the phone only; with no
+    Persian voice but an English one it speaks English and says so, and with no voice at all it says
+    so on the page, keeps TalkBack on and stops. Then the game's voice asks for TalkBack to be turned
+    off and a swipe up: a one-finger swipe reaching the page proves TalkBack is off. One self-spoken
+    menu follows (swipe right or left to move, double-tap to choose): **Drag to steer**, **Tilt to
+    steer** and **Finish**. Each scheme plays level 2 of the trial, three rounds, after a short
+    spoken explanation. Drag steers from where the finger landed, snapped to the 8 keyboard
+    directions; tilt steers from how the phone is held as each round starts. A tap kicks, two
+    fingers tapping say where you are, three go back to the menu. The phone buzzes once when the
+    ball comes into reach and twice on lining up with the goal. Finish asks for TalkBack to be
+    turned back on and shows the results as text to copy: the rounds per scheme, the voices found
+    and which one spoke, and whether vibration, tilt, fullscreen, the portrait lock and the wake lock
+    worked. If the browser still gets in the way on the tester's phone, it becomes a small throwaway
+    APK instead. Output: the chosen control scheme, whether the buzzes help, and whether the game's
+    own voice is enough to get around without the screen reader.
 
 (The old slice 0c, a 3D audio library test on Android, is dropped: the game no longer depends on 3D
 audio. See "After v1".)
