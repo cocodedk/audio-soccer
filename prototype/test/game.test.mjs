@@ -167,3 +167,10 @@ test('level 2: a kick that stops short, then is taken and dribbled in, is record
   assert.ok(game.world.scored, 'the player dribbled the ball in');
   assert.deepEqual(shots.map((k) => k.outcome), ['short']);
 });
+
+test('a round starts with the lines it is given (the phone test words its own)', () => {
+  const asked = [];
+  const game = createGame({ lines: (level, round, lang) => { asked.push([level, round, lang]); return []; } });
+  game.startLevel(2);
+  assert.deepEqual(asked, [[2, 1, 'en']]);
+});

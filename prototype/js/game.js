@@ -12,7 +12,8 @@ import { getLang, t, tl } from './i18n/index.js';
 const SUB = 1 / 120;  // physics sub-step, seconds
 const BETWEEN = 3;    // pause between rounds, seconds
 
-export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) {
+// lines(level, round, lang): what is said as a round starts (the phone test words its own intro).
+export function createGame({ onLevelDone = () => {}, rand = Math.random, lines = startLines } = {}) {
   const sound = createSoundscape(), cues = createCues();
   let level = 0, round = 0, phase = 'idle', world = null, stats = null, rounds = [], score = 0;
   let wait = 0, resumeTo = 'play', kickQueued = false, clock = false;
@@ -31,7 +32,7 @@ export function createGame({ onLevelDone = () => {}, rand = Math.random } = {}) 
     kickQueued = false;
     sound.reset();
     cues.reset(world);
-    startLines(level, round, getLang()).forEach((line, i) => say(line, i ? { wait: 20000 } : { priority: 'high' }));
+    lines(level, round, getLang()).forEach((line, i) => say(line, i ? { wait: 20000 } : { priority: 'high' }));
   }
 
   function startLevel(n) {
