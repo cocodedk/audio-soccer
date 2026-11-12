@@ -3,6 +3,7 @@ export default {
   title: 'Audio Soccer Trial',
   eyebrow: 'Trial · keyboard, speakers or headphones',
   h1a: 'Audio', h1b: 'Soccer', h1c: 'trial',
+  phoneLink: 'On a phone? Open the phone test.',
   lede: 'This needs a computer with a keyboard, not a phone. Speakers work, and headphones are optional. This short test checks one thing: can you find the ball, take it to the goal and score using only your ears? You always face the goal you attack. The ball rattles when it rolls and ticks when it is still, the goal chimes while you have the ball, and the side boards knock when you touch them. A voice tells you what happens. Press Learn the sounds first.',
   play: 'Play',
   sound: 'Sound', speakers: 'Speakers', headphones: 'Headphones',

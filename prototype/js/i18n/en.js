@@ -71,7 +71,7 @@ export default {
   // menu messages
   num: '{n}', online: 'online',
   voiceDefault: 'Default voice', voiceIs: 'This is the voice.', noSound: 'This browser cannot play sound.',
-  touch: 'This needs a computer with a keyboard. It does not work on a phone or tablet.',
+  touch: 'This page needs a computer with a keyboard. On a phone, open the phone test: the link is just below the heading.',
   copy: { blocked: 'Copying was blocked. The text is selected: press {keys} to copy it.', done: 'Copied.' },
   clear: { confirm: 'Press Clear results again within 15 seconds to delete all results.', done: 'Results cleared.', kept: 'Results cleared. The level in progress is kept.' },
   lang: { set: 'English', fallback: 'There is no Persian voice on this device. From now on your screen reader speaks the game.' },

@@ -297,7 +297,7 @@ Each slice goes to the tester and waits for their feedback before the next one s
 
 0a. **Navigation prototype** (built, in `prototype/`, live at
     https://soccer.cocode.dk/): a browser page for a computer with a keyboard,
-    played on speakers by default. A clear "computer only" notice sits at the top. A sound setting
+    played on speakers by default. A clear "computer only" notice sits at the top, with a link to the phone test. A sound setting
     switches between speakers (no panning, side calls as short recorded clips, beacons that speed
     up as you near them, and a gentle distance fade with a floor, so a far ball stays audible) and
     headphones (3D placement). The side calls are clips, not speech, because a screen reader can't
