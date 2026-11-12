@@ -44,6 +44,7 @@ p { margin: 0 }
 h1 { font-family: var(--display); font-weight: 900; font-size: clamp(2.8rem, 10vw, 5.6rem); line-height: .88;
   text-transform: uppercase; margin: 0; text-wrap: balance }
 h1 em { font-style: normal; color: var(--accent) }
+.phone-link a { color: inherit; font-weight: 700 }
 .lede { max-width: 66ch; font-size: 1.1rem }
 h2 { font-family: var(--display); font-weight: 800; font-size: clamp(1.8rem, 5vw, 2.4rem); line-height: 1;
   text-transform: uppercase; margin: 0 }
