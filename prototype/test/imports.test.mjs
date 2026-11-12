@@ -85,8 +85,8 @@ const walk = (d) => readdirSync(d).flatMap((f) => {
 });
 const readOrNull = (p) => { try { return readFileSync(p, 'utf8'); } catch { return null; } };
 
-test('every module under js/ imports only files that exist and names they export', () => {
-  const files = walk(JS);
+test('every module under js/ and phone/js/ imports only files that exist and names they export', () => {
+  const files = [...walk(JS), ...walk(join(PROTO, 'phone', 'js'))];
   assert.ok(files.length > 20, `found only ${files.length} modules`);
   assert.deepEqual(checkModules(files, readOrNull, PROTO), []);
 });

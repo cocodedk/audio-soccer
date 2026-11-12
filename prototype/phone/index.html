@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- The trial's modules fetch sounds/ relative to the page, which for the trial is the folder above this
+     one. The base puts every relative URL of this page there too, so sounds/, style.css and the fonts
+     resolve the same served from prototype/ and on Pages. This page's own files are under phone/. -->
+<base href="../">
+<title>Audio Soccer phone test</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="phone/phone.css">
+</head>
+<body>
+<div class="wrap phone" id="page">
+  <header class="hero">
+    <h1 data-i18n="phone.ui.h1">Phone controls test</h1>
+    <p class="lede" data-i18n="phone.ui.lede">This short test tries touch controls with the screen reader off. Use the phone speaker, not headphones. Keep your screen reader on for now and press Start. The game checks its own voice, then asks you to turn the screen reader off. From then on the game speaks for itself. At the end it asks you to turn the screen reader back on.</p>
+  </header>
+
+  <main class="panel">
+    <fieldset class="modes">
+      <legend>Language / زبان</legend>
+      <label class="check"><input type="radio" name="lang" value="en" checked> <span lang="en" dir="ltr">English</span></label>
+      <label class="check"><input type="radio" name="lang" value="fa"> <span lang="fa" dir="rtl">فارسی</span></label>
+    </fieldset>
+    <button class="btn primary start" id="start" type="button" data-i18n="phone.ui.start">Start</button>
+    <p class="notice" id="notice" role="alert" hidden></p>
+  </main>
+
+  <section class="panel results" id="results" aria-labelledby="h-results" hidden>
+    <h2 id="h-results" tabindex="-1" data-i18n="ui.results">Results</h2>
+    <label for="results-text" data-i18n="ui.resultsLabel">Results to send us</label>
+    <textarea id="results-text" dir="ltr" lang="en" rows="14" readonly aria-describedby="copy-status"></textarea>
+    <button class="btn" id="copy" type="button" data-i18n="ui.copy">Copy results</button>
+    <p class="note" id="copy-status" role="status"></p>
+  </section>
+
+  <div class="sr" id="live-polite" aria-live="polite"></div>
+  <div class="sr" id="live-assertive" aria-live="assertive"></div>
+</div>
+
+<!-- With the screen reader off, the whole screen is one touch surface; the caption is for sighted helpers. -->
+<div class="surface" id="surface" hidden><p id="caption"></p></div>
+
+<script type="module" src="phone/js/main.js"></script>
+</body>
+</html>
