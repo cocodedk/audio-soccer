@@ -1,6 +1,7 @@
 # Audio Soccer: design
 
-Status: third draft, 2026-11-09: speakers first, and Persian next to English. Working name, easy to change.
+Status: fourth draft, 2026-11-12: the match is played with the screen reader off and the game speaks for itself
+(the tester's idea). Third draft, 2026-11-09: speakers first, and Persian next to English. Working name, easy to change.
 
 ## Why this exists
 
@@ -14,8 +15,9 @@ so every slice goes to them early and their feedback outranks this document.
 
 ## What success looks like
 
-- A blind player listening on the phone's own speaker, with TalkBack left on, can install the game,
-  start a match and play it to the final whistle without sighted help. No headphones: the tester
+- A blind player listening on the phone's own speaker can install the game, start a match and play
+  it to the final whistle without sighted help. They turn TalkBack off for the match themselves, and
+  from that moment the game speaks everything. No headphones: the tester
   can't wear them, because they hurt.
 - During play they can tell by ear where the ball is, who has it, and where the goal is, without
   stopping to ask.
@@ -41,9 +43,12 @@ so every slice goes to them early and their feedback outranks this document.
 
 **Anti-goals: things that make it a failure even if it "works"**
 - **Any step needs sight**: first launch, permissions, setup, menus, results, anything.
-- **The game leaves the player without speech.** It must never ask the player to suspend TalkBack
-  and must never mute the device. A blind player with a silent device and no sighted help nearby is
-  stuck. We will not create that situation.
+- **The game leaves the player without speech.** A blind player with a silent device and no sighted
+  help nearby is stuck. Turning the screen reader off for a match is the player's own choice (the
+  tester proposed it on 2026-11-12), and it puts the duty on the game: while the screen reader is
+  off, the game speaks every menu, option, result and error itself. It never mutes the device, never
+  blocks the shortcut that turns the screen reader back on, and if its own voice can't work it says
+  so while the screen reader is still on.
 - **Needing headphones.** Anything the player must know has to come through a phone or laptop
   speaker.
 - **Sound that hurts.** No sudden loud peaks: the goal roar, the whistle and hard kicks are capped
@@ -51,7 +56,8 @@ so every slice goes to them early and their feedback outranks this document.
 - **So much sound that the ball gets lost.** The ball is the one sound that is always clear.
 - **A commentator who lags, rambles or talks over the cues** the player needs to act on.
 - Needing an internet connection, an account, ads or tracking.
-- Controls that fight TalkBack's gestures.
+- A match that starts while TalkBack is still on, so its gestures fight the controls. The game
+  notices, says how to turn it off, and waits.
 
 ## The game: 5-a-side, borrowed from blind football
 
@@ -126,7 +132,7 @@ small speaker:
 - **Exact position, on demand**: Ask gives clock positions and metres (see Finding your way).
 - **Touch, on the phone**: vibration that costs the ears nothing. A short buzz when the ball is in
   reach, a different one when you are lined up with the goal. The phone controls test (0b) checks
-  that the buzzes don't get in TalkBack's way.
+  whether the buzzes help.
 
 **Headphones are an optional extra** for players who like them. A sound setting switches on stereo
 placement, and true 3D placement (HRTF) where it is available. They never add information the
@@ -202,36 +208,52 @@ the ball, fouls, the score, the time, and the drama.
   voice's licence must be checked before use. If none allows redistribution, the owner can record
   the Persian lines. Persian sentences stitch cleanly ("توپ، ساعت ۲، ۳ متر"), so the name and
   number clips work the same way as in English. Menus and settings are ordinary Android strings, so
-  TalkBack reads them in Persian with the player's own voice.
+  TalkBack reads them in Persian with the player's own voice, and with TalkBack off the game speaks
+  the same strings itself (see the next section).
 
-## Menus, TalkBack and the match screen
+## Menus, the screen reader and the match screen
 
-- Menus, settings, results and the sound gallery are ordinary Android screens, fully usable with
-  TalkBack, built the same way as in the chess app.
-- The match screen voices itself: all match audio comes from the game, and TalkBack stays on. The
-  screen must not make TalkBack chatter during play, so it should have one full-screen element with
-  a short label, and no live announcements.
-- Pause is always one action away, and the pause menu is an ordinary TalkBack screen.
+The tester's idea (2026-11-12): turning the screen reader off is easy for them, so they turn it off
+for a match, the game reads its own options aloud, and they turn it back on afterwards. That
+replaces the earlier rule that TalkBack always stays on.
 
-## The hardest unknown: controls with TalkBack on
+- **With TalkBack on**, menus, settings, results and the sound gallery are ordinary Android
+  screens, built the same way as in the chess app. This is how the player finds and opens the game.
+- **With TalkBack off**, the game speaks for itself. It notices the change, reads the current
+  screen, and from then on speaks the item under focus. The gestures are the ones a TalkBack user
+  already knows: swipe to move through the options, double-tap to choose. When TalkBack comes back
+  on, the game stops speaking the menus.
+- **The match is played with TalkBack off**, with plain touch controls. If TalkBack is on when a
+  match is about to start, the game says how to turn it off and waits. A Bluetooth keyboard or
+  gamepad works either way.
+- **The game's menu voice** is the phone's own speech engine through Android's text-to-speech, the
+  same Persian voice the player already hears from TalkBack, with no network. If that voice can't be
+  reached, the fixed lines ship as recorded clips from the commentary pipeline. Which one it is
+  depends on the tester's answer about their phone's voice (asked 2026-11-12).
+- Pause is always one action away, and the pause menu speaks like every other menu.
 
-With TalkBack on, Android turns single-finger touches into exploration and eats swipes. Ordinary
-game touch controls won't work, and we've ruled out asking the player to turn TalkBack off. So
-**control input must be proven on the tester's own phone before anything else is built.** The only
-thing tested earlier is sound navigation: the browser prototype (slice 0a) checks it first, and
-controls on the phone come second.
+## Controls: plain touch, screen reader off
 
-Candidates for the first spike, in my order of preference:
+This used to be the hardest unknown. With TalkBack on, Android turns single-finger touches into
+exploration and eats swipes, so the earlier drafts planned workarounds. With TalkBack off during a
+match the game gets ordinary touches, and the question shrinks to which scheme feels best by ear.
+It is still settled on the tester's own phone before the real game is built.
 
-1. **Finger position as a joystick.** A full-screen view reads TalkBack's touch-exploration (hover)
-   events. Where the finger rests relative to the screen centre is the steering direction, and a
-   double-tap kicks.
-2. **Tilt to steer** (accelerometer, unaffected by TalkBack), with double-tap to kick.
-3. **A Bluetooth keyboard or gamepad**, which skips the gesture problem entirely. This should be
-   supported regardless, as the most reliable option.
+Candidates for the phone controls test (0b), in my order of preference:
 
-The spike also settles where "ask" and "pause" live in the touch scheme. The result picks the
+1. **Drag to steer.** Touch anywhere and drag: the direction of the drag from where the finger
+   landed is the steering direction, and lifting the finger stops. A tap with a second finger
+   kicks. No spot on the screen has to be found.
+2. **Tilt to steer** (accelerometer), with a tap to kick.
+3. **A Bluetooth keyboard or gamepad.** This is supported regardless, as the most reliable option.
+
+The test also settles where "ask" and "pause" live in the touch scheme. The result picks the
 default scheme; the others can stay as options if they work.
+
+**Not confirmed yet:** the tester wrote about screen readers in general. Whether turning TalkBack off
+and on is as easy on their phone as on the computer was asked on 2026-11-12. If it isn't, the
+TalkBack-on candidates from the third draft (a joystick read from touch-exploration events, tilt, a
+keyboard) come back.
 
 ## After v1: 3D audio for headphone players
 
@@ -294,9 +316,14 @@ Each slice goes to the tester and waits for their feedback before the next one s
     speech rate and choose the voice. It answers whether the
     sounds are enough to play by ear on speakers before any Android work.
 
-0b. **Phone controls test** (throwaway): the three input candidates on the tester's phone with
-    TalkBack on, played on the phone's speaker, plus the two vibration cues. Output: the chosen
-    control scheme, and whether the buzzes help.
+0b. **Phone controls test** (throwaway): the touch candidates on the tester's phone with TalkBack
+    off, played on the phone's speaker, plus the two vibration cues and one self-spoken menu, so the
+    whole "screen reader off, game speaks, screen reader back on" round trip is tried once. Because
+    nothing in it needs TalkBack's events any more, it is a page in the phone's browser that reuses
+    the trial's sounds, clips and two languages: nothing to install, and it deploys like the trial.
+    If the browser gets in the way (its own swipe gestures, no voice, no vibration), it becomes a
+    small throwaway APK instead. Output: the chosen control scheme, whether the buzzes help, and
+    whether the game's own voice is enough to get around without the screen reader.
 
 (The old slice 0c, a 3D audio library test on Android, is dropped: the game no longer depends on 3D
 audio. See "After v1".)
@@ -323,6 +350,9 @@ These go in a later email, most important first:
 5. ~~Which language should the commentator speak?~~ The owner chose English and Persian on
    2026-11-09. Ask whether the Persian voice sounds right.
 6. Are loud sounds a problem on speakers too? Which ones, and is the capped mix comfortable?
+7. Is turning TalkBack off and back on as easy on the phone as on the computer? (Asked 2026-11-12.)
+8. Which Persian voice or speech engine does their phone use? (Asked 2026-11-12. If the game can
+   use it, the menus speak offline in the voice they know.)
 
 ## Left to the builder
 
