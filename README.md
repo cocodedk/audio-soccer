@@ -23,7 +23,9 @@ browser's own voice.
    it, the goal: "ahead", "left", "right" or "behind". The word plays at once, even while your screen
    reader is still talking, so it is never late. With headphones the sounds are placed in 3D (HRTF), and a
    **Headphone check** button appears: you should hear "left" in your left ear, then "right" in your
-   right ear. Loud sounds are capped either way.
+   right ear. Loud sounds are capped either way. In speakers mode a short line also says "left board"
+   or "right board" when you come close to a side board, because one speaker cannot show which side
+   the knock is on.
 3. Choose **Language**: English or فارسی (Persian). Everything the game shows and says follows it.
    The results you copy and send back stay in English. If your browser has no Persian voice, the
    trial switches to "My screen reader speaks" by itself and says so in Persian, so your own screen
@@ -33,7 +35,9 @@ browser's own voice.
 5. Start **Level 1: Find the ball**. Focus moves into the game. The clock starts when you first move.
 6. Arrow keys run, **Space** kicks, **W** says where you are, **G** gives up the round, **H** repeats
    the keys, **[** and **]** (or **-** and **+**) change the speech speed, **Escape** pauses.
-7. After each level, press **Copy results** and send them back.
+7. After each level, press **Copy results** and send them back. **Clear results** deletes everything
+   stored on your computer: press it once, and again within 15 seconds to confirm. The level in
+   progress is kept.
 
 If the arrow keys read the page instead of moving the player, switch your screen reader to focus
 mode (NVDA: NVDA+Space). With VoiceOver, turn Quick Nav off by pressing Left and Right together.

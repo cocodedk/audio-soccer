@@ -109,10 +109,20 @@ small speaker:
   you near the goal. Volume and a little reverb for far sounds add to it.
 - **Direction**: spoken. When the target moves to another side, one word says where it is now:
   "ahead", "left", "right" or "behind". The target is the ball, or the goal while you have the
-  ball. "Ahead" for the goal means a straight kick would score. The words are short and never
-  repeat back to back, and they wait while a more important line is playing.
+  ball. For the ball, "ahead" means it is in front and nearly on your line; once you have heard it,
+  it holds within a band of up to 1.5 m, narrowing to 0.5 m close by, so the word does not flap while
+  you run. For the goal, judged from the ball where a kick leaves, "ahead" means a straight kick
+  lines up with the goal, at any distance, so it is always the word that stops a sideways run
+  (whether a kick reaches is Ask's answer, "too far to shoot"). The words are recorded clips that
+  play at once and cut each other off, so a call is never late. A word never repeats back to back,
+  and only "ahead" skips the 1.5 s gap between calls.
 - **Ahead or behind**: sounds behind the player are duller, which a single speaker carries. When
   the ball passes behind the player, the coach calls "behind you!".
+- **Boards**: on one speaker the board's brush can't say which side, so a short spoken line does:
+  "left board" or "right board" when the player comes within 1.5 m of a board or bumps it. It is
+  low priority, said at most every 3 s, and dropped if it cannot start within 0.6 s, because a late
+  "left board" would describe where the player was. In screen reader mode it goes to the player's
+  own reader.
 - **Exact position, on demand**: Ask gives clock positions and metres (see Finding your way).
 - **Touch, on the phone**: vibration that costs the ears nothing. A short buzz when the ball is in
   reach, a different one when you are lined up with the goal. The phone controls test (0b) checks
@@ -123,8 +133,9 @@ placement, and true 3D placement (HRTF) where it is available. They never add in
 speaker player lacks. They only make it easier to hear. The browser has 3D placement built in.
 On Android it would need a library (see the last section), so it comes after v1, if players ask.
 
-**Volume.** A limiter sits on the whole mix, and the loudest one-shots (goal roar, whistle, net,
-post, hard kicks) are capped close to the ball's level. A "quiet mix" setting lowers the crowd and
+**Volume.** A limiter sits on the whole mix (the browser trial uses a hard limiter at -7.5 dB, ratio 20:1, followed by
+a fixed master gain), and the loudest one-shots (goal roar, whistle, net, post, hard kicks) are capped close to
+the ball's level. A "quiet mix" setting lowers the crowd and
 the commentator further. The game never asks the player to turn the volume up.
 
 **Sound layers, most important first.** When too much is playing, the lower layers duck, never the
@@ -277,7 +288,10 @@ Each slice goes to the tester and waits for their feedback before the next one s
     the main sounds, named by the voice, before the first round. Each round has a give-up key and a
     2-minute cap. The results record start distance, time, path efficiency, how often the player
     asked where they are, board bumps, kicks, wide shots, saves and give-ups, so the tester can send
-    them back. The player can set the speech rate and choose the voice. It answers whether the
+    them back. The results panel has a **Clear results** button: the first press says, through the
+    status line a screen reader announces, that a second press within 15 seconds deletes all stored
+    results; a held Enter does nothing; the level in progress is kept. The player can set the
+    speech rate and choose the voice. It answers whether the
     sounds are enough to play by ear on speakers before any Android work.
 
 0b. **Phone controls test** (throwaway): the three input candidates on the tester's phone with

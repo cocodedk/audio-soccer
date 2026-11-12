@@ -66,7 +66,9 @@ const sideClips = () => loadClips()?.then(() => SIDE_WORDS.forEach((word, i) => 
 // name: what the voice says first. at: where the listener stands. go: the sound. ms: how long it lasts.
 // pan: needs left and right, so only headphones play it.
 const steps = () => [
+  // The clips say the four words themselves, so the name stays short: the first sound is not held back.
   { name: t('learn.calls'), go: sideClips, ms: SIDE_WORDS.length * 800, speakers: true },
+  { name: t('learn.target'), ms: 0, speakers: true }, // spoken after the clips, no sound of its own
   { name: t('learn.ahead'), go: () => ticks(ahead), ms: 2000 },
   { name: t('learn.behind'), go: () => ticks(behind), ms: 2000 },
   { name: t('learn.roll'), go: rolling, ms: 1700, pan: true },
@@ -103,7 +105,7 @@ export async function learnSounds() {
     say(step.name, { priority: 'high', wait: 20000 });
     await sleep(nameWait(step.name, srMode(), getRate()));
     if (id !== run) return;
-    step.go();
+    step.go?.();
     await sleep(step.ms);
   }
   if (id === run) say(t('learn.end'), { priority: 'high', wait: 20000 });

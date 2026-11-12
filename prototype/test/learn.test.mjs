@@ -19,3 +19,13 @@ test('screen-reader mode: a longer wait that ignores the built-in rate', () => {
 test('screen-reader mode: longer names (Persian ones run longer) wait longer', () => {
   assert.ok(nameWait('ضربه به یک دیواره.', true, 1) < nameWait('یک صدا می‌گوید هدف کجاست: جلو، چپ، راست یا پشت سر.', true, 1));
 });
+
+test('the first tour line is short: the first sound is never held back more than 5 s, in either language', async () => {
+  const { tr } = await import('../js/i18n/tables.js');
+  for (const lang of ['en', 'fa']) {
+    const name = tr(lang, 'learn.calls');
+    assert.ok(nameWait(name, true, 1) <= 5000, `${lang} screen-reader wait ${nameWait(name, true, 1)} ms`);
+    assert.ok(nameWait(name, false, 1) <= 5000, `${lang} built-in wait ${nameWait(name, false, 1)} ms`);
+    assert.ok(tr(lang, 'learn.target'), `${lang} has the target line`);
+  }
+});
