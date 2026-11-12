@@ -1,0 +1,13 @@
+/* The phone test's own rules. Fonts, colours, buttons and panels come from the trial's style.css. */
+.phone { display: grid; gap: 20px; max-width: 640px }
+.btn.start { font-size: 1.3rem; padding: 14px 32px }
+
+/* The touch surface: the whole screen, with none of the browser's own gestures (scroll, zoom, pull to
+   refresh, text selection, the long-press menu). */
+.surface { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px;
+  background: var(--turf); color: #FAFBF8; touch-action: none; user-select: none; -webkit-user-select: none;
+  -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent }
+.surface p { margin: 0; max-width: 22ch; text-align: center; pointer-events: none;
+  font: 800 clamp(1.6rem, 7vw, 2.6rem)/1.2 var(--display); text-transform: uppercase }
+html[lang="fa"] .surface p { font-family: var(--body); font-weight: 700; text-transform: none; line-height: 1.6 }
+html.hands-free, html.hands-free body { height: 100%; overflow: hidden; overscroll-behavior: none; touch-action: none }

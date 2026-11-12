@@ -2,11 +2,13 @@
 // (digits() turns any ASCII digit that reaches a string into one, and a decimal point into ٫), and a ZWNJ
 // (U+200C) where Persian needs it.
 import ui from './fa-ui.js';
+import phone from './fa-phone.js';
 
 const DIGITS = '۰۱۲۳۴۵۶۷۸۹';
 
 export default {
   ui,
+  phone, // the phone controls test (prototype/phone/)
   digits: (s) => s.replace(/(\d)\.(\d)/g, '$1٫$2').replace(/\d/g, (d) => DIGITS[d]),
   metres: ({ n }) => `${n} متر`,
   clock: { feet: 'جلوی پایتان', at: 'ساعت {hour}، {metres}' },

@@ -1,9 +1,11 @@
 // English: everything the game says and shows. {slots} are filled by tr(); a function entry gets the params.
 // The page text (ui) is in en-ui.js and must match index.html (a test checks).
 import ui from './en-ui.js';
+import phone from './en-phone.js';
 
 export default {
   ui,
+  phone, // the phone controls test (prototype/phone/)
   // describe.js: clock positions, thirds, where am I, the goal guide
   metres: ({ n }) => `${n} metre${n === 1 ? '' : 's'}`,
   clock: { feet: 'at your feet', at: "{hour} o'clock, {metres}" },
