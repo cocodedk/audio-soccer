@@ -6,9 +6,9 @@ An audio-first 5-a-side football game for blind and visually impaired players. E
 and shot is a sound you can place. The rules borrow from blind football, the Paralympic sport built
 around sound.
 
-The real game will be an Android app that works with TalkBack left on. Before that, this repository
-holds a browser trial that answers one question: can a blind player find the ball, take it to the
-goal and score using sound alone?
+The real game will be an Android app that speaks for itself, so the screen reader can be off during
+a match. Before that, this repository holds a browser trial that answers one question: can a blind
+player find the ball, take it to the goal and score using sound alone?
 
 ## The browser trial
 
