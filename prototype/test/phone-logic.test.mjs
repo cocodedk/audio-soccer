@@ -73,8 +73,10 @@ test('voices to try: local before online, the chosen language before English, at
   const faLocal = v('Dariush', 'fa-IR', true), faNet = v('Net Fa', 'fa-IR', false);
   const enLocal = v('Local En', 'en-US', true), enNet = v('Net En', 'en-GB', false);
   const tried = (list, lang) => voiceCandidates(list, lang).map((c) => [c.voice?.name ?? null, c.lang, c.english]);
-  // Every kind there: local Persian, local English, then online Persian; the fourth is past the cap.
-  assert.deepEqual(tried([enNet, faNet, enLocal, faLocal], 'fa'), [['Dariush', 'fa', false], ['Local En', 'en', true], ['Net Fa', 'fa', false]]);
+  // Every kind there: local Persian, online Persian, then local English; the fourth is past the cap.
+  assert.deepEqual(tried([enNet, faNet, enLocal, faLocal], 'fa'), [['Dariush', 'fa', false], ['Net Fa', 'fa', false], ['Local En', 'en', true]]);
+  // A Persian voice flagged online is tried before a local English one: the flag may be wrong.
+  assert.deepEqual(tried([enLocal, faNet], 'fa'), [['Net Fa', 'fa', false], ['Local En', 'en', true]]);
   assert.equal(MAX_TRIES, 3);
   // Only online voices (an Android browser that flags its own voices online): they are still tried.
   assert.deepEqual(tried([enNet, faNet], 'fa'), [['Net Fa', 'fa', false], ['Net En', 'en', true]]);

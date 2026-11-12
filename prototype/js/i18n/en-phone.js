@@ -8,7 +8,7 @@ export default {
     start: 'Start',
   },
   check: 'Hello. This is the game voice.',
-  english: 'The game found no Persian voice it can use offline on this phone, so it speaks English.',
+  english: 'The game could not speak Persian on this phone, so it speaks English.',
   noVoice: 'The game found no English or Persian voice on this phone. Keep your screen reader on. The results below say what was found.',
   silent: 'The game tried the voices on this phone, but none of them started speaking. Keep your screen reader on. The results below say what was tried.',
   handover: 'Turn your screen reader off now. Then swipe up in the middle of the screen.',
