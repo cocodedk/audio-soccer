@@ -58,7 +58,8 @@ export default {
   // the start-screen tour and the headphone check
   learn: {
     left: 'Left', right: 'Right', end: 'That is all the sounds.',
-    calls: 'A voice calls where the target is: ahead, left, right or behind. The target is the ball, or the goal when you have the ball.',
+    calls: 'A voice calls where the target is.',
+    target: 'The target is the ball, or the goal when you have the ball.',
     ahead: 'Ball ticking, ahead of you.', behind: 'The same ball, behind you. It sounds duller.',
     roll: 'Ball rolling from your left to your right.', chime: 'The goal chime, ahead.',
     chimeNear: 'The goal chime beeps faster the closer you get to the goal.',
