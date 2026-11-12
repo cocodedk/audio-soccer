@@ -1,6 +1,6 @@
 # Audio Soccer
 
-**Play the trial:** https://cocodedk.github.io/audio-soccer/
+**Play the trial:** https://soccer.cocode.dk/
 
 An audio-first 5-a-side football game for blind and visually impaired players. Every pass, tackle
 and shot is a sound you can place. The rules borrow from blind football, the Paralympic sport built
@@ -49,7 +49,7 @@ lining up with the goal by ear is part of the test.
 
 ## Phone controls test
 
-**Try it on an Android phone:** https://cocodedk.github.io/audio-soccer/phone/
+**Try it on an Android phone:** https://soccer.cocode.dk/phone/
 
 A throwaway test, played on the phone's speaker with the screen reader off. It answers which touch
 steering works by ear, whether vibration helps, and whether the game's own voice is enough to get
