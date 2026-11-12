@@ -320,9 +320,11 @@ Each slice goes to the tester and waits for their feedback before the next one s
     https://cocodedk.github.io/audio-soccer/phone/): a page in the phone's browser, played on the
     phone's speaker, that reuses the trial's game, sounds, clips, speech and two languages: nothing
     to install. With TalkBack on, the start screen is an ordinary page with a Start button. Start
-    checks that the phone's speech engine really speaks, with voices on the phone only; with no
-    Persian voice but an English one it speaks English and says so, and with no voice at all it says
-    so on the page, keeps TalkBack on and stops. Then the game's voice asks for TalkBack to be turned
+    tries up to three voices in turn until one really starts speaking: one flagged as on the phone
+    first, then online ones, because Android browsers are known to set that flag wrongly. Every try is
+    recorded, which also answers which Persian voice the phone has. When only an English voice speaks
+    it speaks English and says so; when none speaks it says so on the page, keeps TalkBack on and
+    stops. Then the game's voice asks for TalkBack to be turned
     off and a swipe up: a one-finger swipe reaching the page proves TalkBack is off. One self-spoken
     menu follows (swipe right or left to move, double-tap to choose): **Drag to steer**, **Tilt to
     steer** and **Finish**. Each scheme plays level 2 of the trial, three rounds, after a short

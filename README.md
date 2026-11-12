@@ -55,9 +55,10 @@ A throwaway test, played on the phone's speaker with the screen reader off. It a
 steering works by ear, whether vibration helps, and whether the game's own voice is enough to get
 around without the screen reader.
 
-1. With TalkBack on, choose English or فارسی and press **Start**. The game checks that a voice on the
-   phone really speaks (online voices don't count). With no Persian voice it speaks English and says
-   so; with no voice at all the page says so and TalkBack stays on.
+1. With TalkBack on, choose English or فارسی and press **Start**. The game tries up to three voices,
+   ones on the phone first, until one really starts speaking, and records each try. If no Persian
+   voice speaks it speaks English and says so; if none speaks at all the page says so and TalkBack
+   stays on.
 2. The game asks you to turn TalkBack off and swipe up. TalkBack would keep that swipe for itself, so
    when the page gets it, TalkBack is off and the whole screen becomes one touch surface.
 3. A spoken menu: **Drag to steer**, **Tilt to steer**, **Finish**. Swipe right or left to move,

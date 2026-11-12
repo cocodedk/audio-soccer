@@ -8,25 +8,36 @@ const SCHEMES = { drag: 'Drag to steer', tilt: 'Tilt to steer' };
 const LANG_NAMES = { en: 'English', fa: 'Persian' };
 const OUTCOMES = { ok: 'ok', refused: 'refused', unsupported: 'not supported' };
 
-// A new session record, filled in as the test goes on.
+// A new session record, filled in as the test goes on. attempts: each voice the check tried, in order.
 export const newSession = (at, browser, lang) => ({
-  at, browser, lang, voiceCount: 0, voices: [], persianLocal: false, persianOnline: false, spoke: null,
-  english: false, check: null, checkMs: null, fullscreen: null, orientation: null, wakeLock: null,
-  vibration: null, handover: null, tilt: 'not tried', schemes: [],
+  at, browser, lang, voiceCount: 0, voices: [], persianLocal: false, persianOnline: false, attempts: [],
+  spoke: null, english: false, check: null, checkMs: null, fullscreen: null, orientation: null,
+  wakeLock: null, vibration: null, handover: null, tilt: 'not tried', schemes: [],
 });
 
-const voiceText = (v) => `${v.name} (${v.lang}, ${v.local ? 'local' : 'online'})`;
+const flag = (v) => (v.local ? 'flagged local' : 'flagged online');
+const voiceText = (v) => (v.name === null ? `the browser's default voice (asked for ${v.lang}; the voice list was empty)`
+  : `${v.name} (${v.lang}, ${flag(v)})`);
+const secs = (ms) => `${(ms / 1000).toFixed(1)} s`;
+
+// "2. Google فارسی (fa-IR, flagged online): started after 1.2 s."
+const attemptLine = (a, i) => `${i + 1}. ${voiceText(a)}: ${a.started ? `started after ${secs(a.ms)}`
+  : a.error ? `failed after ${secs(a.ms)}` : `did not start within ${secs(a.ms)}`}.`;
 
 function voiceLines(s) {
-  const lines = [`Voices: ${s.voiceCount} in all. English and Persian: ${s.voices.map(voiceText).join('; ') || 'none'}.`];
-  const fa = s.persianLocal ? 'yes' : s.persianOnline ? 'no, online only' : 'no';
-  lines.push(`Local Persian voice: ${fa}.`);
-  const who = s.spoke ? voiceText(s.spoke) : "the browser's default voice (its voice list was empty)";
-  if (s.check === 'ok') lines.push(`Voice check: spoke after ${(s.checkMs / 1000).toFixed(1)} s, with ${who}.`);
-  else if (s.check === 'novoice') lines.push('Voice check: no voice that works offline. Stopped before the screen reader hand-over.');
-  else if (s.check === 'silent') lines.push(`Voice check: speech never started, tried ${who}. Stopped before the screen reader hand-over.`);
-  else lines.push('Voice check: not finished.');
-  if (s.english) lines.push('Spoke English instead of Persian: no local Persian voice.');
+  const tried = s.attempts || []; // missing in sessions saved before the voices were tried in turn
+  const fa = s.persianLocal ? 'yes, flagged local' : s.persianOnline ? 'yes, flagged online only' : 'no';
+  const lines = [
+    `Voices listed: ${s.voiceCount} in all. English and Persian: ${s.voices.map(voiceText).join('; ') || 'none'}.`,
+    `Persian voice listed: ${fa}.`,
+  ];
+  if (s.check === 'novoice') lines.push('Voice check: no English or Persian voice to try. Stopped before the screen reader hand-over.');
+  else if (tried.length) lines.push('Voice check, voices tried in order:', ...tried.map(attemptLine));
+  const used = s.spoke || tried[tried.length - 1];
+  if (s.check === 'ok') lines.push(`Spoke with: ${used ? voiceText(used) : "the browser's default voice"}.`);
+  else if (s.check === 'silent') lines.push('No voice started speaking. Stopped before the screen reader hand-over.');
+  else if (s.check !== 'novoice') lines.push('Voice check: not finished.');
+  if (s.english) lines.push('Spoke English instead of Persian.');
   return lines;
 }
 

@@ -1,11 +1,11 @@
-// The phone test's pure logic: tilt steering, the vibration cues, the self-spoken menu, the voice plan,
+// The phone test's pure logic: tilt steering, the vibration cues, the self-spoken menu, the voices to try,
 // and the round lines that replace the keyboard wording.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createTilt, THRESHOLD } from '../phone/js/tilt.js';
 import { createBuzz, REACH, LINED } from '../phone/js/buzz.js';
 import { createMenu, OPTIONS } from '../phone/js/menu.js';
-import { planVoice, voiceFacts } from '../phone/js/voicepick.js';
+import { voiceCandidates, voiceFacts, MAX_TRIES } from '../phone/js/voicepick.js';
 import { roundLines, introLines } from '../phone/js/play.js';
 import { createWorld, GOAL } from '../js/world.js';
 import { LANGS } from '../js/i18n/index.js';
@@ -68,15 +68,22 @@ test('menu: three options, swipes move and stop at the ends, double-tap chooses,
   assert.deepEqual(m.act('double'), { choose: 'tilt' });
 });
 
-test('voice plan: a local voice of the language; English when Persian is missing; online voices never count', () => {
+test('voices to try: local before online, the chosen language before English, at most three', () => {
   const v = (name, lang, localService) => ({ name, lang, localService, voiceURI: name });
   const faLocal = v('Dariush', 'fa-IR', true), faNet = v('Net Fa', 'fa-IR', false);
   const enLocal = v('Local En', 'en-US', true), enNet = v('Net En', 'en-GB', false);
-  assert.deepEqual(planVoice([enLocal, faNet, faLocal], 'fa'), { lang: 'fa', voice: faLocal, english: false });
-  assert.deepEqual(planVoice([enNet, enLocal, faNet], 'fa'), { lang: 'en', voice: enLocal, english: true });
-  assert.equal(planVoice([enNet, faNet], 'fa'), null, 'online only: nothing to speak with');
-  assert.equal(planVoice([faLocal, enNet], 'en'), null, 'English chosen: a Persian voice cannot speak it');
-  assert.deepEqual(planVoice([], 'fa'), { lang: 'fa', voice: null, english: false }, 'an empty list: try the default voice');
+  const tried = (list, lang) => voiceCandidates(list, lang).map((c) => [c.voice?.name ?? null, c.lang, c.english]);
+  // Every kind there: local Persian, local English, then online Persian; the fourth is past the cap.
+  assert.deepEqual(tried([enNet, faNet, enLocal, faLocal], 'fa'), [['Dariush', 'fa', false], ['Local En', 'en', true], ['Net Fa', 'fa', false]]);
+  assert.equal(MAX_TRIES, 3);
+  // Only online voices (an Android browser that flags its own voices online): they are still tried.
+  assert.deepEqual(tried([enNet, faNet], 'fa'), [['Net Fa', 'fa', false], ['Net En', 'en', true]]);
+  // A local voice beats an online one of the same language, whatever the list order.
+  assert.deepEqual(tried([faNet, faLocal], 'fa'), [['Dariush', 'fa', false], ['Net Fa', 'fa', false]]);
+  // English chosen: English voices only, never a Persian one.
+  assert.deepEqual(tried([faLocal, enNet, enLocal], 'en'), [['Local En', 'en', false], ['Net En', 'en', false]]);
+  assert.deepEqual(tried([], 'fa'), [[null, 'fa', false]], 'an empty list: the browser default voice');
+  assert.deepEqual(tried([v('Fr', 'fr-FR', true)], 'fa'), [], 'neither language: nothing to try');
   const facts = voiceFacts([enLocal, v('Fr', 'fr-FR', true), faNet]);
   assert.deepEqual([facts.voiceCount, facts.voices.length, facts.persianLocal, facts.persianOnline], [3, 2, false, true]);
 });

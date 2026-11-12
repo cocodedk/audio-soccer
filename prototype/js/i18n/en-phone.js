@@ -8,9 +8,9 @@ export default {
     start: 'Start',
   },
   check: 'Hello. This is the game voice.',
-  english: 'There is no Persian voice on this phone, so the game speaks English.',
-  noVoice: 'The game found no voice on this phone that works offline. Keep your screen reader on. The results below say what was found.',
-  silent: 'The game voice did not start. Keep your screen reader on. The results below say what was found.',
+  english: 'The game found no Persian voice it can use offline on this phone, so it speaks English.',
+  noVoice: 'The game found no English or Persian voice on this phone. Keep your screen reader on. The results below say what was found.',
+  silent: 'The game tried the voices on this phone, but none of them started speaking. Keep your screen reader on. The results below say what was tried.',
   handover: 'Turn your screen reader off now. Then swipe up in the middle of the screen.',
   menu: {
     how: 'Menu. Swipe right or left to move. Double-tap to choose.',

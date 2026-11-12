@@ -46,6 +46,11 @@ test('results text: the voices, the device facts, the hand-over and each scheme 
   Object.assign(s, {
     voiceCount: 40, voices: [{ name: 'English UK', lang: 'en-GB', local: true }, { name: 'Persian', lang: 'fa-IR', local: false }],
     persianOnline: true, english: true, spoke: { name: 'English UK', lang: 'en-GB', local: true }, check: 'ok', checkMs: 1234,
+    attempts: [
+      { name: 'Persian', lang: 'fa-IR', local: false, started: false, error: false, ms: 5003 },
+      { name: 'Persian 2', lang: 'fa-IR', local: false, started: false, error: true, ms: 120 },
+      { name: 'English UK', lang: 'en-GB', local: true, started: true, error: false, ms: 1234 },
+    ],
     fullscreen: 'ok', orientation: 'refused', wakeLock: 'unsupported', vibration: true, handover: 14.4, tilt: 'none',
     schemes: [
       { scheme: 'drag', rounds: [round('success', 23.4, { where: 2 }), round('timeout', 120)], partial: true, at: '2026-11-12T10:05Z' },
@@ -54,10 +59,11 @@ test('results text: the voices, the device facts, the hand-over and each scheme 
   const text = resultsText([s]);
   for (const want of [
     'Session 2026-11-12T10:00Z. Language: Persian. Browser: (Linux; Android 14) Chrome/130.0 Mobile.',
-    'Voices: 40 in all. English and Persian: English UK (en-GB, local); Persian (fa-IR, online).',
-    'Local Persian voice: no, online only.',
-    'Voice check: spoke after 1.2 s, with English UK (en-GB, local).',
-    'Spoke English instead of Persian: no local Persian voice.',
+    'Voices listed: 40 in all. English and Persian: English UK (en-GB, flagged local); Persian (fa-IR, flagged online).',
+    'Persian voice listed: yes, flagged online only.',
+    ['Voice check, voices tried in order:', '1. Persian (fa-IR, flagged online): did not start within 5.0 s.',
+      '2. Persian 2 (fa-IR, flagged online): failed after 0.1 s.', '3. English UK (en-GB, flagged local): started after 1.2 s.',
+      'Spoke with: English UK (en-GB, flagged local).', 'Spoke English instead of Persian.'].join('\n'),
     'Fullscreen: ok. Portrait lock: refused. Wake lock: not supported. Vibration: supported. Tilt events: none.',
     'Screen reader hand-over: swipe after 14 s.',
     'Drag to steer (stopped after 2 of 3 rounds), ended 2026-11-12T10:05Z:',
@@ -66,11 +72,18 @@ test('results text: the voices, the device facts, the hand-over and each scheme 
   ]) assert.ok(text.includes(want), `missing: ${want}\n${text}`);
 });
 
-test('results text: a failed voice check says so and has no hand-over line', () => {
-  const s = Object.assign(newSession('2026-11-12T11:00Z', 'UA', 'fa'), { check: 'novoice', vibration: false });
-  const text = resultsText([s]);
-  assert.match(text, /Voice check: no voice that works offline\. Stopped before the screen reader hand-over\./);
-  assert.match(text, /Local Persian voice: no\./);
-  assert.match(text, /Vibration: not supported\. Tilt events: not tried\./);
-  assert.doesNotMatch(text, /hand-over: /);
+test('results text: the two dead ends say so and have no hand-over line', () => {
+  const none = Object.assign(newSession('2026-11-12T11:00Z', 'UA', 'fa'), { check: 'novoice', vibration: false });
+  let text = resultsText([none]);
+  assert.ok(text.includes('Voice check: no English or Persian voice to try. Stopped before the screen reader hand-over.'), text);
+  assert.ok(text.includes('Persian voice listed: no.'), text);
+  assert.ok(text.includes('Vibration: not supported. Tilt events: not tried.'), text);
+  assert.ok(!text.includes('hand-over: '), text);
+  const silent = Object.assign(newSession('2026-11-12T11:05Z', 'UA', 'fa'), {
+    check: 'silent', attempts: [{ name: null, lang: 'fa-IR', local: null, started: false, error: false, ms: 5000 }],
+  });
+  text = resultsText([silent]);
+  assert.ok(text.includes("1. the browser's default voice (asked for fa-IR; the voice list was empty): did not start within 5.0 s.\n"
+    + 'No voice started speaking. Stopped before the screen reader hand-over.'), text);
+  assert.ok(!text.includes('hand-over: ') && !text.includes('Spoke with'), text);
 });

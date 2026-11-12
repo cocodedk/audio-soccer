@@ -5,14 +5,13 @@ import { initSpeech, say, cancel } from '../../js/speech.js';
 import { ensureAudio } from '../../js/audio.js';
 import { loadClips } from '../../js/clips.js';
 import { setSoundMode } from '../../js/soundmode.js';
-import { chooseVoices, currentVoice, setVoice, local, getRate } from '../../js/voices.js';
-import { getLang, setLang, onLang, t, LANG_TAG } from '../../js/i18n/index.js';
+import { chooseVoices, getRate } from '../../js/voices.js';
+import { getLang, setLang, onLang, t } from '../../js/i18n/index.js';
 import { applyLanguage } from '../../js/i18n/dom.js';
-import { savePref } from '../../js/storage.js';
 import { isoMinute } from '../../js/report.js';
 import { newSession } from './report.js';
-import { planVoice, voiceFacts, describeVoice } from './voicepick.js';
-import { loadVoices, speakCheck } from './voicecheck.js';
+import { voiceCandidates, voiceFacts, describeVoice } from './voicepick.js';
+import { loadVoices, proveVoice, useVoice } from './voicecheck.js';
 import { enterFullscreen, lockPortrait, keepAwake, leaveFullscreen, canVibrate } from './device.js';
 import { createMenuGestures } from './gestures.js';
 import { createMenu } from './menu.js';
@@ -72,22 +71,14 @@ $('#start').addEventListener('click', async () => {
   session.wakeLock = await keepAwake();
   const list = await loadVoices();
   Object.assign(session, voiceFacts(list));
-  const plan = planVoice(list, getLang());
-  if (!plan) { stop('novoice'); return; }
-  if (plan.english) {
-    setLang('en');
-    savePref('lang', session.lang); // English for this session only: the saved choice stays Persian
-    session.english = true;
-  }
-  if (plan.voice && !(currentVoice() && local(currentVoice()))) setVoice(plan.voice.voiceURI);
-  const voice = currentVoice();
-  session.spoke = voice ? describeVoice(voice) : null;
-  const check = await speakCheck(t(plan.english ? 'phone.english' : 'phone.check'), { voice, lang: LANG_TAG[getLang()], rate: getRate() });
-  if (!check.ok) { stop('silent'); return; }
-  session.check = 'ok';
-  session.checkMs = Math.round(check.ms);
+  const candidates = voiceCandidates(list, getLang());
+  if (!candidates.length) { stop('novoice'); return; }
+  const found = await proveVoice(candidates, getRate(), (a) => { session.attempts.push(a); results.save(); });
+  if (!found.chosen) { stop('silent'); return; }
+  useVoice(found.chosen, session.lang, list);
+  Object.assign(session, { check: 'ok', checkMs: found.ms, english: found.chosen.english, spoke: found.chosen.voice ? describeVoice(found.chosen.voice) : null });
   results.save();
-  await Promise.race([check.end, new Promise((r) => setTimeout(r, END_CAP))]);
+  await Promise.race([found.end, new Promise((r) => setTimeout(r, END_CAP))]);
   handover();
 });
 
