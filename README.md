@@ -69,6 +69,10 @@ around without the screen reader.
    ball comes into reach and twice when you are lined up with the goal.
 5. **Finish** asks you to turn TalkBack back on and shows the results to copy and send back.
 
+A sighted friend can watch on the screen: it shows where the test is and the gestures that work
+now, the menu, the pitch during a round (up the screen is toward the goal), and the last few spoken
+lines. It is display only and takes no touches.
+
 To run it locally: `python3 -m http.server --directory prototype`, then open
 http://localhost:8000/phone/.
 

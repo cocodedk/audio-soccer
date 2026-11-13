@@ -335,7 +335,10 @@ Each slice goes to the tester and waits for their feedback before the next one s
     ball comes into reach and twice on lining up with the goal. Finish asks for TalkBack to be
     turned back on and shows the results as text to copy: the rounds per scheme, the voices found
     and which one spoke, and whether vibration, tilt, fullscreen, the portrait lock and the wake lock
-    worked. If the browser still gets in the way on the tester's phone, it becomes a small throwaway
+    worked. For a sighted person watching, the touch surface shows the phase and the gestures that
+    work now, the menu, the pitch turned so up the screen is toward the goal, and the last few lines
+    as they are spoken; it takes no touches and never holds up a sound. If the browser still gets in
+    the way on the tester's phone, it becomes a small throwaway
     APK instead. Output: the chosen control scheme, whether the buzzes help, and whether the game's
     own voice is enough to get around without the screen reader.
 

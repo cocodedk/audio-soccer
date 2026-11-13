@@ -27,6 +27,10 @@ export function loadClips() {
 // missing for good and is spoken. Before that, the caller waits for its clip rather than say it twice.
 export const clipsSettled = () => settled || !audioCtx();
 
+// One listener told each side word as its clip starts (the phone test shows it for sighted helpers).
+let clipListener = null;
+export const onClip = (fn) => { clipListener = fn; };
+
 // Play the side word in lang. False when there is no clip for it (yet), so the caller can speak it.
 export function playClip(word, lang) {
   const ctx = audioCtx(), buf = buffers[`${word}.${lang}`];
@@ -37,5 +41,6 @@ export function playClip(word, lang) {
   s.connect(output({ gain: CLIP_GAIN }));
   s.start();
   playing = s;
+  try { clipListener?.(word); } catch (e) { /* display only */ }
   return true;
 }

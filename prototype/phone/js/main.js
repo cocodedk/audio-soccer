@@ -18,16 +18,17 @@ import { createMenu } from './menu.js';
 import { createSurface } from './surface.js';
 import { createRun } from './play.js';
 import { createResults } from './results.js';
+import { createView } from './view.js';
 
 const $ = (s) => document.querySelector(s);
-const page = $('#page'), notice = $('#notice'), surfaceEl = $('#surface'), caption = $('#caption');
+const page = $('#page'), notice = $('#notice'), surfaceEl = $('#surface');
 const HANDOVER_EVERY = 15000; // ms between repeats of the hand-over line until the swipe comes
 const END_CAP = 8000;         // ms the voice check line may hold up the next one
 
 const results = createResults({
   box: $('#results'), text: $('#results-text'), copyBtn: $('#copy'), copyStatus: $('#copy-status'), heading: $('#h-results'),
 });
-const surface = createSurface(surfaceEl);
+const surface = createSurface(surfaceEl), view = createView(surfaceEl);
 let phase = 'start', session = null, menu = null, run = null, repeat = null;
 
 function showLanguage() {
@@ -97,7 +98,7 @@ function stop(kind) {
 function handover() {
   phase = 'handover';
   handsFree(true);
-  caption.textContent = t('phone.handover');
+  view.handover();
   const at = performance.now();
   const sayIt = () => say(t('phone.handover'), { priority: 'high', key: 'handover', wait: 5000 });
   sayIt();
@@ -117,7 +118,7 @@ function handover() {
 }
 
 function sayOption(option, cut) {
-  caption.textContent = t(`phone.options.${option}`);
+  view.menu(option);
   say(t(`phone.options.${option}`), { priority: 'high', key: 'menu', cut, wait: 20000 });
 }
 
@@ -150,6 +151,7 @@ function choose(option) {
       enterMenu(why === 'notilt' ? 'phone.noTilt' : 'phone.menu.back');
     },
   });
+  view.run(option);
   surface.use(run.gestures);
   run.start(performance.now());
 }
@@ -170,6 +172,7 @@ function frame(now) {
   last = now;
   surface.tick(now);
   run?.update(dt, now);
+  view.frame(run?.status(), now);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

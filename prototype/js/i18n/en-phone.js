@@ -26,4 +26,24 @@ export default {
   noTilt: 'The game cannot read the tilt of this phone. Back to the menu.',
   done: 'Turn your screen reader back on. Your results are on the page.',
   copyBlocked: 'Copying was blocked. The text is selected, so you can copy it yourself.',
+  // What the touch surface shows a sighted helper (read, not heard). g: the gestures that work now.
+  view: {
+    handover: 'Turn the screen reader off',
+    menu: 'Menu',
+    intro: '{scheme}: instructions',
+    introNote: 'The game is explaining the controls. The round starts when it finishes.',
+    round: '{scheme} · Round {round} of {total}',
+    goal: 'Goal you attack', you: 'You', ball: 'Ball',
+    g: {
+      swipeUp: 'Then swipe up with one finger',
+      move: 'Swipe right or left: move',
+      choose: 'Double-tap: choose',
+      repeat: 'Tap: hear it again',
+      drag: 'Drag: run that way. Lift: stop',
+      tilt: 'Tilt: run that way. Level: stop',
+      kick: 'Tap: kick',
+      where: 'Two-finger tap: where you are',
+      back: 'Three-finger tap: back to the menu',
+    },
+  },
 };

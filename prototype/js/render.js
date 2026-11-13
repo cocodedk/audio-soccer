@@ -1,11 +1,12 @@
 // Top-down canvas picture of the pitch for sighted helpers and low-vision players. It shows only
 // what the sound already says: the pitch, the player, the ball and the keeper. labels() gives the words
-// drawn on it ({ left, right, attack, you, keeper }) in the current language.
+// drawn on it ({ left, right, attack, you, keeper }) in the current language. size() gives the canvas's
+// size in CSS pixels: the phone test, which turns its canvas with CSS, passes the size before turning.
 const TURF = '#1E5A47', TURF2 = '#22654F', CHALK = '#F1F5EF', BOARD = '#A9C2CF', AMBER = '#F5B436';
 const HOME = '#F4F7F2', NAVY = '#16233A';
 const FRAME = { x0: -3.5, x1: 43.5, y0: -3, y1: 23 };
 
-export function createRenderer(cv, labels) {
+export function createRenderer(cv, labels, size = () => cv.getBoundingClientRect()) {
   const c = cv.getContext('2d');
   let s = 0, last = null;
   const X = (x) => (x - FRAME.x0) * s;
@@ -14,7 +15,7 @@ export function createRenderer(cv, labels) {
   const circle = (x, y, r) => { c.beginPath(); c.arc(X(x), Y(y), r * s, 0, Math.PI * 2); };
 
   function fit() {
-    const r = cv.getBoundingClientRect();
+    const r = size();
     if (!r.width) return;
     const dpr = window.devicePixelRatio || 1;
     cv.width = Math.round(r.width * dpr);
