@@ -19,6 +19,15 @@ function synth() {
 
 const canSpeak = () => !!synth() && typeof SpeechSynthesisUtterance !== 'undefined';
 
+// One listener told the text of each line as it is spoken (or posted to a live region), as onSpoken
+// is: the phone test shows the lines for sighted helpers. It is called after the line has gone to the
+// engine (a microtask), so it can never hold up or change speech.
+let lineListener = null;
+export const onLine = (fn) => { lineListener = fn; };
+const heard = (text) => {
+  if (lineListener) queueMicrotask(() => { try { lineListener?.(text); } catch (e) { /* display only */ } });
+};
+
 function hush() {
   cancelledAt = now();
   try { synth()?.cancel(); } catch (e) { /* no speech engine */ }
@@ -55,6 +64,7 @@ export function cancel() {
 function announce(item) {
   const key = item.p >= PRI.high ? 'assertive' : 'polite';
   item.onSpoken?.();
+  heard(item.text);
   if (!regions?.[key]) return;
   if (item.key) lastSaid[item.key] = now();
   pending[key].push(/[.!?]$/.test(item.text) ? item.text : `${item.text}.`);
@@ -72,6 +82,7 @@ function speakNow(item) {
   if (!canSpeak()) { current = null; announce(item); return; }
   if (item.key) lastSaid[item.key] = now(); // a line counts as said only once it is actually spoken
   item.onSpoken?.();
+  heard(item.text);
   try {
     const u = new SpeechSynthesisUtterance(item.text);
     const v = currentVoice();

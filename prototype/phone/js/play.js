@@ -94,5 +94,7 @@ export function createRun(scheme, { onEnd, onTilt = () => {} }) {
     pause() { if (phase === 'play') game.pause(); },
     resume() { if (phase === 'play') game.resume(); },
     snapshot: () => ({ phase, game: game.snapshot() }),
+    // What the screen shows each frame (view.js): cheap, no copies.
+    status: () => ({ phase, round: game.round, world: game.world }),
   };
 }

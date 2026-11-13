@@ -40,8 +40,23 @@
   <div class="sr" id="live-assertive" aria-live="assertive"></div>
 </div>
 
-<!-- With the screen reader off, the whole screen is one touch surface; the caption is for sighted helpers. -->
-<div class="surface" id="surface" hidden><p id="caption"></p></div>
+<!-- With the screen reader off, the whole screen is one touch surface. The view on it is for sighted helpers
+     (phone/js/view.js): it takes no touches, so every touch still reaches the surface. -->
+<div class="surface" id="surface" hidden>
+  <div class="view">
+    <h2 class="v-title"></h2>
+    <ul class="v-gestures"></ul>
+    <p class="v-note" data-i18n="phone.view.introNote" hidden>The game is explaining the controls. The round starts when it finishes.</p>
+    <ul class="v-menu" hidden></ul>
+    <div class="v-pitch" hidden>
+      <p class="v-goal">▲ <span data-i18n="phone.view.goal">Goal you attack</span></p>
+      <div class="v-frame"><canvas></canvas></div>
+      <p class="v-legend"><i class="dot you"></i><span data-i18n="phone.view.you">You</span>
+        <i class="dot ball"></i><span data-i18n="phone.view.ball">Ball</span><b class="v-call" hidden></b></p>
+    </div>
+    <ul class="v-lines"></ul>
+  </div>
+</div>
 
 <script type="module" src="phone/js/main.js"></script>
 </body>

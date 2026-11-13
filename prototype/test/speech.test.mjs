@@ -4,7 +4,7 @@ import { fakeSpeech } from './helpers.mjs';
 
 const { spoken, finish, finishAll } = fakeSpeech();
 
-const { say, cancel, isSaying, setMode } = await import('../js/speech.js');
+const { say, cancel, isSaying, setMode, onLine } = await import('../js/speech.js');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 beforeEach(async () => { setMode('voice'); cancel(); spoken.length = 0; await wait(40); });
@@ -77,4 +77,18 @@ test('an outcome line is not left behind a high line already waiting in the queu
   say('Goal! 4.1 seconds.', { priority: 'high', cut: true });
   await wait(3000);
   assert.ok(spoken.includes('Goal! 4.1 seconds.'));
+});
+
+test('onLine hears each line as it starts, not while it waits, and a failing listener changes nothing', async () => {
+  const heard = [];
+  onLine((text) => { heard.push(text); throw new Error('display broke'); });
+  say('first'); say('second');
+  assert.deepEqual(heard, []); // told only once the line has gone to the engine
+  await wait(0);
+  assert.deepEqual(heard, ['first']); // second is still queued behind first
+  finishAll();
+  await wait(0);
+  assert.deepEqual(heard, ['first', 'second']);
+  assert.deepEqual(spoken, ['first', 'second']);
+  onLine(null);
 });
