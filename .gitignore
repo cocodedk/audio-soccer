@@ -3,7 +3,7 @@
 .claude/
 .playwright-mcp/
 .zvec-grep/
-memory/
+memory
 
 # Build output
 _site/
