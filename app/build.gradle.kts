@@ -1,0 +1,127 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kover)
+}
+
+// The version lives in gradle.properties, where the release workflow and F-Droid's
+// checkupdates both read it. See the comment there before bumping it.
+val appVersionName: String = providers.gradleProperty("VERSION_NAME").get()
+val appVersionCode: Int = providers.gradleProperty("VERSION_CODE").get().toInt()
+
+// Optional release signing — supplied via env in CI; absent locally so debug still builds.
+val ksFile = System.getenv("KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
+    ?.let { rootProject.file(it).absoluteFile }?.takeIf { it.isFile }
+val ksPassword = System.getenv("KEYSTORE_PASSWORD")?.takeIf { it.isNotBlank() }
+val ksAlias = System.getenv("KEY_ALIAS")?.takeIf { it.isNotBlank() }
+val ksKeyPassword = System.getenv("KEY_PASSWORD")?.takeIf { it.isNotBlank() }
+val hasSigning = ksFile != null && ksPassword != null && ksAlias != null && ksKeyPassword != null
+
+android {
+    namespace = "dk.cocode.soccer"
+    compileSdk = 36
+
+    defaultConfig {
+        applicationId = "dk.cocode.soccer"
+        minSdk = 24
+        targetSdk = 36
+        versionCode = appVersionCode
+        versionName = appVersionName
+    }
+    signingConfigs {
+        if (hasSigning) {
+            create("release") {
+                storeFile = ksFile
+                storePassword = ksPassword
+                keyAlias = ksAlias
+                keyPassword = ksKeyPassword
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            // Its own app id: a debug build installs beside the release-signed app instead of
+            // needing an uninstall (another key), which would wipe the owner's progress.
+            applicationIdSuffix = ".debug"
+        }
+        release {
+            // F-Droid's reviewer rejects release builds with minify off for no reason (fdroiddata !49432).
+            isMinifyEnabled = true
+            isShrinkResources = true
+            if (hasSigning) signingConfig = signingConfigs.getByName("release")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    buildFeatures {
+        compose = true
+    }
+    // AGP otherwise adds a "Dependency metadata" block to the APK signing block,
+    // encrypted with a key only Google Play holds. F-Droid rejects release APKs
+    // that carry it, and v0.5.6 did.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+    packaging {
+        jniLibs {
+            // The only .so files in the APK are prebuilts from AndroidX (datastore, graphics-path).
+            // AGP strips them with whatever NDK it finds, so a rebuild without that exact NDK
+            // produces different bytes — F-Droid's builder has none unless its recipe pins one.
+            // Keeping the symbols leaves the libraries exactly as their AARs ship them, which
+            // rebuilds identically anywhere, and costs a few kB.
+            keepDebugSymbols += "**/*.so"
+        }
+    }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
+
+dependencies {
+    implementation(project(":core"))
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.graphics)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.material3)
+    debugImplementation(libs.compose.ui.tooling)
+    debugImplementation(libs.compose.ui.test.manifest)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(platform(libs.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
+}
+
+// Coverage and CI only target the debug variant; disable release unit tests so Kover does not run
+// them (they lack the debug-only Compose `ui-test-manifest` needed by the Robolectric UI tests).
+tasks.withType(org.gradle.api.tasks.testing.Test::class.java).configureEach {
+    if (name.contains("Release")) enabled = false
+}
