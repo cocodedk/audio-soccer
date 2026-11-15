@@ -88,6 +88,32 @@ class SessionSafetyTest {
         assertEquals(r.en.voiceEngine(ESPEAK.label), r.spoken.last())
     }
 
+    // The menu follows the first finger down: one whose lift never came must not shut out the next, which is held on band 3.
+    private fun assertTheNextFingerIsHeard(r: Rig) {
+        r.touch(Phase.DOWN, 2, 50f, 300f)
+        r.now += 400
+        r.session.frame(0.016)
+        assertEquals(r.en.levelNames[2], r.spoken.last())
+    }
+
+    @Test
+    fun aFingerDownWhenTheAppGoesToTheBackgroundDoesNotShutOutTheNextOne() {
+        val r = Rig()
+        r.touch(Phase.DOWN, 1, 50f, 50f)
+        r.session.foreground(false)
+        r.session.foreground(true)
+        assertTheNextFingerIsHeard(r)
+    }
+
+    @Test
+    fun aFingerDownWhenAScreenReaderComesOnAndGoesDoesNotShutOutTheNextOne() {
+        val r = Rig()
+        r.touch(Phase.DOWN, 1, 50f, 50f)
+        r.reader.on.value = true
+        r.reader.on.value = false
+        assertTheNextFingerIsHeard(r)
+    }
+
     @Test
     fun aTapWaitingForItsSecondIsDroppedWhenTheScreenChanges() {
         val r = Rig()

@@ -71,7 +71,7 @@ internal class Round(
         this.dir = dir
     }
 
-    // The screen changed: a finger still down must not act on the new one.
+    // The screen changed, or the player was taken away: a finger still down must not act on what comes next.
     fun reset() {
         gestures.reset()
         dir = Vec.ZERO

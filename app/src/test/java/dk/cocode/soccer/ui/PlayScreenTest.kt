@@ -1,6 +1,8 @@
 package dk.cocode.soccer.ui
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.test.cancel
+import androidx.compose.ui.test.TouchInjectionScope
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
@@ -25,6 +27,12 @@ class PlayScreenTest {
         compose.setContent { SoccerTheme { PlayScreen(r.session) } }
     }
 
+    // A finger put down low on the screen and dragged up it, and held there.
+    private fun TouchInjectionScope.dragUp() {
+        down(Offset(centerX, bottom - 100f))
+        moveTo(Offset(centerX, bottom - 600f))
+    }
+
     @Test
     fun aTapOnTheScreenIsAKick() {
         val r = Rig()
@@ -39,13 +47,28 @@ class PlayScreenTest {
         val r = Rig()
         play(r)
         val x = r.player.x
-        compose.onRoot().performTouchInput {
-            down(Offset(centerX, bottom - 100f))
-            moveTo(Offset(centerX, bottom - 600f))
-        }
+        compose.onRoot().performTouchInput { dragUp() }
         r.frames(1.0)
         assertTrue(r.player.x > x + 3)
         compose.onRoot().performTouchInput { up() }
         assertEquals(Screen.Play(2), r.screen)
+    }
+
+    // Compose hands a cancelled finger over as a lift that is already consumed: the session has to be told it was cancelled.
+    @Test
+    fun aCancelledFingerStopsTheRunAndTheNextDragSteersAgain() {
+        val r = Rig()
+        play(r)
+        val x = r.player.x
+        compose.onRoot().performTouchInput { dragUp() }
+        r.frames(1.0)
+        assertTrue(r.player.x > x + 3)
+        compose.onRoot().performTouchInput { cancel() }
+        val stopped = r.player
+        r.frames(1.0)
+        assertEquals(stopped, r.player)
+        compose.onRoot().performTouchInput { dragUp() }
+        r.frames(1.0)
+        assertTrue(r.player.x > stopped.x + 3)
     }
 }

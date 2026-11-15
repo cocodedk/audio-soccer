@@ -5,6 +5,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.cancel
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -96,6 +97,22 @@ class MenuScreenTest {
     fun withNoScreenReaderASwipeOnTheScreenMovesTheCursorAndSpeaksTheOption() {
         val r = Rig()
         show(r)
+        compose.onRoot().performTouchInput { swipeDown() }
+        compose.waitForIdle()
+        assertEquals(1, r.session.focus.value)
+        assertEquals(r.en.levelNames[1], r.spoken.last())
+    }
+
+    // The cancelled finger would otherwise stay the one the menu follows, and a new finger (a new id) would be ignored.
+    @Test
+    fun aCancelledTouchLeavesTheMenuReadyForTheNextSwipe() {
+        val r = Rig()
+        show(r)
+        compose.onRoot().performTouchInput {
+            down(center)
+            cancel()
+        }
+        compose.waitForIdle()
         compose.onRoot().performTouchInput { swipeDown() }
         compose.waitForIdle()
         assertEquals(1, r.session.focus.value)

@@ -135,9 +135,10 @@ class Session(
     }
 
     // Something takes the player away from the game (the background, a screen reader coming on): it is silenced, a round
-    // pauses and the sound tour ends.
+    // pauses and the sound tour ends. A finger down now may never be reported lifting, so the recognizers drop theirs.
     private fun interrupt() {
         talk.clear()
+        resetTouches()
         run.pause()
         if (stage.current == Screen.Learn) stage.show(Screen.Home)
     }
@@ -169,16 +170,20 @@ class Session(
         }
     }
 
-    // The recognizers forget their fingers, so one still down does not act on the new screen, and the audio runs only on a
-    // screen that makes sound.
+    // The audio runs only on a screen that makes sound.
     private fun screenChanged(before: Screen, now: Screen) {
-        menuGestures.reset()
-        run.reset()
+        resetTouches()
         if (before.makesSound != now.makesSound) {
             sink.silence()
             if (now.makesSound) audio.start() else audio.stop()
         }
         learn = if (now == Screen.Learn) startTour() else null
+    }
+
+    // The recognizers forget their fingers, so one still down does not act on the new screen.
+    private fun resetTouches() {
+        menuGestures.reset()
+        run.reset()
     }
 
     private fun startTour(): Learn {
