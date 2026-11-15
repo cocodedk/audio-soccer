@@ -16,6 +16,14 @@ import dk.cocode.soccer.core.sim.dist
 import kotlin.math.hypot
 import kotlin.math.min
 
+// Gains the game plays its sounds at: Soundscape in play, and the sound tour of the app's "Learn the sounds", so what is taught is
+// what is heard.
+const val TICK_GAIN = 1.2 // a still ball's tick
+const val TICK_BEHIND_MAKEUP = 1.3 // what the dull filter takes from a tick behind the player
+const val STEP_GAIN = 0.22
+const val CHIME_GAIN = 0.4
+const val CHIME_FULL_BEAT = 2.0 // s: the goal chime at its slowest beat is played at its full length, a quicker beat shortens it
+
 private const val STEP_EVERY = 0.35
 private const val KEEPER_STEP_EVERY = 0.42
 private const val ROLLING = 0.3 // m/s: a ball faster than this rattles, a slower one counts as still and ticks
@@ -85,7 +93,7 @@ class Soundscape(private val sink: SoundSink) {
             tick = min(tick - dt, every) // closing in shortens the wait at once
             if (tick <= 0) {
                 tick = every
-                ballSound(Sound.TICK, w, b, 1.2, makeup = 1.3)
+                ballSound(Sound.TICK, w, b, TICK_GAIN, makeup = TICK_BEHIND_MAKEUP)
             }
         }
     }
@@ -99,7 +107,7 @@ class Soundscape(private val sink: SoundSink) {
         step -= dt
         if (step > 0) return
         step = STEP_EVERY
-        sink.play(Sound.STEP, 0.22) // a footstep is at the player's own feet
+        sink.play(Sound.STEP, STEP_GAIN) // a footstep is at the player's own feet
         nearBoard(p)?.let { spatial(Sound.BRUSH, w, Vec(p.x, if (it == Side.LEFT) 0.0 else PITCH_W), 0.7) }
     }
 
@@ -115,7 +123,7 @@ class Soundscape(private val sink: SoundSink) {
         beacon = min(beacon - dt, every)
         if (beacon <= 0) {
             beacon = every
-            spatial(Sound.CHIME, w, GOAL, 0.4, stretch = every / 2)
+            spatial(Sound.CHIME, w, GOAL, CHIME_GAIN, stretch = every / CHIME_FULL_BEAT)
         }
     }
 

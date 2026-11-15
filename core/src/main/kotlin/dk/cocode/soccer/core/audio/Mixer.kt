@@ -17,6 +17,9 @@ interface SoundSink {
 
     // The crowd bed's level, reached in a straight ramp of a second or so; 0.0 stops it once the ramp has run out.
     fun crowd(level: Double)
+
+    // Fades out everything that sounds, the crowd bed too. For the moment the game stops: a pause, a menu, the background.
+    fun silence()
 }
 
 // Frames mixed at a time, so a render of any length needs no more than this one scratch buffer.
@@ -57,7 +60,7 @@ class Mixer(seed: Long) : SoundSink {
     }
 
     // Fades everything that sounds out over 60 ms; sounds played after it are not touched.
-    fun silence() = push(Command.Silence)
+    override fun silence() = push(Command.Silence)
 
     private fun push(command: Command) {
         while (true) {

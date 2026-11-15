@@ -12,6 +12,7 @@ class RecordingSink : SoundSink {
     var t = 0.0
     val plays = mutableListOf<Played>()
     val crowds = mutableListOf<Double>()
+    var silences = 0
 
     override fun play(sound: Sound, gain: Double, behind: Boolean, stretch: Double) {
         plays += Played(t, sound, gain, behind, stretch)
@@ -19,6 +20,10 @@ class RecordingSink : SoundSink {
 
     override fun crowd(level: Double) {
         crowds += level
+    }
+
+    override fun silence() {
+        silences += 1
     }
 
     fun of(sound: Sound) = plays.filter { it.sound == sound }

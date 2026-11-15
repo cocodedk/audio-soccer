@@ -16,9 +16,13 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.AudioSoccer">
+        <!-- Portrait, so that up the screen is toward the goal. The configuration changes are handled by the activity itself,
+             which keeps the game going (and the speech engine) instead of building them again. -->
         <activity
             android:name=".ui.MainActivity"
-            android:exported="true">
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|uiMode|density|fontScale|locale|layoutDirection"
+            android:exported="true"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
