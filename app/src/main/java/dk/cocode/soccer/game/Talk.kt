@@ -140,6 +140,9 @@ internal class Talk(
     fun nextLanguage() {
         wantLang = Lang.entries[(wantLang.ordinal + 1) % Lang.entries.size]
         scope.launch { prefs.setLang(wantLang) }
+        // Lines still queued are in the old language, and an engine changes its language only when idle: set mid-line, eSpeak
+        // read the next line in the old voice (Persian text in its English one).
+        queue.clear()
         speakLanguage()
     }
 

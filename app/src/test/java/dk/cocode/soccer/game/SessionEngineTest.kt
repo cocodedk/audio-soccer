@@ -165,6 +165,16 @@ class SessionEngineTest {
         assertEquals(r.fa.levelNames, r.items.take(3))
     }
 
+    // Found by playing it on an emulator; see Talk.nextLanguage.
+    @Test
+    fun theLanguageIsSetOnAnEngineThatHasBeenStopped() {
+        val r = Rig()
+        r.choose(r.en.settings)
+        r.speech.calls.clear()
+        r.choose(r.en.language)
+        assertEquals(listOf("stop", "language"), r.speech.calls)
+    }
+
     @Test
     fun anEnglishOnlyEngineIsSaidAgainWhenPersianIsChosenOnIt() {
         val r = Rig(voices = setOf(Lang.EN))

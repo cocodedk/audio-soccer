@@ -23,15 +23,19 @@ class FakeSpeech(
 ) : Speech {
     override val state = MutableStateFlow(initial)
     val said = mutableListOf<String>()
-    var stops = 0
     var shutdowns = 0
     var language: Lang? = null
+    val calls = mutableListOf<String>() // "stop" and "language", in the order the engine was told
+    val stops get() = calls.count { it == "stop" }
 
     override fun engines() = installed
 
     override fun currentEngine() = pkg ?: installed.firstOrNull()?.pkg
 
-    override fun useLanguage(lang: Lang): Lang = (if (lang in voices) lang else Lang.EN).also { language = it }
+    override fun useLanguage(lang: Lang): Lang = (if (lang in voices) lang else Lang.EN).also {
+        language = it
+        calls += "language"
+    }
 
     override fun speak(text: String, pitch: Float, onDone: () -> Unit) {
         said += text
@@ -39,7 +43,7 @@ class FakeSpeech(
     }
 
     override fun stop() {
-        stops += 1
+        calls += "stop"
     }
 
     override fun shutdown() {
