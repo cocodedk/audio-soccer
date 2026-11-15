@@ -20,10 +20,10 @@ in the pre-push hook and in CI.
 Before each commit, run `/simplify` once over the working changes and apply what it finds. One pass,
 not a loop (owner, 2026-11-15): this replaces the chess-puzzles rule that iterates to a fixpoint.
 
-### 3. `/code-review` to a fixpoint before every commit
-Before each commit, run `/loop /code-review --fix` and keep iterating until a full pass changes
-**zero lines**. Commit only once the review is stable.
-- Note: `/review` is for GitHub PRs; for the local working diff use `/code-review`.
+### 3. Every change is reviewed once before it is merged
+Review each change once before it is merged: `/code-review` on the branch or pull request, or a
+reviewer agent on the task's diff. Fix its findings before the merge.
+- Note: `/review` is for GitHub PRs; for a local diff or branch use `/code-review`.
 
 ### 4. Pre-push test hook
 A git `pre-push` hook MUST run the full test suite (`./gradlew test`) **and** the coverage gate, and
@@ -44,8 +44,8 @@ below 100%) wired into `buildSmoke` and the pre-push hook. Every change ships wi
 `memory/` or anything in it here.
 
 ## Per-change workflow
-write code + tests, `/simplify` once, `./gradlew buildSmoke` green, commit, push (the pre-push hook
-re-runs tests + coverage).
+code + tests → `/simplify` once → `./gradlew test koverVerify` → commit → review → push (the pre-push
+hook re-runs tests + coverage).
 
 ## Building
 JDK 17 (the host default may be newer): `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 ./gradlew buildSmoke`

@@ -18,7 +18,7 @@ kover {
             excludes {
                 // @Composable functions carry Compose-compiler-generated recomposition branches
                 // (startRestartGroup/skipToGroupEnd/updateScope) that are not reachable by tests.
-                // They are still exercised by the Robolectric render tests and the emulator screenshot.
+                // They are still exercised by the Robolectric Compose tests and the emulator end-to-end script.
                 annotatedBy("androidx.compose.runtime.Composable")
             }
         }
@@ -26,8 +26,7 @@ kover {
             verify {
                 rule {
                     // 100% LINE coverage. Branch is not gate-enforced: idiomatic Kotlin inline/synthetic
-                    // constructs (MutableStateFlow.update's CAS retry, Iterable.all, ...) emit branch
-                    // stubs that single-threaded tests cannot reach.
+                    // constructs emit branch stubs that single-threaded tests cannot reach.
                     minBound(100)
                 }
             }
