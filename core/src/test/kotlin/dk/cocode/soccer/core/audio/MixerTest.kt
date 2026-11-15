@@ -41,6 +41,20 @@ class MixerTest {
         }
     }
 
+    // The ceiling bends anything above its knee, so the cap alone says nothing about the compressor. Twenty chimes in
+    // step add up to four times full scale and hold it (the attack of a chime takes 10 ms): with the compressor working
+    // the output is under the knee from 40 ms on, with the ceiling alone it would stay near 0.85.
+    @Test
+    fun theCompressorBringsTwentyChimesInStepUnderTheKneeWithinFortyMilliseconds() {
+        val mixer = Mixer(1)
+        repeat(20) { mixer.play(Sound.CHIME) }
+        val out = mixer.renderSeconds(0.16) // before the second note comes in
+        val knee = KNEE * Short.MAX_VALUE
+        val settled = out.between(0.04, 0.16).peak()
+        assertTrue(settled > 0.1 * Short.MAX_VALUE, "the chimes are heard")
+        assertTrue(settled <= knee, "the compressor has not settled: $settled")
+    }
+
     @Test
     fun tickIsBrightKickIsLow() {
         val tick = playOnce(Sound.TICK, 0.1)
@@ -61,6 +75,18 @@ class MixerTest {
         val ahead = playOnce(Sound.TICK, 0.1).energyAt(4800.0)
         val behind = playOnce(Sound.TICK, 0.1, behind = true).energyAt(4800.0)
         assertTrue(behind < ahead / 4, "behind $behind, ahead $ahead")
+    }
+
+    @Test
+    fun crowdLoopsUntilStopped() {
+        val mixer = Mixer(1)
+        mixer.crowd(0.045)
+        mixer.renderSeconds(5.0)
+        assertFalse(mixer.renderSeconds(0.5).isSilent())
+        mixer.crowd(0.0)
+        // the level ramps down over a second or so, so allow 2 s
+        assertTrue(mixer.renderSeconds(2.0).between(1.3, 2.0).isSilent())
+        assertEquals(0, mixer.voiceCount)
     }
 
     @Test

@@ -3,8 +3,11 @@ package dk.cocode.soccer.core.audio
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.log10
 import kotlin.math.pow
+import kotlin.math.sin
 
 // From prototype/test/limiter.test.mjs: what the master chain must and must not do to the cues. The trial measured its
 // Web Audio compressor; here the limiter is our own, so the same three claims are checked on it, and on the mixer.
@@ -14,12 +17,42 @@ class LimiterTest {
     // The limiter's own gain, from what it returned for the input x.
     private fun gainOf(out: Double, x: Double) = out / (x * MASTER_GAIN)
 
+    // What the static curve asks of the gain for a sustained input: (threshold / level) ^ (1 - 1 / ratio), ratio 20.
+    private fun settledGain(level: Double) = (THRESHOLD / level).pow(1 - 1 / 20.0)
+
     @Test
     fun theLimiterComesFirstAndTheMasterGainAfterIt() {
         val limiter = Limiter()
         assertEquals(0.1 * MASTER_GAIN, limiter.process(0.1), 1e-12)
         assertEquals(-0.3 * MASTER_GAIN, limiter.process(-0.3), 1e-12)
-        assertTrue(Limiter().process(2.0) < 2.0 * MASTER_GAIN, "above the threshold it pulls the gain down")
+        // A level the limiter must act on, which the master gain would take under the threshold if it came first:
+        // held for more than the 3 ms attack, the limiter's gain must fall below 1.
+        val x = (THRESHOLD + THRESHOLD / MASTER_GAIN) / 2
+        val held = Limiter()
+        repeat(frames(0.01)) { held.process(x) }
+        assertTrue(gainOf(held.process(x), x) < 0.99, "the limiter did not act on $x")
+    }
+
+    // The ceiling hides a compressor that does nothing, so the compressor is checked on its own: a sustained input
+    // twice full scale must come out under the ceiling's knee within 10 ms (the 3 ms attack at work).
+    @Test
+    fun theCompressorAloneBringsASustainedLoudInputUnderTheKneeWithinTenMilliseconds() {
+        val limiter = Limiter()
+        repeat(frames(0.01)) { limiter.process(2.0) }
+        repeat(1000) { assertTrue(limiter.process(2.0) <= KNEE, "still above the knee") }
+    }
+
+    // A tone is measured by its peaks, not by the samples near its zero crossings: the static curve says how far a tone
+    // of amplitude 4 must be pulled down, and the limiter must get that far, not half way.
+    @Test
+    fun aSustainedLoudToneIsPulledDownAsFarAsTheStaticCurveAsks() {
+        val limiter = Limiter()
+        var peak = 0.0
+        repeat(frames(0.1)) { n ->
+            val out = limiter.process(4.0 * sin(2 * PI * 784.0 * n / SAMPLE_RATE))
+            if (n > frames(0.03)) peak = maxOf(peak, abs(out))
+        }
+        assertEquals(4.0 * settledGain(4.0) * MASTER_GAIN, peak, 0.03)
     }
 
     // The near tick keeps its full volume difference to the far one, as long as the limiter leaves both alone.
@@ -61,9 +94,9 @@ class LimiterTest {
     fun theLimiterTakesHoldInAboutItsAttackTime() {
         val limiter = Limiter()
         val x = 0.5 // 1.5 dB over the threshold, and under the ceiling's knee after the master gain
-        val settled = (THRESHOLD / x).pow(0.95) // (threshold / level) ^ (1 - 1 / ratio), the ratio being 20
+        val settled = settledGain(x)
         var n = 0
-        do n++ while (gainOf(limiter.process(x), x) > 1 - 0.632 * (1 - settled))
+        do n++ while (gainOf(limiter.process(x), x) > 1 - 0.632 * (1 - settled) && n < SAMPLE_RATE)
         assertEquals(0.003 * SAMPLE_RATE, n.toDouble(), 5.0)
     }
 
@@ -71,9 +104,10 @@ class LimiterTest {
     fun theLimiterLetsGoInAboutItsReleaseTime() {
         val limiter = Limiter()
         repeat(SAMPLE_RATE) { limiter.process(1.0) }
-        val squeezed = THRESHOLD.pow(0.95)
+        val squeezed = settledGain(1.0)
         var n = 0
-        do n++ while (gainOf(limiter.process(0.1), 0.1) < squeezed + 0.632 * (1 - squeezed))
-        assertEquals(0.25 * SAMPLE_RATE, n.toDouble(), 60.0)
+        do n++ while (gainOf(limiter.process(0.1), 0.1) < squeezed + 0.632 * (1 - squeezed) && n < 2 * SAMPLE_RATE)
+        // The peak hold lets go of 1.0 first, with a time constant of 10 ms, which adds about 5 ms.
+        assertEquals(0.25 * SAMPLE_RATE, n.toDouble(), 350.0)
     }
 }

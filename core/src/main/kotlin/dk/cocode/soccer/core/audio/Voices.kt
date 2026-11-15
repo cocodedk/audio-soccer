@@ -14,8 +14,9 @@ private const val FADE_SECONDS = 0.06
 
 private const val DULL_HZ = 2000.0 // behind: keeps the tick's 2.5 kHz tone and the rattle's mid grain
 
-// How long the crowd bed takes to reach a new level.
-private const val CROWD_RAMP_SECONDS = 0.3
+// How long the crowd bed takes to reach a new level: the trial's ordinary swells run 1.2 to 2 s (its goal swell 0.3 s,
+// but SoundSink has one ramp).
+private const val CROWD_RAMP_SECONDS = 1.2
 
 internal fun frames(seconds: Double) = (seconds * SAMPLE_RATE).roundToInt()
 

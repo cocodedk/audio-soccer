@@ -15,7 +15,7 @@ enum class Sound { RATTLE, TICK, TAP, KICK, BOARD, END_WALL, BRUSH, STEP, CHIME,
 interface SoundSink {
     fun play(sound: Sound, gain: Double = 1.0, behind: Boolean = false, stretch: Double = 1.0)
 
-    // The crowd bed's level, reached in a short ramp; 0.0 stops it.
+    // The crowd bed's level, reached in a straight ramp of a second or so; 0.0 stops it once the ramp has run out.
     fun crowd(level: Double)
 }
 
@@ -45,10 +45,16 @@ class Mixer(seed: Long) : SoundSink {
 
     internal val voiceCount get() = voices.size
 
-    override fun play(sound: Sound, gain: Double, behind: Boolean, stretch: Double) =
-        push(Command.Play(sound, gain, behind, stretch))
+    // The trial's play() never throws, a failed sound must not break the game: a gain or stretch that is not a finite number
+    // would poison the render (a NaN makes the sample conversion throw on every call), so such a sound is dropped here.
+    override fun play(sound: Sound, gain: Double, behind: Boolean, stretch: Double) {
+        if (gain.isFinite() && stretch.isFinite()) push(Command.Play(sound, gain, behind, stretch))
+    }
 
-    override fun crowd(level: Double) = push(Command.SetCrowd(level))
+    // A level that is not a finite number is ignored; a negative one counts as 0.0.
+    override fun crowd(level: Double) {
+        if (level.isFinite()) push(Command.SetCrowd(level.coerceAtLeast(0.0)))
+    }
 
     // Fades everything that sounds out over 60 ms; sounds played after it are not touched.
     fun silence() = push(Command.Silence)
