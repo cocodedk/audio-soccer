@@ -3,8 +3,10 @@ package dk.cocode.soccer.core.speech
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
-// What speaks the lines: the phone's text-to-speech. onDone is called when the line has ended, on any thread, and
-// also for a line that was stopped, so SpeechQueue ignores a report about a line that is no longer the current one.
+// What speaks the lines: the phone's text-to-speech. speak() must lead to exactly one call of onDone, on any thread,
+// whatever becomes of the line: it ended, it was stopped or cut off by the next line, the engine failed on it, or it never
+// started (the engine is not ready, or refused it). A call that is lost leaves SpeechQueue waiting for a line that is gone,
+// and the game's speech freezes for good. SpeechQueue ignores a report about a line that is no longer the current one.
 interface Voice {
     fun speak(text: String, pitch: Float, onDone: () -> Unit)
     fun stop()
