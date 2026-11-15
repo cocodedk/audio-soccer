@@ -68,8 +68,8 @@ data class RoundStats(
     val success: Boolean get() = ending == Ending.SUCCESS
 }
 
-// How a round ended: won, given up (G), the time cap, or left (the player went to another level mid-round).
-enum class Ending { SUCCESS, GIVE_UP, TIMEOUT, LEFT }
+// How a round ended: won, given up (G), or the time cap.
+enum class Ending { SUCCESS, GIVE_UP, TIMEOUT }
 
 // What a finished level hands the shell: its closed rounds and the summary line that was spoken.
 data class LevelResult(val level: Int, val rounds: List<RoundStats>, val summary: String)
@@ -80,16 +80,15 @@ internal fun newStats(setup: RoundSetup) = RoundStats(dist(setup.ball, setup.pla
 // time. Level 1 efficiency = startDist / (PLAYER_SPEED x time): 1 means a straight run at full speed.
 internal fun closeStats(level: Int, s: RoundStats, ending: Ending): RoundStats = s.copy(
     ending = ending,
-    shots = closeKicks(s.shots, ending == Ending.LEFT),
+    shots = closeKicks(s.shots),
     efficiency = if (level == 1 && ending == Ending.SUCCESS && s.time > 0) s.startDist / (PLAYER_SPEED * s.time) else null,
 )
 
-// Spoken at the start of a round: the round and the task. (The trial's extra lines of round 1 name the keyboard.)
+// Spoken at the start of a round: the round and the task.
 internal fun startLine(level: Int, round: Int, s: GameStrings): String = s.roundIntro(round, s.levelTask(level))
 
-// "Level 1 done. Times: 12.4, not found, 10.2." A level stopped early says how many rounds were played.
-internal fun summarySpeech(level: Int, rounds: List<RoundStats>, s: GameStrings, partial: Boolean = false): String {
+// "Level 1 done. Times: 12.4, not found, 10.2."
+internal fun summarySpeech(level: Int, rounds: List<RoundStats>, s: GameStrings): String {
     val list = rounds.joinToString(s.summarySep) { if (it.success) tenths(it.time) else s.levelMiss(level) }
-    val head = if (partial) s.summaryStopped(level, rounds.size, ROUNDS) else s.summaryDone(level)
-    return s.summaryTimes(head, list)
+    return s.summaryTimes(s.summaryDone(level), list)
 }

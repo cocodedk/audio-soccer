@@ -30,7 +30,7 @@ class StringsTest {
     fun everyStringSetInBothLanguages() {
         for (lang in Lang.entries) {
             val all = gameTexts(lang) + uiTexts(lang)
-            assertTrue(all.size > 100, "$lang: only ${all.size} strings")
+            assertTrue(all.size > 70, "$lang: only ${all.size} strings")
             for ((name, text) in all) assertTrue(text.isNotBlank(), "$lang $name")
         }
     }
@@ -44,15 +44,15 @@ class StringsTest {
 
     @Test
     fun digitsTurnADecimalPointBetweenDigitsIntoThePersianSeparator() {
-        assertEquals("۴٫۵", fa.num("4.5"))
-        assertEquals("۱۲٫۴", fa.num("12.4"))
-        assertEquals("۵.", fa.num("5."), "a full stop after a digit stays")
-        assertEquals("4.5", en.num("4.5"), "English has no digits to turn")
+        assertEquals("پیدایش کردید. ۴٫۵ ثانیه.", fa.gotIt("4.5"))
+        assertEquals("پیدایش کردید. ۱۲٫۴ ثانیه.", fa.gotIt("12.4"))
+        assertEquals("پیدایش کردید. ۵. ثانیه.", fa.gotIt("5."), "a full stop after a digit stays")
+        assertEquals("Got it. 4.5 seconds.", en.gotIt("4.5"), "English has no digits to turn")
     }
 
     @Test
-    fun persianTextIsPersianNoEnglishWordsButKeyAndProductNamesZwnjWhereNeeded() {
-        val allowed = Regex("Escape|eSpeak|[WGH]\\b")
+    fun persianTextIsPersianNoEnglishWordsButProductNamesZwnjWhereNeeded() {
+        val allowed = Regex("eSpeak")
         val texts = gameTexts(Lang.FA) + uiTexts(Lang.FA, "موتور")
         for ((name, text) in texts) {
             assertFalse(text.replace(allowed, "").any { it in 'A'..'Z' || it in 'a'..'z' }, "$name: Latin letters in \"$text\"")
@@ -69,14 +69,8 @@ class StringsTest {
         assertEquals("1 metre", en.metres(1))
         assertEquals("3 metres", en.metres(3))
         assertEquals("۳ متر", fa.metres(3))
-        assertEquals("Level 2, Score · Round 1 of 3 · 4.5 s", en.statusPlay(2, "Score", 1, 3, "4.5"))
-        assertEquals("مرحله ۲، گل زدن · دور ۱ از ۳ · ۴٫۵ ثانیه", fa.statusPlay(2, "گل زدن", 1, 3, "4.5"))
         assertEquals("پشت سر", fa.callBehind)
-        assertEquals("شما", fa.canvasYou)
-        assertEquals(en.help.size, fa.help.size)
         assertEquals(3, en.thirds.size)
-        assertEquals(listOf("Find the ball", "Score", "Beat the keeper"), (1..3).map { en.levelName(it) })
-        assertEquals(listOf("پیدا کردن توپ", "گل زدن", "شکست دادن دروازه‌بان"), (1..3).map { fa.levelName(it) })
         assertEquals(listOf("Find the ball.", "Score a goal.", "Beat the keeper."), (1..3).map { en.levelTask(it) })
         assertEquals(listOf("not found", "not scored", "not scored"), (1..3).map { en.levelMiss(it) })
         assertEquals("Round 2. Score a goal.", en.roundIntro(2, en.levelTask(2)))
@@ -84,38 +78,13 @@ class StringsTest {
     }
 
     @Test
-    fun theExtraLinesOfRound1ExistForLevels2And3Only() {
-        for (s in listOf(en, fa)) {
-            assertEquals(emptyList<String>(), s.extra(1))
-            assertEquals(1, s.extra(2).size)
-            assertEquals(2, s.extra(3).size)
-        }
-    }
-
-    @Test
     fun summaryPartsFitTogetherInBothLanguages() {
         assertEquals("Level 1 done. Times: 12.4, not found.", en.summaryTimes(en.summaryDone(1), "12.4" + en.summarySep + en.levelMiss(1)))
-        assertEquals("Level 1 stopped after 2 of 3 rounds.", en.summaryStopped(1, 2, 3))
-        assertEquals("مرحله ۱ بعد از ۲ دور از ۳ دور متوقف شد.", fa.summaryStopped(1, 2, 3))
         assertEquals("مرحله ۱ تمام شد. زمان‌ها: ۱۲٫۴، پیدا نشد.", fa.summaryTimes(fa.summaryDone(1), "12.4" + fa.summarySep + fa.levelMiss(1)))
     }
 
     @Test
-    fun thePersianFallbackSpeaksOfThisDeviceWhichMayStillHaveAnOnlineVoice() {
-        assertTrue(Regex("^There is no Persian voice on this device\\.").containsMatchIn(en.langFallback))
-        assertTrue(Regex("^این دستگاه صدای فارسی آفلاین ندارد؛").containsMatchIn(fa.langFallback))
-    }
-
-    @Test
-    fun theClearWindowIs15SecondsInBothLanguages() {
-        assertTrue(en.clearConfirm.contains("15 seconds"))
-        assertTrue(fa.clearConfirm.contains("۱۵ ثانیه"))
-    }
-
-    @Test
     fun theLanguagesNameThemselves() {
-        assertEquals("English", gameStrings(Lang.EN).langSet)
-        assertEquals("فارسی", gameStrings(Lang.FA).langSet)
         assertEquals("Language: English", uiStrings(Lang.EN).language)
         assertEquals("زبان: فارسی", uiStrings(Lang.FA).language)
     }

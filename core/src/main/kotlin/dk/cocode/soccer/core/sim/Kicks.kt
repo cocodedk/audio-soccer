@@ -1,18 +1,13 @@
 package dk.cocode.soccer.core.sim
 
-import kotlin.math.abs
-
-// One record per kick in levels 2 and 3, so the report can answer the trial's question: does the
-// player line up with the goal by ear? From prototype/js/kicks.js. Pure: the game feeds it world
-// events and the direction held.
+// One record per kick in levels 2 and 3, from prototype/js/kicks.js, where the trial's report used it to
+// answer: does the player line up with the goal by ear? The app has no report, so nothing reads the records
+// yet. Pure: the game feeds it world events and the direction held.
 
 // Left or Right held while kicking (it angles the kick), or neither.
-enum class Aim(val text: String) { LEFT("left"), RIGHT("right"), STRAIGHT("straight") }
+enum class Aim { LEFT, RIGHT, STRAIGHT }
 
-enum class Outcome(val text: String) {
-    GOAL("goal"), SAVED("saved"), POST("post"), WIDE_LEFT("wide left"), WIDE_RIGHT("wide right"),
-    SHORT("short"), UNFINISHED("unfinished"),
-}
+enum class Outcome { GOAL, SAVED, POST, WIDE_LEFT, WIDE_RIGHT, SHORT }
 
 // dist: metres to the goal line at the kick; offset: the ball's sideways offset from the goal centre
 // (left is negative, as y grows to the player's right); outcome: null until the kick is settled.
@@ -42,13 +37,6 @@ fun settleKick(kicks: List<KickRecord>, e: Event) {
     }
 }
 
-// At the end of a round, a kick that never reached the line stopped short of it, unless the round was
-// left with the ball still rolling (`left`). Returns new records; the ones passed in are not changed.
-fun closeKicks(kicks: List<KickRecord>, left: Boolean): List<KickRecord> =
-    kicks.map { k -> k.copy(outcome = k.outcome ?: if (left) Outcome.UNFINISHED else Outcome.SHORT) }
-
-// "18 m, 2.1 m right, straight, wide right"
-fun kickText(k: KickRecord): String {
-    val off = if (abs(k.offset) < 0.05) "centre" else "${tenths(abs(k.offset))} m ${if (k.offset < 0) "left" else "right"}"
-    return "${roundHalfUp(k.dist).toInt()} m, $off, ${k.aim.text}, ${k.outcome?.text ?: "unfinished"}"
-}
+// At the end of a round, a kick that never reached the line stopped short of it. Returns new records; the
+// ones passed in are not changed.
+fun closeKicks(kicks: List<KickRecord>): List<KickRecord> = kicks.map { k -> k.copy(outcome = k.outcome ?: Outcome.SHORT) }

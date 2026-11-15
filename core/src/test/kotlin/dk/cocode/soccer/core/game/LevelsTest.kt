@@ -94,7 +94,7 @@ class LevelsTest {
 
     @Test
     fun aRoundThatIsNotWonKeepsItsTimeAndItsEndingAndHasNoEfficiency() {
-        for (ending in listOf(Ending.GIVE_UP, Ending.TIMEOUT, Ending.LEFT)) {
+        for (ending in listOf(Ending.GIVE_UP, Ending.TIMEOUT)) {
             val r = closeStats(1, played(5.0), ending)
             assertEquals(ending, r.ending)
             assertFalse(r.success)
@@ -104,9 +104,8 @@ class LevelsTest {
     }
 
     @Test
-    fun aKickThatNeverReachedTheLineStoppedShortUnlessTheRoundWasLeftWithTheBallRolling() {
+    fun aKickThatNeverReachedTheLineStoppedShort() {
         assertEquals(Outcome.SHORT, closeStats(2, played(5.0), Ending.GIVE_UP).shots[0].outcome)
-        assertEquals(Outcome.UNFINISHED, closeStats(2, played(5.0), Ending.LEFT).shots[0].outcome)
         val settled = RoundStats(1.0, false, shots = listOf(KickRecord(18.0, 0.0, Aim.LEFT, Outcome.POST)))
         assertEquals(Outcome.POST, closeStats(2, settled, Ending.GIVE_UP).shots[0].outcome)
     }
@@ -124,7 +123,7 @@ class LevelsTest {
     fun aRoundIntroIsTheRoundAndTheTaskAndNothingElseInEveryLevel() {
         assertEquals("Round 1. Find the ball.", startLine(1, 1, en))
         assertEquals("Round 2. Score a goal.", startLine(2, 2, en))
-        assertEquals("Round 1. Beat the keeper.", startLine(3, 1, en), "the keyboard's extra lines are not spoken")
+        assertEquals("Round 1. Beat the keeper.", startLine(3, 1, en), "level 3 too")
         assertEquals("دور ۱. توپ را پیدا کنید.", startLine(1, 1, fa))
         assertEquals("دور ۳. گل بزنید.", startLine(2, 3, fa))
     }
@@ -139,12 +138,5 @@ class LevelsTest {
         assertEquals("Level 1 done. Times: 12.4, not found, 10.0.", summarySpeech(1, rounds, en))
         assertEquals("مرحله ۱ تمام شد. زمان‌ها: ۱۲٫۴، پیدا نشد، ۱۰٫۰.", summarySpeech(1, rounds, fa))
         assertEquals("Level 2 done. Times: not scored, not scored, not scored.", summarySpeech(2, List(ROUNDS) { roundOf(false, 1.0) }, en))
-    }
-
-    @Test
-    fun aLevelStoppedEarlySaysHowManyRoundsWereDone() {
-        val rounds = listOf(roundOf(true, 12.44), roundOf(false, 40.0))
-        assertEquals("Level 1 stopped after 2 of 3 rounds. Times: 12.4, not found.", summarySpeech(1, rounds, en, partial = true))
-        assertEquals("مرحله ۱ بعد از ۲ دور از ۳ دور متوقف شد. زمان‌ها: ۱۲٫۴، پیدا نشد.", summarySpeech(1, rounds, fa, partial = true))
     }
 }

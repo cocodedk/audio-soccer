@@ -41,7 +41,7 @@ class KicksTest {
     }
 
     @Test
-    fun aNewKickBeforeTheLineOrTheEndOfTheRoundMeansShortALeftRoundIsUnfinished() {
+    fun aNewKickBeforeTheLineOrTheEndOfTheRoundMeansShort() {
         val ks = listOf(record(5.0, 10.0))
         settleKick(ks, kick(12.0, 10.0))
         assertEquals(Outcome.SHORT, ks[0].outcome)
@@ -54,18 +54,9 @@ class KicksTest {
         settleKick(rebound, Event.Take(37.0, 10.0))
         assertEquals(Outcome.SAVED, rebound[0].outcome, "a rebound taken after a save stays saved")
         val open = listOf(record(5.0, 10.0))
-        assertEquals(Outcome.SHORT, closeKicks(open, left = false)[0].outcome)
-        assertEquals(Outcome.UNFINISHED, closeKicks(open, left = true)[0].outcome)
+        assertEquals(Outcome.SHORT, closeKicks(open)[0].outcome)
         assertNull(open[0].outcome, "closeKicks leaves its input alone")
-        assertEquals(emptyList<KickRecord>(), closeKicks(emptyList(), left = false))
-        assertEquals(Outcome.GOAL, closeKicks(listOf(record(30.0, 10.0).apply { outcome = Outcome.GOAL }), left = true)[0].outcome)
-    }
-
-    @Test
-    fun kickTextIsShortAndEnglish() {
-        assertEquals("18 m, 2.1 m right, straight, wide right", kickText(KickRecord(18.2, 2.08, Aim.STRAIGHT, Outcome.WIDE_RIGHT)))
-        assertEquals("9 m, 0.3 m left, left, goal", kickText(KickRecord(9.0, -0.3, Aim.LEFT, Outcome.GOAL)))
-        assertEquals("9 m, centre, straight, short", kickText(KickRecord(9.0, 0.01, Aim.STRAIGHT, Outcome.SHORT)))
-        assertEquals("19 m, centre, right, unfinished", kickText(KickRecord(18.5, 0.0, Aim.RIGHT, null)))
+        assertEquals(emptyList<KickRecord>(), closeKicks(emptyList()))
+        assertEquals(Outcome.GOAL, closeKicks(listOf(record(30.0, 10.0).apply { outcome = Outcome.GOAL }))[0].outcome)
     }
 }
