@@ -108,6 +108,14 @@ class TtsVoiceTest : TtsTestBase() {
         assertEquals("com.example.tts", voice("com.example.tts").currentEngine())
     }
 
+    // The platform quietly uses the default when the engine asked for was uninstalled, so asking for it names nothing.
+    @Test
+    fun anEngineChosenButUninstalledIsNotTheOneThatSpeaks() {
+        val voice = voice("gone.engine")
+        Settings.Secure.putString(app.contentResolver, Settings.Secure.TTS_DEFAULT_SYNTH, "com.example.tts")
+        assertEquals("com.example.tts", voice.currentEngine())
+    }
+
     @Test
     fun withNoneChosenTheSystemDefaultSpeaks() {
         val voice = voice()

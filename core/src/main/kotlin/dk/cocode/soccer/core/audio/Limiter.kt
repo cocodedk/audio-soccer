@@ -41,7 +41,9 @@ internal class Limiter {
     private var gain = 1.0
     private var peak = 0.0
 
-    fun process(x: Double): Double {
+    // A sample that is not a number (or is infinite) counts as silence: left in the peak hold, one would be there for good.
+    fun process(sample: Double): Double {
+        val x = if (sample.isFinite()) sample else 0.0
         peak = max(abs(x), peak * PEAK_DECAY)
         val target = if (peak > THRESHOLD) (THRESHOLD / peak).pow(1 - 1 / RATIO) else 1.0
         gain += (target - gain) * if (target < gain) ATTACK else RELEASE

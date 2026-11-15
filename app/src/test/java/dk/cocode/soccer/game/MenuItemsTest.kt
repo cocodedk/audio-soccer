@@ -79,7 +79,7 @@ class MenuItemsTest {
     @Test
     fun enteringAScreenSaysItsLines() {
         assertEquals(listOf(ui.greeting), entryLines(Screen.Home, ui).map { it.text })
-        assertEquals(listOf(ui.paused, ui.resume), entryLines(Screen.Paused(3), ui).map { it.text })
+        assertEquals(listOf(ui.paused), entryLines(Screen.Paused(3), ui).map { it.text })
         val help = entryLines(Screen.Help, ui)
         assertEquals(ui.howToPlayLines, help.map { it.text })
         assertTrue(help.all { it.many && it.key == "help" && it.waitMs >= 60000 && it.priority == Priority.HIGH })

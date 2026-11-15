@@ -4,9 +4,12 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -25,9 +28,10 @@ private val Polite = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
 
 // Every screen but the pitch: its text, then its options as buttons filling the screen in equal bands, which are the bands the
 // touch-to-hear menu works on. A screen reader's player chooses a button as any other (onClick). With none on, a layer over the
-// buttons takes the touches instead and the game speaks the options; the one the cursor is on has a frame round it.
+// buttons takes the touches instead and the game speaks the options; the one the cursor is on has a frame round it. The text and
+// the buttons keep clear of the system bars (insets); the layer of touches stays full screen.
 @Composable
-fun MenuScreen(session: Session) {
+fun MenuScreen(session: Session, insets: WindowInsets = WindowInsets.safeDrawing) {
     val screen by session.screen.collectAsState()
     val items by session.items.collectAsState()
     val body by session.body.collectAsState()
@@ -35,9 +39,10 @@ fun MenuScreen(session: Session) {
     val readerOn by session.screenReaderOn.collectAsState()
     val said by session.lastLine.collectAsState()
     Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            // The hand-over line is announced as it appears; the sound tour's lines as each is said.
-            body.forEach { Text(it, modifier = if (screen is Screen.HandOver) Polite else Modifier) }
+        Column(Modifier.fillMaxSize().windowInsetsPadding(insets).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // The hand-over line and the no-engine text are announced as they appear; the sound tour's lines as each is said.
+            val announced = screen is Screen.HandOver || screen == Screen.NoEngine
+            body.forEach { Text(it, modifier = if (announced) Polite else Modifier) }
             if (screen == Screen.Learn) Text(said, modifier = Polite)
             items.forEachIndexed { i, text ->
                 val frame = if (!readerOn && i == focus) BorderStroke(6.dp, Palette.accent) else null

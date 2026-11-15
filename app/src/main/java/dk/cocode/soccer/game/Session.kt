@@ -120,13 +120,13 @@ class Session(
     }
 
     // The app came to the front or went to the background (a call, the home button): a round pauses and nothing sounds. Coming
-    // back to the pause menu says it again; with no engine speaking, the engines are tried again.
+    // back says where the player is, or, with no engine speaking, tries the engines again.
     fun foreground(on: Boolean) {
         visible = on
         when {
             !on -> interrupt()
             stage.current == Screen.NoEngine -> stage.connect()
-            stage.current is Screen.Paused -> stage.announce()
+            else -> stage.welcomeBack()
         }
     }
 

@@ -21,7 +21,8 @@ interface Speech : Voice {
     val state: StateFlow<TtsState>
     fun engines(): List<Engine>
 
-    // The package of the engine that speaks: the one asked for, or else the system's default. Null if the phone does not say.
+    // The package of the engine that speaks: the one asked for if it is installed, or else the system's default. Null if the phone
+    // does not say.
     fun currentEngine(): String?
 
     // Chooses the language to speak and returns the one the engine will really speak: Persian only if the engine has it,

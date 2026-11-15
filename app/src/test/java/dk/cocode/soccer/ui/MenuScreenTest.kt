@@ -1,10 +1,12 @@
 package dk.cocode.soccer.ui
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.cancel
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.hasText
@@ -13,6 +15,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeDown
+import androidx.compose.ui.unit.dp
 import dk.cocode.soccer.game.Rig
 import dk.cocode.soccer.game.Screen
 import dk.cocode.soccer.platform.TtsState
@@ -32,7 +35,8 @@ class MenuScreenTest {
 
     private val polite = SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite)
 
-    private fun show(r: Rig) = compose.setContent { SoccerTheme { MenuScreen(r.session) } }
+    private fun show(r: Rig, insets: WindowInsets = WindowInsets(0)) =
+        compose.setContent { SoccerTheme { MenuScreen(r.session, insets) } }
 
     // The screen with a screen reader on: the options are the buttons to choose from.
     private fun showWithReader() = Rig(readerOn = true).also(::show)
@@ -83,6 +87,31 @@ class MenuScreenTest {
         val r = Rig(readerOn = true, state = TtsState.NO_ENGINE)
         show(r)
         compose.onNodeWithText(r.en.noEngine).assertExists()
+    }
+
+    @Test
+    fun theNoEngineTextIsAPoliteLiveRegion() {
+        val r = Rig(readerOn = true, state = TtsState.NO_ENGINE)
+        show(r)
+        compose.onNodeWithText(r.en.noEngine).assert(polite)
+    }
+
+    // With the system bars drawn over the app (Android 15 and later) the first line would sit under the status bar.
+    @Test
+    fun theFirstOptionKeepsClearOfTheSystemBars() {
+        val r = Rig(readerOn = true)
+        show(r, WindowInsets(top = 100.dp))
+        val top = compose.onNode(hasText(r.items[0]).and(button)).getUnclippedBoundsInRoot().top
+        assertTrue("the first option starts at $top, under the bar", top >= 100.dp)
+    }
+
+    @Test
+    fun theLayerOfTouchesStillCoversTheWholeScreenBelowTheSystemBars() {
+        val r = Rig()
+        show(r, WindowInsets(top = 100.dp))
+        compose.onRoot().performTouchInput { swipeDown() } // from the very top, inside the inset
+        compose.waitForIdle()
+        assertEquals(1, r.session.focus.value)
     }
 
     @Test

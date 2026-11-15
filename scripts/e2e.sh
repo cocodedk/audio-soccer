@@ -177,7 +177,8 @@ else
 fi
 
 step "8. the whole run is clean"
-if grep -A3 'FATAL EXCEPTION' "$FULL_LOG" | grep -q "Process: $PKG"; then
+crash="$(grep -A3 'FATAL EXCEPTION' "$FULL_LOG")" # in a variable: grep -q closing a pipe early fails it under pipefail
+if grep -q "Process: $PKG" <<<"$crash"; then
   fail "the app crashed"; grep -A8 'FATAL EXCEPTION' "$FULL_LOG" | head -12 | sed 's/^/        /'
 else
   pass "no FATAL EXCEPTION for the app"

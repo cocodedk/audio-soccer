@@ -82,7 +82,8 @@ class TtsVoice(context: Context, private val enginePkg: String?) : Speech {
 
     override fun engines(): List<Engine> = tts.engines.map { Engine(it.name, it.label) }
 
-    override fun currentEngine(): String? = enginePkg ?: tts.defaultEngine
+    // The platform quietly uses the default when the engine asked for was uninstalled: the one asked for counts if it is there.
+    override fun currentEngine(): String? = enginePkg?.takeIf { pkg -> engines().any { it.pkg == pkg } } ?: tts.defaultEngine
 
     // English was accepted when the engine came up, so it cannot be refused here.
     override fun useLanguage(lang: Lang): Lang {

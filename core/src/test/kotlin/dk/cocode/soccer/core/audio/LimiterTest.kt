@@ -110,4 +110,26 @@ class LimiterTest {
         // The peak hold lets go of 1.0 first, with a time constant of 10 ms, which adds about 5 ms.
         assertEquals(0.25 * SAMPLE_RATE, n.toDouble(), 350.0)
     }
+
+    // One sample that is not a number must not be kept by the peak hold, which would silence everything after it.
+    private val tone = DoubleArray(300) { if (it % 2 == 0) 0.9 else -0.9 }
+
+    private fun outputWith(bad: Double): List<Double> {
+        val limiter = Limiter()
+        val out = mutableListOf<Double>()
+        for (x in tone) out += limiter.process(x)
+        out += limiter.process(bad)
+        for (x in tone) out += limiter.process(x)
+        return out
+    }
+
+    @Test
+    fun aSampleThatIsNotFiniteIsTakenAsSilence() {
+        val silent = outputWith(0.0)
+        for (bad in listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY)) {
+            val out = outputWith(bad)
+            assertTrue(out.all { it.isFinite() }, "$bad")
+            assertEquals(silent, out, "$bad")
+        }
+    }
 }

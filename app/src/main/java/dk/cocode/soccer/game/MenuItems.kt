@@ -56,7 +56,7 @@ internal fun bodyFor(screen: Screen, ui: UiStrings): List<String> = when (screen
 // What the game says on entering a screen, or when the screen reader goes off on it. (The summary was spoken by the game.)
 internal fun entryLines(screen: Screen, ui: UiStrings): List<Line> = when (screen) {
     Screen.Home -> listOf(menuLine(ui.greeting))
-    is Screen.Paused -> listOf(menuLine(ui.paused), menuLine(ui.resume)) // and the option the cursor starts on
+    is Screen.Paused -> listOf(menuLine(ui.paused)) // and the option the cursor is on (Stage.announce)
     Screen.Help -> ui.howToPlayLines.map { Line(it, Priority.HIGH, key = HELP_KEY, many = true, waitMs = HELP_WAIT_MS) }
     else -> emptyList()
 }

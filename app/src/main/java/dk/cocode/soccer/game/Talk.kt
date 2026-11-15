@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 private const val LOAD_LIMIT_MS = 5000L // an engine still starting after this long counts as one that will not
 
@@ -38,6 +39,7 @@ internal class Talk(
     private var speech: Speech? = null
     private var wantLang = Lang.EN // what the player chose
     private var connecting = false // an engine is being started or switched to
+    private var saveFailed = false // a choice could not be written (the disk is full), so it is not kept: logged once
     private var deadline = Long.MAX_VALUE // when the engine being waited for is given up on
     private val late = MutableStateFlow(false) // the deadline has passed
 
@@ -97,8 +99,7 @@ internal class Talk(
     }
 
     // Reads what the player chose and starts the engine, and calls done(true) once one speaks, done(false) if none does (one may
-    // yet: see awaitEngine). Called again it tries the engines afresh, one installed since being found among them. A start and
-    // a switch (nextEngine) do not overlap: this does nothing while one is under way.
+    // yet: see awaitEngine). Called again it tries the engines afresh. It does nothing while a start or a switch is under way.
     fun start(done: suspend (Boolean) -> Unit) {
         if (connecting) return
         connecting = true
@@ -127,8 +128,17 @@ internal class Talk(
         }
         if (!up) return false
         speakLanguage()
-        if (keep) engine?.let { prefs.setEngine(it) }
+        if (keep) engine?.let { save { prefs.setEngine(it) } }
         return true
+    }
+
+    private suspend fun save(write: suspend () -> Unit) {
+        try {
+            write()
+        } catch (e: IOException) {
+            if (!saveFailed) log("settings not saved: ${e.message}")
+            saveFailed = true
+        }
     }
 
     // Starts an engine and waits for it to be READY (see TtsVoice), or for it to fail or to be too slow.
@@ -159,12 +169,12 @@ internal class Talk(
     }
 
     // Where the engine that speaks is in the list; if the phone does not say, the system's, which Android ranks first.
-    private fun current(engines: List<Engine>) = engines.indexOfFirst { it.pkg == engine }.coerceAtLeast(0)
+    private fun current(engines: List<Engine>) = engine.let { now -> engines.indexOfFirst { it.pkg == now } }.coerceAtLeast(0)
 
     // The next language. The caller says what it is, in the new language.
     fun nextLanguage() {
         wantLang = Lang.entries[(wantLang.ordinal + 1) % Lang.entries.size]
-        scope.launch { prefs.setLang(wantLang) }
+        scope.launch { save { prefs.setLang(wantLang) } }
         // Lines still queued are in the old language, and an engine changes its language only when idle: set mid-line, eSpeak
         // read the next line in the old voice (Persian text in its English one).
         queue.clear()

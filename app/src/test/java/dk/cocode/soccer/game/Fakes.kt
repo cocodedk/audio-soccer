@@ -13,6 +13,7 @@ import dk.cocode.soccer.platform.Speech
 import dk.cocode.soccer.platform.TtsState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.io.IOException
 
 // A speech engine that records what it is told. Each line it is given counts as spoken at once.
 class FakeSpeech(
@@ -105,7 +106,7 @@ class FakeSink(private val onPlay: (Sound) -> Unit = {}) : SoundSink {
     }
 }
 
-class FakePrefs(lang: Lang = Lang.EN, engine: String? = null) : Prefs {
+class FakePrefs(lang: Lang = Lang.EN, engine: String? = null, var failWrites: Boolean = false) : Prefs {
     private val langs = MutableStateFlow(lang)
     private val engines = MutableStateFlow(engine)
     override val lang: Flow<Lang> = langs
@@ -115,11 +116,14 @@ class FakePrefs(lang: Lang = Lang.EN, engine: String? = null) : Prefs {
 
     fun enginePkgNow() = engines.value
 
+    // A write that fails changes nothing, as a DataStore whose file cannot be written.
     override suspend fun setLang(lang: Lang) {
+        if (failWrites) throw IOException("disk full")
         langs.value = lang
     }
 
     override suspend fun setEngine(pkg: String) {
+        if (failWrites) throw IOException("disk full")
         engines.value = pkg
     }
 }

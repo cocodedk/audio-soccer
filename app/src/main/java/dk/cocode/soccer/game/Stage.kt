@@ -75,9 +75,17 @@ internal class Stage(
         option.choose()
     }
 
-    // What the game says on entering the screen, or when the screen reader goes off on it.
+    // What the game says on entering the screen, or when the screen reader goes off on it: its lines, and on Settings and the pause
+    // menu the option the cursor is on, said after them and not cutting them off.
     fun announce() {
-        if (ready) entryLines(current, talk.ui).forEach(talk::say)
+        if (!ready) return
+        entryLines(current, talk.ui).forEach(talk::say)
+        if (current == Screen.Settings || current is Screen.Paused) talk.say(menuLine(options[focus.value].text))
+    }
+
+    // The app came back to the front on this screen: the pause menu says its own lines, any other menu its focused option.
+    fun welcomeBack() {
+        if (current is Screen.Paused) announce() else if (ready && options.isNotEmpty()) sayOption(focus.value)
     }
 
     fun sayOption(i: Int) = talk.say(optionLine(options[i].text))

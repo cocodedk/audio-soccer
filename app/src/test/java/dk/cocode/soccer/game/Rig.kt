@@ -26,13 +26,14 @@ class Rig(
     private val engines: List<Engine> = listOf(ESPEAK, GOOGLE),
     private val defaultEngine: String? = engines.firstOrNull()?.pkg, // what the system's default stands for; null: it has none
     var states: Map<String?, TtsState> = emptyMap(), // what a given engine reports; null is the system's default
+    failWrites: Boolean = false, // the choices cannot be written
 ) {
     val speeches = mutableListOf<FakeSpeech>()
     val reader = FakeReader(readerOn)
     val haptics = FakeHaptics()
     val audio = FakeAudio()
     val sink = FakeSink()
-    val prefs = FakePrefs(lang, savedEngine)
+    val prefs = FakePrefs(lang, savedEngine, failWrites)
     val log = mutableListOf<String>()
     var now = 0L
     val session = Session(

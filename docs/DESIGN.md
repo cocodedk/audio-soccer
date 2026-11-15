@@ -131,8 +131,8 @@ small speaker:
   own reader.
 - **Exact position, on demand**: Ask gives clock positions and metres (see Finding your way).
 - **Touch, on the phone**: vibration that costs the ears nothing. A short buzz when the ball is in
-  reach, a different one when you are lined up with the goal. The phone controls test (0b) checks
-  whether the buzzes help.
+  reach, a different one when you are lined up with the goal. Whether the buzzes help is for the
+  tester to say from playing the app (0c), which replaced the phone controls test (0b).
 
 **Headphones are an optional extra** for players who like them. A sound setting switches on stereo
 placement, and true 3D placement (HRTF) where it is available. They never add information the
@@ -240,18 +240,15 @@ replaces the earlier rule that TalkBack always stays on.
 This used to be the hardest unknown. With TalkBack on, Android turns single-finger touches into
 exploration and eats swipes, so the earlier drafts planned workarounds. With TalkBack off during a
 match the game gets ordinary touches, and the question shrinks to which scheme feels best by ear.
-It is still settled on the tester's own phone before the real game is built.
+The candidates were weighed in the phone controls test (0b), which the app itself (0c) has replaced:
+the tester plays the real game on their phone. What shipped in 0.1.0 is drag; tilt is deferred.
 
-Candidates for the phone controls test (0b), in my order of preference:
-
-1. **Drag to steer.** Touch anywhere and drag: the direction of the drag from where the finger
-   landed is the steering direction, and lifting the finger stops. A tap with a second finger
-   kicks. No spot on the screen has to be found.
-2. **Tilt to steer** (accelerometer), with a tap to kick.
-3. **A Bluetooth keyboard or gamepad.** This is supported regardless, as the most reliable option.
-
-The test also settles where "ask" and "pause" live in the touch scheme. The result picks the
-default scheme; the others can stay as options if they work.
+1. **Drag to steer** (in 0.1.0). Touch anywhere and drag: the direction of the drag from where the
+   finger landed is the steering direction, and lifting the finger stops. Any finger taps to kick,
+   even while another steers, so no spot on the screen has to be found. Two fingers tapping say
+   where you are, and three pause.
+2. **Tilt to steer** (accelerometer), with a tap to kick. Deferred: it is not in 0.1.0.
+3. **A Bluetooth keyboard or gamepad.** Wanted regardless, as the most reliable option.
 
 ## After v1: 3D audio for headphone players
 
