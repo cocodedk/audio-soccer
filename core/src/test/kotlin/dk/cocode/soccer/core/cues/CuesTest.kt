@@ -15,16 +15,36 @@ class CuesTest {
     private val en = gameStrings(Lang.EN)
     private val lines = mutableListOf<Line>()
     private var now = 0L
-    private val cues = Cues(en, { lines += it }) { now }
+    private var voiceIdle = true // an idle voice starts every line at once; a busy one keeps them waiting
+    private val waiting = mutableSetOf<String?>()
+    private val cues = Cues(en, { line ->
+        lines += line
+        if (voiceIdle) line.onSpoken?.invoke() else waiting += line.key
+    }, { it in waiting }) { now }
 
     private fun texts() = lines.map { it.text }
+
+    // The lines without their onSpoken callbacks, which only equal themselves.
+    private fun plain() = lines.map { it.copy(onSpoken = null) }
 
     @Test
     fun aSideCallIsALowPriorityCutLineWithAShortWait() {
         val w = ballWorld(Vec(20.0, 3.0))
         cues.reset(w)
         cues.update(w)
-        assertEquals(listOf(Line("left", Priority.LOW, cut = true, key = "side", waitMs = 800)), lines)
+        assertEquals(listOf(Line("left", Priority.LOW, cut = true, key = "side", waitMs = 800)), plain())
+    }
+
+    @Test
+    fun aSideCallStillWaitingIsNotOfferedEveryFrameButAgainOnceTheQueueHasDroppedIt() {
+        voiceIdle = false
+        val w = ballWorld(Vec(20.0, 3.0))
+        cues.reset(w)
+        repeat(5) { cues.update(w) }
+        assertEquals(1, lines.count { it.key == "side" })
+        waiting.clear() // the queue dropped it unsaid
+        cues.update(w)
+        assertEquals(2, lines.count { it.key == "side" })
     }
 
     @Test
@@ -59,7 +79,7 @@ class CuesTest {
         cues.reset(w)
         w.player = Vec(12.0, 10.0) // the ball is now 1.5 m behind
         cues.update(w)
-        assertEquals(Line(en.behind, key = "behind", gapMs = 4000), lines.single { it.text == en.behind })
+        assertEquals(Line(en.behind, key = "behind", gapMs = 4000), plain().single { it.text == en.behind })
         assertEquals(emptyList<String>(), texts().filter { it == "behind" }, "the call says it already")
         w.player = Vec(14.0, 10.0)
         cues.update(w)

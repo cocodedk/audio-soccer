@@ -23,6 +23,9 @@ class SpeechQueue(private val voice: Voice, private val now: () -> Long) {
     private val current = AtomicReference<Queued?>(null)
     private val lastSaid = mutableMapOf<String, Long>()
 
+    // True while a line with this key is being spoken or waits in the queue.
+    fun isSaying(key: String): Boolean = current.load()?.line?.key == key || queue.any { it.line.key == key }
+
     fun say(line: Line) {
         val t = now()
         val key = line.key
@@ -54,6 +57,7 @@ class SpeechQueue(private val voice: Voice, private val now: () -> Long) {
         next.line.key?.let { lastSaid[it] = t }
         current.store(next)
         voice.speak(next.line.text, next.line.pitch) { current.compareAndSet(next, null) }
+        next.line.onSpoken?.invoke()
     }
 
     // Drops every waiting line and stops the one being spoken. Rate limits are kept.

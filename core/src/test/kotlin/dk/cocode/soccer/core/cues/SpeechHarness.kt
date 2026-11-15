@@ -25,7 +25,7 @@ class SpeechHarness(lang: Lang = Lang.EN) {
         }
     }
     val queue = SpeechQueue(voice) { t }
-    val cues = Cues(gameStrings(lang), queue::say) { t }
+    val cues = Cues(gameStrings(lang), queue::say, queue::isSaying) { t }
 
     fun finish() {
         playing = false

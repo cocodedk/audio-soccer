@@ -9,6 +9,8 @@ enum class Priority { LOW, NORMAL, HIGH }
 // key + gapMs: rate-limit a kind of line, measured from when a line with that key was last spoken. A newer line with
 //   the same key replaces one still waiting, unless many is set (a sequence of lines sharing one key).
 // waitMs: how long the line may sit unsaid. A line still waiting after that is dropped, never said late.
+// onSpoken: called when the line starts being spoken, once: not when it is queued, and never for a line that is dropped,
+//   cut off or replaced before it starts. For a caller that must know a line was really said, not merely offered.
 data class Line(
     val text: String,
     val priority: Priority = Priority.NORMAL,
@@ -18,4 +20,5 @@ data class Line(
     val waitMs: Long = 1500,
     val many: Boolean = false,
     val pitch: Float = 1f,
+    val onSpoken: (() -> Unit)? = null,
 )
