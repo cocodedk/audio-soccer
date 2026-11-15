@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import org.junit.After
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -16,6 +17,7 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.Implementation
 import org.robolectric.annotation.Implements
+import org.robolectric.annotation.RealObject
 import org.robolectric.shadow.api.Shadow
 import org.robolectric.shadows.ShadowLog
 import org.robolectric.shadows.ShadowTextToSpeech
@@ -25,11 +27,33 @@ class Spoken(val text: String, val queueMode: Int, val id: String?)
 
 // A speech engine that reports nothing by itself: the test says when a line ends, fails or is cut off, so each of those
 // paths is exercised alone (Robolectric's own shadow completes every line the moment the main looper idles).
-// speakResult is what speak() returns; a refused line is not recorded.
+// speakResult is what speak() returns; a refused line is not recorded. With initFailsAtOnce the engine tells the init
+// listener ERROR from inside the constructor, as the real one does when the engine is not installed.
 @Implements(TextToSpeech::class)
 class ManualTtsShadow : ShadowTextToSpeech() {
     val spoken = mutableListOf<Spoken>()
     var speakResult = TextToSpeech.SUCCESS
+
+    // The stock shadow has not stored the init listener yet when initTts runs, so the real engine, which has, is asked.
+    @RealObject
+    private lateinit var engine: TextToSpeech
+
+    @Implementation
+    override fun initTts(): Int {
+        if (initFailsAtOnce) {
+            ReflectionHelpers.callInstanceMethod<Any>(engine, "dispatchOnInit", ReflectionHelpers.ClassParameter.from(Integer.TYPE, TextToSpeech.ERROR))
+        }
+        return super.initTts()
+    }
+
+    companion object {
+        @Volatile
+        var initFailsAtOnce = false
+
+        fun reset() {
+            initFailsAtOnce = false
+        }
+    }
 
     @Implementation
     override fun speak(text: CharSequence, queueMode: Int, params: Bundle?, utteranceId: String?): Int {
@@ -63,6 +87,9 @@ abstract class TtsTestBase {
 
     // What TextToSpeech passes along with every line: the pitch and, if one was ever set, the speech rate.
     protected val params: Bundle get() = ReflectionHelpers.getField(tts, "mParams")
+
+    @After
+    fun resetTtsShadow() = ManualTtsShadow.reset()
 
     // How many times the onDone of a line from say() has run.
     protected var done = 0

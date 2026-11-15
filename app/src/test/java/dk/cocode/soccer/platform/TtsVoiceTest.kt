@@ -27,6 +27,12 @@ class TtsVoiceTest : TtsTestBase() {
     }
 
     @Test
+    fun anEngineThatFailsInsideTheConstructorReportsNoEngineWithoutThrowing() {
+        ManualTtsShadow.initFailsAtOnce = true
+        assertEquals(TtsState.NO_ENGINE, voice(ready = false).state.value)
+    }
+
+    @Test
     fun noInstalledEngineReportsNoEngine() {
         assertEquals(TtsState.NO_ENGINE, voice(engines = false).state.value)
     }

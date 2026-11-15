@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 // From prototype/test/speech.test.mjs: who is spoken first, who cuts whom, who is replaced. The trial's browser
-// workarounds (the pause after a cancel, the 200 ms pump, stuck-line detection, the live regions) and its onLine
-// hook have no counterpart here.
+// workarounds (the pause after a cancel, the 200 ms pump, the live regions) and its onLine hook have no counterpart
+// here; its stuck-line detection has one, in SpeechQueueStuckTest.
 class SpeechQueueTest : SpeechQueueCase() {
     private fun help(text: String) = queue.say(Line(text, key = "help", many = true, waitMs = 30000))
 

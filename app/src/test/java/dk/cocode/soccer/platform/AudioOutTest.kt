@@ -5,46 +5,16 @@ import android.media.AudioFormat
 import android.media.AudioTrack
 import dk.cocode.soccer.core.audio.Mixer
 import dk.cocode.soccer.core.audio.Sound
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowAudioTrack
 import org.robolectric.util.ReflectionHelpers
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
-// One write of the audio thread, taken on that thread.
-private class Written(val track: AudioTrack, val samples: ShortArray, val playState: Int)
-
-@RunWith(RobolectricTestRunner::class)
-@Config(shadows = [RecordingAudioTrackShadow::class])
-class AudioOutTest {
+class AudioOutTest : AudioTestBase() {
     private val mixer = Mixer(1L)
-    private val written = LinkedBlockingQueue<Written>()
-
-    init {
-        RecordingAudioTrackShadow.onWrite = { track, samples -> written.offer(Written(track, samples, track.playState)) }
-    }
-
-    @After
-    fun tearDown() = RecordingAudioTrackShadow.reset()
-
-    private fun awaitWrite(): Written = checkNotNull(written.poll(5, TimeUnit.SECONDS)) { "the audio thread never wrote" }
-
-    private fun audioThreads() = Thread.getAllStackTraces().keys.count { it.name == "audio-out" && it.isAlive }
-
-    // stop() only tells the thread to end: wait until it has, and so has released its track.
-    private fun stopAndWait(out: AudioOut) {
-        out.stop()
-        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5)
-        while (audioThreads() > 0 && System.nanoTime() < deadline) Thread.sleep(2)
-        assertEquals("the audio thread did not end", 0, audioThreads())
-    }
 
     private fun firstWrite(out: AudioOut = AudioOut(mixer)): Written {
         out.start()
@@ -105,5 +75,35 @@ class AudioOutTest {
         assertEquals(1, audioThreads())
         stopAndWait(out)
         out.stop()
+    }
+
+    // The mixer is rendered by one thread at a time, so a start() right after a stop() waits for the old thread to end.
+    @Test
+    fun startWaitsForTheThreadOfTheLastRunToEnd() {
+        val out = AudioOut(mixer)
+        val gate = heldInWrite(out)
+        thread {
+            Thread.sleep(100)
+            gate.countDown()
+        }
+        out.start()
+        assertEquals("the old thread ended before the new one began", 1, audioThreads())
+        assertEquals(AudioTrack.PLAYSTATE_PLAYING, awaitWrite().playState)
+        stopAndWait(out)
+    }
+
+    @Test
+    fun startDoesNotRenderAgainWhileTheOldThreadIsStuckAndMayTryAgainLater() {
+        val out = AudioOut(mixer)
+        val gate = heldInWrite(out)
+        out.start() // gives up after waiting a while
+        assertEquals("still only the old thread", 1, audioThreads())
+        assertEquals(1, warnings().size)
+        assertTrue("no new track was opened", written.isEmpty())
+        gate.countDown()
+        out.start()
+        awaitWrite()
+        assertEquals(1, warnings().size)
+        stopAndWait(out)
     }
 }

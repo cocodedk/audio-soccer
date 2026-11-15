@@ -6,7 +6,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dk.cocode.soccer.core.text.Lang
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -18,6 +20,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.io.File
+import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 class SettingsTest {
@@ -28,7 +31,7 @@ class SettingsTest {
     private fun store(garbage: Boolean = false): DataStore<Preferences> {
         val file = File(tmp.newFolder(), "settings.preferences_pb")
         if (garbage) file.writeBytes(byteArrayOf(-1, -1, -1, -1))
-        return PreferenceDataStoreFactory.create { file }
+        return PreferenceDataStoreFactory.create(corruptionHandler = settingsCorruptionHandler) { file }
     }
 
     @Test
@@ -66,8 +69,28 @@ class SettingsTest {
     }
 
     @Test
-    fun anUnreadableFileReadsAsTheDefaults() = runTest {
+    fun anUnparsableFileReadsAsTheDefaults() = runTest {
         val settings = Settings(store(garbage = true), Lang.FA)
+        assertEquals(Lang.FA, settings.lang.first())
+        assertNull(settings.enginePkg.first())
+    }
+
+    @Test
+    fun aChoiceCanBeMadeAfterTheFileWasFoundUnparsable() = runTest {
+        val settings = Settings(store(garbage = true), Lang.EN)
+        settings.setLang(Lang.FA)
+        settings.setEngine("com.example.tts")
+        assertEquals(Lang.FA, settings.lang.first())
+        assertEquals("com.example.tts", settings.enginePkg.first())
+    }
+
+    @Test
+    fun aFileThatCannotBeReadAtAllReadsAsTheDefaults() = runTest {
+        val broken = object : DataStore<Preferences> {
+            override val data: Flow<Preferences> = flow { throw IOException("disk") }
+            override suspend fun updateData(transform: suspend (Preferences) -> Preferences): Preferences = throw IOException("disk")
+        }
+        val settings = Settings(broken, Lang.FA)
         assertEquals(Lang.FA, settings.lang.first())
         assertNull(settings.enginePkg.first())
     }

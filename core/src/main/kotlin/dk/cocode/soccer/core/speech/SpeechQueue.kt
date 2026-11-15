@@ -3,23 +3,30 @@ package dk.cocode.soccer.core.speech
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
-// What speaks the lines: the phone's text-to-speech. speak() must lead to exactly one call of onDone, on any thread,
-// whatever becomes of the line: it ended, it was stopped or cut off by the next line, the engine failed on it, or it never
-// started (the engine is not ready, or refused it). A call that is lost leaves SpeechQueue waiting for a line that is gone,
-// and the game's speech freezes for good. SpeechQueue ignores a report about a line that is no longer the current one.
+// What speaks the lines: the phone's text-to-speech. A voice calls onDone, once and on any thread, whatever becomes of the
+// line it can see: it ended, it was stopped or cut off by the next line, the engine reported a failure, or it never started
+// (the engine is not ready, or refused it). What it cannot see it cannot report: an engine service that dies mid-line sends
+// nothing, so that line's onDone may never come. SpeechQueue therefore releases a line that has been speaking far longer
+// than its text needs (releaseIfStuck), and ignores a report about a line that is no longer the current one.
 interface Voice {
     fun speak(text: String, pitch: Float, onDone: () -> Unit)
     fun stop()
 }
 
+private const val STUCK_BASE_MS = 5000L
+private const val STUCK_PER_CHAR_MS = 200L
+
 // The announcer's queue rules, from prototype/js/speech.js: priority (high, normal, low), cut, key replacement and
 // rate limit, many, and the wait after which a line is dropped. One line is spoken at a time. say() and tick() belong to
 // one thread; only the voice's onDone may come from another. now() is a clock in milliseconds.
-// Not ported: the trial's browser workarounds (a pause after a cancel, the 200 ms pump, stuck-line detection,
-// the live regions of screen reader mode and its voices).
+// Stuck lines: the trial took a line as finished after 2500 ms plus 90 ms a character; releaseIfStuck has the limit here.
+// Not ported: the trial's other browser workarounds (a pause after a cancel, the 200 ms pump, the live regions of screen
+// reader mode and its voices).
 @OptIn(ExperimentalAtomicApi::class)
 class SpeechQueue(private val voice: Voice, private val now: () -> Long) {
-    private class Queued(val line: Line, val at: Long)
+    private class Queued(val line: Line, val at: Long) {
+        var stuckAt = 0L // set when it starts speaking: the time after which its voice is taken to have lost it
+    }
 
     private val queue = ArrayDeque<Queued>()
     private val current = AtomicReference<Queued?>(null)
@@ -49,8 +56,10 @@ class SpeechQueue(private val voice: Voice, private val now: () -> Long) {
         tick()
     }
 
-    // Starts the next line once the voice is idle; call it every frame. It also drops lines that waited too long.
+    // Starts the next line once the voice is idle; call it every frame. It also drops lines that waited too long, and
+    // releases a line its voice never ended.
     fun tick() {
+        releaseIfStuck()
         if (current.load() != null || queue.isEmpty()) return
         val t = now()
         queue.removeAll { t - it.at > it.line.waitMs }
@@ -58,8 +67,17 @@ class SpeechQueue(private val voice: Voice, private val now: () -> Long) {
         // A line counts as said only once it is spoken: one that expired unsaid starts no rate limit.
         next.line.key?.let { lastSaid[it] = t }
         current.store(next)
+        next.stuckAt = t + STUCK_BASE_MS + STUCK_PER_CHAR_MS * next.line.text.length
         voice.speak(next.line.text, next.line.pitch) { current.compareAndSet(next, null) }
         next.line.onSpoken?.invoke()
+    }
+
+    // A line that has been speaking for more than 5000 ms plus 200 ms a character (room for a slow engine at a slow speech
+    // rate) is taken as lost, as when the engine service died: stop the voice and forget the line, unless the voice ended
+    // it first. A late onDone of this line finds another line, or none, current, and so changes nothing.
+    private fun releaseIfStuck() {
+        val speaking = current.load() ?: return
+        if (now() > speaking.stuckAt && current.compareAndSet(speaking, null)) voice.stop()
     }
 
     // Drops every waiting line and stops the one being spoken. Rate limits are kept.

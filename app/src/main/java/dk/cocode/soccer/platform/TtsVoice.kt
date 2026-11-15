@@ -20,9 +20,10 @@ private val PERSIAN = listOf(Locale.forLanguageTag("fa-IR"), Locale.forLanguageT
 // The phone's TextToSpeech as the game's Voice. enginePkg is the engine to use, null for the system's default. A line
 // flushes whatever the engine was still saying, at the pitch of the line, and at the engine's own speech rate: the app
 // never sets one. Every line is logged to SoccerSpeech once the engine has taken it.
-// onDone is called exactly once per speak(), on the main thread, never inside speak() or stop() themselves: when the line
-// ends, when it is stopped or flushed by the next one, when the engine reports an error, and when it never started (the
-// engine is not ready, or refused it). The engine reports from a binder thread, so each report is posted to the main thread.
+// onDone is called at most once per speak(), on the main thread, never inside speak() or stop() themselves: when the line
+// ends, is stopped or flushed by the next one, or fails, and when it never started (the engine is not ready, or refused
+// it). A line whose engine service dies reports nothing; SpeechQueue releases it, and its stop() settles the entry kept
+// here. The engine reports from a binder thread, so each report is posted to the main thread.
 class TtsVoice(context: Context, enginePkg: String?) : Speech {
     private val main = Handler(Looper.getMainLooper())
     private val mutableState = MutableStateFlow(TtsState.LOADING)
