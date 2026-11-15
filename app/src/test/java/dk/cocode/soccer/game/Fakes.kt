@@ -20,6 +20,7 @@ class FakeSpeech(
     initial: TtsState = TtsState.READY,
     private val voices: Set<Lang> = setOf(Lang.EN, Lang.FA),
     private val installed: List<Engine> = emptyList(),
+    private val defaultPkg: String? = installed.firstOrNull()?.pkg, // what asking for no engine in particular gets
 ) : Speech {
     override val state = MutableStateFlow(initial)
     val said = mutableListOf<String>()
@@ -30,7 +31,7 @@ class FakeSpeech(
 
     override fun engines() = installed
 
-    override fun currentEngine() = pkg ?: installed.firstOrNull()?.pkg
+    override fun currentEngine() = pkg ?: defaultPkg
 
     override fun useLanguage(lang: Lang): Lang = (if (lang in voices) lang else Lang.EN).also {
         language = it

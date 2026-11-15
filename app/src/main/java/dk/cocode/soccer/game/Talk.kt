@@ -48,13 +48,16 @@ internal class Talk(
     // The engine that speaks, by its package; null if the phone does not say.
     private val engine: String? get() = speech?.currentEngine()
 
+    // The engines installed on the phone.
+    private val installed: List<Engine> get() = speech?.engines().orEmpty()
+
     // The player asked for a language the engine cannot speak, so everything is English.
     val fellBack: Boolean get() = lang != wantLang
 
     // The engine that speaks, as the player knows it.
     val engineLabel: String
         get() {
-            val engines = speech?.engines().orEmpty()
+            val engines = installed
             return engines.getOrNull(current(engines))?.label.orEmpty()
         }
 
@@ -97,14 +100,23 @@ internal class Talk(
     }
 
     // Builds the engine, waits until it is up and tells it the language. An engine the player chose that will not start
-    // (it was uninstalled, or is too slow) gives way to the system's. A chosen engine is kept as the choice: the one that
-    // speaks in the end, which is the system's after such a fallback.
+    // (it was uninstalled, or is too slow) gives way to the system's, and the system's, if it will not start either, to the
+    // first installed engine that does. An engine that gave way is kept as the choice: the one that speaks in the end.
     private suspend fun connect(pkg: String?): Boolean {
-        var up = open(pkg)
-        if (!up && pkg != null) up = open(null)
+        val failed = mutableSetOf<String?>()
+        // The system's engine counts as the package it stands for.
+        suspend fun start(p: String?) = open(p).also { if (!it) failed += engine }
+        var keep = pkg != null
+        var up = start(pkg) || (pkg != null && start(null))
+        if (!up) {
+            // Android makes only a system engine the default, so a phone with none of its own, and eSpeak installed by the
+            // player, has no engine to start until it is picked here.
+            up = installed.any { it.pkg !in failed && start(it.pkg) }
+            keep = true
+        }
         if (!up) return false
         speakLanguage()
-        if (pkg != null) engine?.let { prefs.setEngine(it) }
+        if (keep) engine?.let { prefs.setEngine(it) }
         return true
     }
 
@@ -149,7 +161,7 @@ internal class Talk(
     // Switches to the next installed engine, and calls done(true) once it speaks, done(false) if none does. With one
     // engine only there is nothing to switch to.
     fun nextEngine(done: suspend (Boolean) -> Unit) {
-        val engines = speech?.engines().orEmpty()
+        val engines = installed
         if (switching) return
         scope.launch {
             if (engines.size < 2) return@launch done(true)

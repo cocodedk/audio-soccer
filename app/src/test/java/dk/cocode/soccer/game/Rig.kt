@@ -21,10 +21,11 @@ class Rig(
     lang: Lang = Lang.EN,
     savedEngine: String? = null,
     readerOn: Boolean = false,
-    state: TtsState = TtsState.READY,
+    var state: TtsState = TtsState.READY, // what the engines not in states report
     private val voices: Set<Lang> = setOf(Lang.EN, Lang.FA),
     private val engines: List<Engine> = listOf(ESPEAK, GOOGLE),
-    var states: Map<String?, TtsState> = emptyMap(), // what a given engine reports; the rest report state
+    private val defaultEngine: String? = engines.firstOrNull()?.pkg, // what the system's default stands for; null: it has none
+    var states: Map<String?, TtsState> = emptyMap(), // what a given engine reports; null is the system's default
 ) {
     val speeches = mutableListOf<FakeSpeech>()
     val reader = FakeReader(readerOn)
@@ -34,10 +35,9 @@ class Rig(
     val prefs = FakePrefs(lang, savedEngine)
     val log = mutableListOf<String>()
     var now = 0L
-    private val initial = state
     val session = Session(
         speech = { pkg ->
-            FakeSpeech(pkg, states[pkg] ?: initial, voices, engines).also { speeches += it }
+            FakeSpeech(pkg, states[pkg] ?: state, voices, engines, defaultEngine).also { speeches += it }
         },
         reader = reader,
         haptics = haptics,

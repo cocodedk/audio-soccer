@@ -8,7 +8,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-// The speech engine: none, a late one, a missing one, one without Persian, and the switching of engines.
+// The speech engine: none, a late one, one without Persian, and the switching of engines. SessionEngineFallbackTest has
+// the engines giving way to one another.
 class SessionEngineTest {
     @Test
     fun noEngineBlocksHandOver() {
@@ -47,9 +48,13 @@ class SessionEngineTest {
         assertEquals(Screen.Play(1), r.screen)
     }
 
+    // Every engine gets its five seconds: the default (which is eSpeak here), then the other installed ones.
     @Test
-    fun anEngineStillLoadingAfterFiveSecondsIsNoEngineUntilItComesUp() {
+    fun enginesStillLoadingAfterFiveSecondsEachAreNoEngineUntilOneComesUp() {
         val r = Rig(state = TtsState.LOADING)
+        r.frames(5.5)
+        assertEquals(listOf(null, GOOGLE.pkg), r.speeches.map { it.pkg })
+        assertEquals(Screen.Home, r.screen)
         r.frames(5.5)
         assertEquals(Screen.NoEngine, r.screen)
         assertEquals(listOf(r.en.noEngine), r.session.body.value)
@@ -91,40 +96,6 @@ class SessionEngineTest {
         assertEquals(Screen.NoEngine, r.screen)
         r.speech.state.value = TtsState.READY
         assertEquals(Screen.Home, r.screen)
-    }
-
-    @Test
-    fun aSavedEngineThatWillNotStartGivesWayToTheSystemOne() {
-        val r = Rig(savedEngine = "gone.engine", states = mapOf("gone.engine" to TtsState.NO_ENGINE))
-        assertEquals(listOf("gone.engine", null), r.speeches.map { it.pkg })
-        assertEquals(1, r.speeches[0].shutdowns)
-        assertEquals(Screen.Home, r.screen)
-        assertEquals(listOf(r.en.greeting), r.spoken)
-        // The engine that speaks is the one saved and named, not the one that failed.
-        assertEquals(ESPEAK.pkg, r.prefs.enginePkgNow())
-        r.choose(r.en.settings)
-        assertEquals(r.en.voiceEngine(ESPEAK.label), r.items[1])
-    }
-
-    @Test
-    fun anEngineSwitchThatFallsBackToTheSystemOneNamesAndSavesTheSystemOne() {
-        val r = Rig()
-        r.choose(r.en.settings)
-        r.states = mapOf(GOOGLE.pkg to TtsState.NO_ENGINE)
-        r.choose(r.en.voiceEngine(ESPEAK.label))
-        assertEquals(listOf(null, GOOGLE.pkg, null), r.speeches.map { it.pkg })
-        assertEquals(r.en.voiceEngine(ESPEAK.label), r.items[1])
-        assertEquals(r.en.voiceEngine(ESPEAK.label), r.spoken.last())
-        assertEquals(ESPEAK.pkg, r.prefs.enginePkgNow())
-    }
-
-    @Test
-    fun anEngineSwitchThatFailsEndsOnTheNoEngineScreen() {
-        val r = Rig()
-        r.choose(r.en.settings)
-        r.states = mapOf(GOOGLE.pkg to TtsState.NO_ENGINE, null to TtsState.NO_ENGINE)
-        r.choose(r.en.voiceEngine(ESPEAK.label))
-        assertEquals(Screen.NoEngine, r.screen)
     }
 
     @Test
