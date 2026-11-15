@@ -11,6 +11,9 @@ const val DT = 1.0 / 120
 
 fun close(a: Double, b: Double, eps: Double = 1e-9) = assertTrue(abs(a - b) < eps, "$a != $b")
 
+// The player at (10, 10), where the cue and sound tests set their rounds up, and a ball.
+fun ballWorld(ball: Vec, hasBall: Boolean = false, player: Vec = Vec(10.0, 10.0)): World = createWorld(player, ball, hasBall)
+
 inline fun <reified T : Event> List<Event>.has() = any { it is T }
 
 inline fun <reified T : Event> List<Event>.ofType(): List<T> = filterIsInstance<T>()
