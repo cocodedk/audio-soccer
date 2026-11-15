@@ -22,8 +22,9 @@ import org.robolectric.shadow.api.Shadow
 import org.robolectric.shadows.ShadowLog
 import org.robolectric.shadows.ShadowTextToSpeech
 import org.robolectric.util.ReflectionHelpers
+import java.util.Locale
 
-class Spoken(val text: String, val queueMode: Int, val id: String?)
+class Spoken(val text: String, val queueMode: Int, val id: String?, val params: Bundle? = null)
 
 // A speech engine that reports nothing by itself: the test says when a line ends, fails or is cut off, so each of those
 // paths is exercised alone (Robolectric's own shadow completes every line the moment the main looper idles).
@@ -57,7 +58,7 @@ class ManualTtsShadow : ShadowTextToSpeech() {
 
     @Implementation
     override fun speak(text: CharSequence, queueMode: Int, params: Bundle?, utteranceId: String?): Int {
-        if (speakResult == TextToSpeech.SUCCESS) spoken += Spoken(text.toString(), queueMode, utteranceId)
+        if (speakResult == TextToSpeech.SUCCESS) spoken += Spoken(text.toString(), queueMode, utteranceId, params)
         return speakResult
     }
 }
@@ -97,10 +98,19 @@ abstract class TtsTestBase {
     // How many times the onDone of a line from say() has run.
     protected var done = 0
 
-    // A voice on a phone with an engine installed, unless engines is false; ready: the engine finished starting.
-    protected fun voice(enginePkg: String? = null, engines: Boolean = true, ready: Boolean = true): TtsVoice {
+    // A voice on a phone with an engine installed, unless engines is false; english: the engine has voice data for English;
+    // ready: the engine finished starting and has been heard to start its first line (the probe, which the tests do not see
+    // among what was spoken).
+    protected fun voice(enginePkg: String? = null, engines: Boolean = true, ready: Boolean = true, english: Boolean = true): TtsVoice {
         if (engines) installEngine(app, "com.example.tts", "Example Speech")
-        return TtsVoice(app, enginePkg).also { if (ready) engine.onInitListener.onInit(TextToSpeech.SUCCESS) }
+        if (english) ShadowTextToSpeech.addLanguageAvailability(Locale.ENGLISH)
+        return TtsVoice(app, enginePkg).also {
+            if (!ready) return@also
+            engine.onInitListener.onInit(TextToSpeech.SUCCESS)
+            engine.spoken.firstOrNull()?.let { probe -> progress.onStart(probe.id) }
+            engine.spoken.clear()
+            idle()
+        }
     }
 
     protected fun idle() = shadowOf(Looper.getMainLooper()).idle()

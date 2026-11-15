@@ -7,25 +7,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import dk.cocode.soccer.game.Session
 
-// A round: the pitch and the last thing said, under a layer that takes every touch (the whole screen is the control). The screen
-// stays on while this is up, and only then.
+// A round: the pitch and the last thing said, under a layer that takes every touch (the whole screen is the control). App keeps
+// the screen on.
 @Composable
 fun PlayScreen(session: Session) {
     val pitch = session.pitch.collectAsState()
     val said by session.lastLine.collectAsState()
-    val view = LocalView.current
-    DisposableEffect(view) {
-        view.keepScreenOn = true
-        onDispose { view.keepScreenOn = false }
-    }
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().padding(8.dp)) {
             Box(Modifier.weight(1f).fillMaxWidth()) { PitchView { pitch.value } }

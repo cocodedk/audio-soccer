@@ -129,12 +129,19 @@ class StringsTest {
         assertEquals("How to play", ui.howToPlay)
         assertEquals("Settings", ui.settings)
         assertEquals("Voice: eSpeak NG", ui.voiceEngine("eSpeak NG"))
-        assertEquals("This phone has no speech engine, so the game cannot speak. Install one, for example eSpeak, and open the game again.", ui.noEngine)
+        assertEquals("This phone has no speech engine, so the game cannot speak. Install one, for example eSpeak. After installing it, open the speech engine's own app once, so it can get its voices ready. Then open the game again.", ui.noEngine)
         assertEquals("This voice cannot speak Persian, so the game speaks English.", ui.englishOnly)
         assertEquals("Resume", ui.resume)
         assertEquals("Give up this round", ui.giveUp)
         assertEquals("Back to menu", ui.backToMenu)
         assertEquals("Hear again", ui.hearAgain)
+    }
+
+    // A freshly installed engine has no voice data until its own app has been opened once, so the screen says so (the English
+    // is checked in full above).
+    @Test
+    fun thePersianNoEngineTextTellsThePlayerToOpenTheEnginesOwnAppOnce() {
+        assertTrue(uiStrings(Lang.FA).noEngine.contains("یک بار برنامه خود موتور گفتار را باز کنید"))
     }
 
     @Test

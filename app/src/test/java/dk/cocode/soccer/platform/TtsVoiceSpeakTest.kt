@@ -136,6 +136,18 @@ class TtsVoiceSpeakTest : TtsTestBase() {
         assertEquals(1, done)
     }
 
+    // Whoever waits for the engine to settle is let go, and a line said to it afterwards is dropped.
+    @Test
+    fun aShutDownEngineIsNoEngine() {
+        val voice = voice()
+        voice.shutdown()
+        assertEquals(TtsState.NO_ENGINE, voice.state.value)
+        voice.say()
+        idle()
+        assertEquals(1, done)
+        assertTrue(engine.spoken.isEmpty())
+    }
+
     @Test
     fun onDoneRunsOnTheMainThreadWhateverThreadTheEngineReportsFrom() {
         var ranOn: Thread? = null

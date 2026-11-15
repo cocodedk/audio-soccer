@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 // The screen that is up, its options and the cursor over them: what the menus show, and what a touch or a button on them
 // does. Entering a screen is reported to onChange(before, after) once the screen is set, before its options are read.
-// ready: an engine speaks. Until then the options show but nothing is chosen.
+// ready: an engine speaks. Until then the options show but nothing is chosen. connect() starts the engine.
 internal class Stage(
     private val talk: Talk,
     private val choices: Choices,
@@ -81,6 +81,16 @@ internal class Stage(
     }
 
     fun sayOption(i: Int) = talk.say(optionLine(options[i].text))
+
+    // Starts the speech engine, and goes on once one speaks.
+    fun connect() = talk.start { up -> if (up) engineUp() else noEngine() }
+
+    // No engine speaks. One that is only slow may still come up, and then the game goes on as if it had at once. Otherwise the
+    // game tries the engines again when the player comes back to it (Session.foreground), say after installing one.
+    suspend fun noEngine() {
+        show(Screen.NoEngine)
+        if (talk.awaitEngine()) engineUp()
+    }
 
     // An engine speaks: the menus work, in the language it speaks, and say what the player needs to hear.
     fun engineUp() {

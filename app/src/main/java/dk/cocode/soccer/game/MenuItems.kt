@@ -10,6 +10,9 @@ internal const val MENU_WAIT_MS = 20000L
 // How long one of the how-to-play lines may wait: all of them are queued at once and spoken in turn.
 private const val HELP_WAIT_MS = 120000L
 
+// The key of the how-to-play lines in the speech queue: while one is there, they are being read.
+internal const val HELP_KEY = "help"
+
 internal class Option(val text: String, val choose: () -> Unit)
 
 // What choosing an option does: the session's side of the menus.
@@ -54,7 +57,7 @@ internal fun bodyFor(screen: Screen, ui: UiStrings): List<String> = when (screen
 internal fun entryLines(screen: Screen, ui: UiStrings): List<Line> = when (screen) {
     Screen.Home -> listOf(menuLine(ui.greeting))
     is Screen.Paused -> listOf(menuLine(ui.paused), menuLine(ui.resume)) // and the option the cursor starts on
-    Screen.Help -> ui.howToPlayLines.map { Line(it, Priority.HIGH, key = "help", many = true, waitMs = HELP_WAIT_MS) }
+    Screen.Help -> ui.howToPlayLines.map { Line(it, Priority.HIGH, key = HELP_KEY, many = true, waitMs = HELP_WAIT_MS) }
     else -> emptyList()
 }
 

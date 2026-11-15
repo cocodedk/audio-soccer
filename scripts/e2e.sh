@@ -114,7 +114,9 @@ expect "600 ms on band 2 of 6 speaks 'Score a goal'" SoccerSpeech '^Score a goal
 step "3. two quick taps choose it"
 double_tap 1 6
 expect "the level starts" SoccerEvent '^screen Play\(level=2\)$'
-expect "the level 2 round intro is spoken" SoccerSpeech '^Round 1\. Score a goal\.$'
+# The first level of a run begins once the drag intro (two lines) has been said; eSpeak takes some 12 s over them.
+expect "the drag intro is spoken first" SoccerSpeech '^Put a finger anywhere on the screen and drag it' 20
+expect "the level 2 round intro is spoken once the drag intro has ended" SoccerSpeech '^Round 1\. Score a goal\.$' 40
 
 step "4. a drag up the screen runs toward the goal"
 if expect "the round reports where the player stands" SoccerEvent '^player x=' 15; then

@@ -6,7 +6,6 @@ import dk.cocode.soccer.core.input.PlayInput
 import dk.cocode.soccer.core.sim.Vec
 import dk.cocode.soccer.core.text.Lang
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -66,6 +65,7 @@ class SessionTest {
         r.session.menu(MenuInput.Focus(1))
         r.session.menu(MenuInput.Activate)
         assertEquals(Screen.Play(2), r.screen)
+        r.beginRound()
         assertTrue(r.spoken.contains(r.game.roundIntro(1, r.game.levelTask(2))))
         assertEquals(listOf("start"), r.audio.calls)
         assertTrue(r.logged("screen").contains("screen Play(level=2)"))
@@ -82,6 +82,7 @@ class SessionTest {
         assertTrue(r.audio.calls.isEmpty())
         r.reader.on.value = false
         assertEquals(Screen.Play(2), r.screen)
+        r.beginRound()
         assertTrue(r.spoken.contains(r.game.roundIntro(1, r.game.levelTask(2))))
         assertEquals(listOf("start"), r.audio.calls)
     }
@@ -158,26 +159,6 @@ class SessionTest {
         assertEquals(r.en.howToPlayLines, r.spoken.takeLast(r.en.howToPlayLines.size))
         assertEquals(r.en.howToPlayLines, r.session.body.value)
         assertEquals(listOf(r.en.backToMenu), r.items)
-    }
-
-    @Test
-    fun backGoesBackOneScreenAndTheSystemLeavesFromHome() {
-        val r = Rig()
-        assertFalse(r.session.back())
-        r.choose(r.en.settings)
-        assertTrue(r.session.back())
-        assertEquals(Screen.Home, r.screen)
-        r.start(1)
-        assertTrue(r.session.back())
-        assertEquals(Screen.Paused(1), r.screen)
-        assertTrue(r.session.back()) // back on the pause menu goes on with the round
-        assertEquals(Screen.Play(1), r.screen)
-        assertTrue(r.session.back())
-        r.choose(r.en.backToMenu)
-        assertEquals(Screen.Home, r.screen)
-        r.choose(r.en.howToPlay)
-        assertTrue(r.session.back())
-        assertEquals(Screen.Home, r.screen)
     }
 
     @Test

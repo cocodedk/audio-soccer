@@ -13,8 +13,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.random.Random
 
+private const val INTRO_KEY = "intro"
+private const val INTRO_WAIT_MS = 60000L // how long an intro line may wait behind the one before it
+
 // The level being played, from its start to its summary, and the screens that go with it: Play, Paused, HandOver (a level
-// or a pause that waits for the screen reader to go off) and Summary.
+// or a pause that waits for the screen reader to go off) and Summary. The first level a run starts is led in by the drag intro,
+// spoken on the Play screen before the round exists: the level begins once its lines have ended, and a finger meanwhile does
+// nothing, for there is no round to take it.
 internal class Run(
     private val stage: Stage,
     private val talk: Talk,
@@ -26,15 +31,23 @@ internal class Run(
     private val log: (String) -> Unit,
 ) {
     private var round: Round? = null
+    private var introLevel: Int? = null // the level waiting for the intro to end
+    private var introHeard = false
     private val mutablePitch = MutableStateFlow<Pitch?>(null)
     val pitch: StateFlow<Pitch?> = mutablePitch.asStateFlow() // while a round is on
 
     fun start(n: Int) {
         if (reader.on.value) return stage.show(Screen.HandOver(n))
         talk.clear()
+        stage.show(Screen.Play(n))
+        if (introHeard) return begin(n)
+        introLevel = n
+        talk.ui.dragIntro.forEach { talk.say(menuLine(it).copy(key = INTRO_KEY, many = true, waitMs = INTRO_WAIT_MS)) }
+    }
+
+    private fun begin(n: Int) {
         val r = Round(n, rand, talk, nowMs, sink, haptics, log, ::pause, ::done)
         round = r
-        stage.show(Screen.Play(n))
         r.start()
         mutablePitch.value = r.pitch
     }
@@ -45,11 +58,21 @@ internal class Run(
     }
 
     fun pause() {
+        if (introLevel != null) return leaveIntro()
         val r = round ?: return
         if (stage.current !is Screen.Play) return
         r.pause()
         talk.clear()
         stage.show(Screen.Paused(r.level))
+        stage.announce()
+    }
+
+    // Back or the background during the intro: the level never started, so there is nothing to pause. Back to the menu, and the
+    // intro, not heard to the end, is said at the next start.
+    private fun leaveIntro() {
+        introLevel = null
+        talk.clear()
+        stage.show(Screen.Home)
         stage.announce()
     }
 
@@ -74,6 +97,7 @@ internal class Run(
     // The level is left behind, unfinished.
     fun end() {
         round = null
+        introLevel = null
     }
 
     fun touch(phase: Phase, t: Touch) {
@@ -92,7 +116,16 @@ internal class Run(
         round?.reset()
     }
 
+    // The intro is over once its lines are: the level begins.
+    private fun waitForIntro(n: Int) {
+        if (talk.queue.isSaying(INTRO_KEY)) return
+        introLevel = null
+        introHeard = true
+        begin(n)
+    }
+
     fun frame(dt: Double) {
+        introLevel?.let { return waitForIntro(it) }
         val r = round ?: return
         r.frame(dt)
         mutablePitch.value = r.pitch

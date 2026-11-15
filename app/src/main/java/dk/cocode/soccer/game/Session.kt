@@ -2,7 +2,6 @@ package dk.cocode.soccer.game
 
 import android.util.Log
 import dk.cocode.soccer.core.audio.SoundSink
-import dk.cocode.soccer.core.input.MenuGestures
 import dk.cocode.soccer.core.input.MenuInput
 import dk.cocode.soccer.core.input.Phase
 import dk.cocode.soccer.core.input.PlayInput
@@ -14,13 +13,14 @@ import dk.cocode.soccer.platform.Prefs
 import dk.cocode.soccer.platform.Reader
 import dk.cocode.soccer.platform.Speech
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 private const val MAX_FRAME = 0.1 // seconds: a longer frame (a stall) counts as this long
-private const val DEFAULT_HEIGHT_DP = 640f
 
 // The game as the screens see it. It joins the phone's side (platform/Ports.kt) to the game of :core and holds no Compose, so
 // tests drive it with fakes. Stage.kt has the screen and its options, Run.kt the level being played, Round.kt what runs each
@@ -42,8 +42,6 @@ class Session(
     private var visible = true // false while the app is in the background
     private val talk = Talk(speech, prefs, scope, nowMs, log) { !visible || reader.on.value }
     private var learn: Learn? = null
-    private var heightDp = DEFAULT_HEIGHT_DP
-    private val menuGestures = MenuGestures({ stage.options.size }, { heightDp })
 
     private val choices: Choices = object : Choices {
         override fun startLevel(n: Int) = run.start(n)
@@ -65,12 +63,14 @@ class Session(
         }
 
         override fun nextEngine() = talk.nextEngine { up ->
-            if (!up) noEngine() else if (stage.current == Screen.Settings) stage.saySetting()
+            if (!up) stage.noEngine() else if (stage.current == Screen.Settings) stage.saySetting()
         }
     }
 
     private val stage: Stage = Stage(talk, choices, log, ::screenChanged)
     private val run: Run = Run(stage, talk, reader, rand, nowMs, sink, haptics, log)
+    private val fingers = Fingers(stage, run, reader, nowMs, ::home)
+    private val mutableAwake = MutableStateFlow(false)
 
     val screen: StateFlow<Screen> get() = stage.screen
 
@@ -82,35 +82,24 @@ class Session(
     val pitch: StateFlow<Pitch?> get() = run.pitch
     val screenReaderOn: StateFlow<Boolean> get() = reader.on
 
+    // Whether the screen is to stay on: a round is on, or a screen that talks by itself is being listened to (the sound tour, the
+    // how-to-play lines being read), where a screen gone dark would take the app to the background.
+    val awake: StateFlow<Boolean> = mutableAwake.asStateFlow()
+
     init {
         stage.refresh()
-        scope.launch { if (talk.start()) stage.engineUp() else noEngine() }
+        stage.connect()
         scope.launch { reader.on.drop(1).collect(::readerChanged) }
     }
 
-    // No engine speaks. One that is only slow may still come up, and then the game goes on as if it had at once.
-    private suspend fun noEngine() {
-        stage.show(Screen.NoEngine)
-        if (talk.awaitEngine()) stage.engineUp()
-    }
-
     // The height of the screen the touches come from, in dp: the menu's bands are equal parts of it.
-    fun resize(heightDp: Float) {
-        this.heightDp = heightDp
-    }
+    fun resize(heightDp: Float) = fingers.resize(heightDp)
 
     // The app is going away: the speech engine is let go.
     fun close() = talk.close()
 
     // A finger's event, in dp, stamped with the event's own time (the clock of nowMs).
-    fun touch(phase: Phase, t: Touch) {
-        if (!stage.ready || reader.on.value) return
-        when (stage.current) {
-            is Screen.Play -> run.touch(phase, t)
-            Screen.Learn -> if (phase == Phase.DOWN) home()
-            else -> menuGestures.on(phase, t)?.let(stage::menu)
-        }
-    }
+    fun touch(phase: Phase, t: Touch) = fingers.touch(phase, t)
 
     fun menu(input: MenuInput) = stage.menu(input)
 
@@ -120,25 +109,32 @@ class Session(
 
     fun steer(dir: Vec) = run.steer(dir)
 
-    // The system's back: true if the session took it, false on a screen with nowhere to go back to.
+    // The system's back: true if the session took it, false on a screen with nowhere to go back to. On Home it leaves the app only
+    // for a screen reader's player: a self-voicing one drags in from the edge, the back gesture, and must not lose the app unheard.
     fun back(): Boolean = when (stage.current) {
-        Screen.Home, Screen.NoEngine -> false
+        Screen.Home -> !reader.on.value
+        Screen.NoEngine -> false
         is Screen.Play -> true.also { run.pause() }
         is Screen.Paused -> true.also { run.resume() }
         else -> true.also { home() }
     }
 
-    // The app came to the front or went to the background (a call, the home button): a round pauses and nothing sounds.
+    // The app came to the front or went to the background (a call, the home button): a round pauses and nothing sounds. Coming
+    // back to the pause menu says it again; with no engine speaking, the engines are tried again.
     fun foreground(on: Boolean) {
         visible = on
-        if (!on) interrupt() else if (stage.current is Screen.Paused) stage.announce()
+        when {
+            !on -> interrupt()
+            stage.current == Screen.NoEngine -> stage.connect()
+            stage.current is Screen.Paused -> stage.announce()
+        }
     }
 
     // Something takes the player away from the game (the background, a screen reader coming on): it is silenced, a round
     // pauses and the sound tour ends. A finger down now may never be reported lifting, so the recognizers drop theirs.
     private fun interrupt() {
         talk.clear()
-        resetTouches()
+        fingers.reset()
         run.pause()
         if (stage.current == Screen.Learn) stage.show(Screen.Home)
     }
@@ -150,8 +146,10 @@ class Session(
         when (stage.current) {
             is Screen.Play -> run.frame(dt)
             Screen.Learn -> if (learn?.update(dt) == true) stage.show(Screen.Home) // the tour is over
-            else -> if (!reader.on.value) menuGestures.tick(nowMs())?.let(stage::menu)
+            else -> fingers.tick()
         }
+        val s = stage.current
+        mutableAwake.value = s.makesSound || (s == Screen.Help && talk.queue.isSaying(HELP_KEY))
     }
 
     private fun home() {
@@ -172,18 +170,12 @@ class Session(
 
     // The audio runs only on a screen that makes sound.
     private fun screenChanged(before: Screen, now: Screen) {
-        resetTouches()
+        fingers.reset()
         if (before.makesSound != now.makesSound) {
             sink.silence()
             if (now.makesSound) audio.start() else audio.stop()
         }
         learn = if (now == Screen.Learn) startTour() else null
-    }
-
-    // The recognizers forget their fingers, so one still down does not act on the new screen.
-    private fun resetTouches() {
-        menuGestures.reset()
-        run.reset()
     }
 
     private fun startTour(): Learn {

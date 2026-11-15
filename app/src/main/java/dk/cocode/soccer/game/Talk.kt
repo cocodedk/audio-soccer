@@ -37,7 +37,7 @@ internal class Talk(
 ) {
     private var speech: Speech? = null
     private var wantLang = Lang.EN // what the player chose
-    private var switching = false
+    private var connecting = false // an engine is being started or switched to
     private var deadline = Long.MAX_VALUE // when the engine being waited for is given up on
     private val late = MutableStateFlow(false) // the deadline has passed
 
@@ -96,10 +96,18 @@ internal class Talk(
         speech?.shutdown()
     }
 
-    // Reads what the player chose and starts the engine. False: no engine speaks (yet: see awaitEngine).
-    suspend fun start(): Boolean {
-        wantLang = prefs.lang.first()
-        return connect(prefs.enginePkg.first())
+    // Reads what the player chose and starts the engine, and calls done(true) once one speaks, done(false) if none does (one may
+    // yet: see awaitEngine). Called again it tries the engines afresh, one installed since being found among them. A start and
+    // a switch (nextEngine) do not overlap: this does nothing while one is under way.
+    fun start(done: suspend (Boolean) -> Unit) {
+        if (connecting) return
+        connecting = true
+        scope.launch {
+            wantLang = prefs.lang.first()
+            val up = connect(prefs.enginePkg.first())
+            connecting = false
+            done(up)
+        }
     }
 
     // Builds the engine, waits until it is up and tells it the language. An engine the player chose that will not start
@@ -123,7 +131,7 @@ internal class Talk(
         return true
     }
 
-    // Starts an engine and waits for it to be READY, or for it to fail or to be too slow.
+    // Starts an engine and waits for it to be READY (see TtsVoice), or for it to fail or to be too slow.
     private suspend fun open(pkg: String?): Boolean {
         speech?.shutdown()
         val s = factory(pkg)
@@ -141,7 +149,8 @@ internal class Talk(
         log("voice engine=${engine ?: "system"} lang=${lang.name}")
     }
 
-    // After start() or a switch gave up on an engine: waits for it to settle. True if it comes up, and then it speaks.
+    // After start() or a switch gave up on an engine: waits for it to settle. True if it comes up, and then it speaks. False if
+    // it fails, or is let go (shutdown) because another start took its place.
     suspend fun awaitEngine(): Boolean {
         val s = speech ?: return false
         if (s.state.first { it != TtsState.LOADING } != TtsState.READY) return false
@@ -166,14 +175,14 @@ internal class Talk(
     // engine only there is nothing to switch to.
     fun nextEngine(done: suspend (Boolean) -> Unit) {
         val engines = installed
-        if (switching) return
+        if (connecting) return
         scope.launch {
             if (engines.size < 2) return@launch done(true)
             val next = engines[(current(engines) + 1) % engines.size].pkg
-            switching = true
+            connecting = true
             queue.clear()
             val up = connect(next)
-            switching = false
+            connecting = false
             done(up)
         }
     }

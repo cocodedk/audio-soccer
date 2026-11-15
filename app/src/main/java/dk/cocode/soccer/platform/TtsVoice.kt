@@ -1,6 +1,7 @@
 package dk.cocode.soccer.platform
 
 import android.content.Context
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
@@ -15,11 +16,18 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 private const val SPEECH_LOG = "SoccerSpeech"
+private const val PROBE_ID = "soccer-probe"
+private const val PROBE_TEXT = "ready"
 private val PERSIAN = listOf(Locale.forLanguageTag("fa-IR"), Locale.forLanguageTag("fa"))
 
 // The phone's TextToSpeech as the game's Voice. enginePkg is the engine to use, null for the system's default. A line
 // flushes whatever the engine was still saying, at the pitch of the line, and at the engine's own speech rate: the app
 // never sets one. Every line is logged to SoccerSpeech once the engine has taken it.
+// An engine that reports it is up may still be silent (eSpeak NG has no voice data until its own app has been opened once),
+// so the state stays LOADING until the engine has been heard to work: it must take English (a refused setLanguage is
+// NO_ENGINE) and then report onStart for a first line, which is one it is given here, spoken at volume 0, right after it
+// comes up. The caller's limit on LOADING, not this class, ends the wait for an engine that never starts it. Shutting
+// the engine down makes it NO_ENGINE.
 // onDone is called at most once per speak(), on the main thread, never inside speak() or stop() themselves: when the line
 // ends, is stopped or flushed by the next one, or fails, and when it never started (the engine is not ready, or refused
 // it). A line whose engine service dies reports nothing; SpeechQueue releases it, and its stop() settles the entry kept
@@ -35,13 +43,18 @@ class TtsVoice(context: Context, private val enginePkg: String?) : Speech {
     private val lastId = AtomicInteger()
 
     private val progress = object : UtteranceProgressListener() {
-        override fun onStart(utteranceId: String?) = Unit
+        override fun onStart(utteranceId: String?) {
+            if (utteranceId == PROBE_ID) mutableState.compareAndSet(TtsState.LOADING, TtsState.READY)
+        }
 
         override fun onDone(utteranceId: String?) = finish(utteranceId)
 
         // The engine calls onError(id, code) from API 21, whose default is this one.
         @Suppress("OVERRIDE_DEPRECATION")
-        override fun onError(utteranceId: String?) = finish(utteranceId)
+        override fun onError(utteranceId: String?) {
+            if (utteranceId == PROBE_ID) noEngine()
+            finish(utteranceId)
+        }
 
         override fun onStop(utteranceId: String?, interrupted: Boolean) = finish(utteranceId)
     }
@@ -54,14 +67,24 @@ class TtsVoice(context: Context, private val enginePkg: String?) : Speech {
     }
 
     private fun onInit(status: Int) {
-        mutableState.value =
-            if (status == TextToSpeech.SUCCESS && tts.engines.isNotEmpty()) TtsState.READY else TtsState.NO_ENGINE
+        val up = status == TextToSpeech.SUCCESS && tts.engines.isNotEmpty() && tts.setLanguage(Locale.ENGLISH) >= TextToSpeech.LANG_AVAILABLE
+        if (up) probe() else noEngine()
+    }
+
+    private fun probe() {
+        val silent = Bundle().apply { putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 0f) }
+        if (tts.speak(PROBE_TEXT, TextToSpeech.QUEUE_FLUSH, silent, PROBE_ID) != TextToSpeech.SUCCESS) noEngine()
+    }
+
+    private fun noEngine() {
+        mutableState.value = TtsState.NO_ENGINE
     }
 
     override fun engines(): List<Engine> = tts.engines.map { Engine(it.name, it.label) }
 
     override fun currentEngine(): String? = enginePkg ?: tts.defaultEngine
 
+    // English was accepted when the engine came up, so it cannot be refused here.
     override fun useLanguage(lang: Lang): Lang {
         if (lang == Lang.FA && PERSIAN.any { tts.setLanguage(it) >= TextToSpeech.LANG_AVAILABLE }) return Lang.FA
         tts.setLanguage(Locale.ENGLISH)
@@ -84,8 +107,10 @@ class TtsVoice(context: Context, private val enginePkg: String?) : Speech {
         finishAll()
     }
 
+    // A shut-down engine is no engine: whoever waits for it to settle is let go.
     override fun shutdown() {
         tts.shutdown()
+        noEngine()
         finishAll()
     }
 

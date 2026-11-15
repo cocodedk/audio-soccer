@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 // A speech engine installed on the phone: its package name and the name the player knows it by.
 data class Engine(val pkg: String, val label: String)
 
-// LOADING: the engine is starting. READY: it can speak. NO_ENGINE: there is none, or it failed to start.
+// LOADING: the engine is starting, or is up but has not yet been heard to work. READY: it has started a line. NO_ENGINE: there
+// is none, it failed to start, it will not speak English, or it was shut down.
 enum class TtsState { LOADING, READY, NO_ENGINE }
 
 // The phone's text-to-speech. A line is spoken in the language chosen by useLanguage, once the state is READY.

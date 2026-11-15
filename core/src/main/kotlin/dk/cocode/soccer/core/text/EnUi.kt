@@ -33,6 +33,6 @@ internal object EnUi : UiStrings {
         "Put a finger anywhere on the screen and drag it the way you want to run. Up the screen is toward the goal. Lift your finger to stop.",
         "Tap to kick, with any finger, even while you steer.",
     )
-    override val noEngine = "This phone has no speech engine, so the game cannot speak. Install one, for example eSpeak, and open the game again."
+    override val noEngine = "This phone has no speech engine, so the game cannot speak. Install one, for example eSpeak. After installing it, open the speech engine's own app once, so it can get its voices ready. Then open the game again."
     override val englishOnly = "This voice cannot speak Persian, so the game speaks English."
 }

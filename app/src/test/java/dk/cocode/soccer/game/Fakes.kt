@@ -24,6 +24,8 @@ class FakeSpeech(
 ) : Speech {
     override val state = MutableStateFlow(initial)
     val said = mutableListOf<String>()
+    var hold = false // a line is not finished until release() says so
+    private val held = ArrayDeque<() -> Unit>()
     var shutdowns = 0
     var language: Lang? = null
     val calls = mutableListOf<String>() // "stop" and "language", in the order the engine was told
@@ -40,15 +42,22 @@ class FakeSpeech(
 
     override fun speak(text: String, pitch: Float, onDone: () -> Unit) {
         said += text
-        onDone()
+        if (hold) held += onDone else onDone()
+    }
+
+    // The engine finishes the oldest line it was holding.
+    fun release() {
+        held.removeFirstOrNull()?.invoke()
     }
 
     override fun stop() {
         calls += "stop"
     }
 
+    // As the real engine: one shut down is no engine, and whoever waited for it to settle is let go.
     override fun shutdown() {
         shutdowns += 1
+        state.value = TtsState.NO_ENGINE
     }
 }
 

@@ -70,8 +70,22 @@ class Rig(
 
     fun choose(text: String) = session.choose(items.indexOf(text).also { check(it >= 0) { "no option $text in $items" } })
 
-    // Starts level n from Home with the screen reader off.
-    fun start(n: Int) = choose(en.levelNames[n - 1])
+    // Starts level n from Home with the screen reader off. The first level of a run waits for the drag intro (see beginRound).
+    fun start(n: Int) {
+        choose(en.levelNames[n - 1])
+        if (screen is Screen.Play && session.pitch.value == null) beginRound()
+    }
+
+    // The first level of a run begins with the frame after the drag intro has been said, which this engine does at once.
+    fun beginRound() = session.frame(0.0)
+
+    // The engine keeps each line until its release().
+    fun holding() = apply { speech.hold = true }
+
+    fun leaveAndReturn() {
+        session.foreground(false)
+        session.foreground(true)
+    }
 
     fun touch(phase: Phase, id: Int, x: Float, y: Float) = session.touch(phase, Touch(id, x, y, now))
 

@@ -13,11 +13,56 @@ import java.util.Locale
 // The engine's state, its choice and its language. How it speaks is in TtsVoiceSpeakTest.
 class TtsVoiceTest : TtsTestBase() {
     @Test
-    fun startsLoadingAndIsReadyOnceTheEngineIsUp() {
+    fun startsLoadingAndIsReadyOnlyOnceTheEngineHasStartedItsFirstLine() {
         val voice = voice(ready = false)
         assertEquals(TtsState.LOADING, voice.state.value)
         engine.onInitListener.onInit(TextToSpeech.SUCCESS)
+        idle()
+        assertEquals(TtsState.LOADING, voice.state.value) // up, but not yet heard to work
+        progress.onStart("some-other-line")
+        idle()
+        assertEquals(TtsState.LOADING, voice.state.value)
+        progress.onStart(lastId())
+        idle()
         assertEquals(TtsState.READY, voice.state.value)
+    }
+
+    @Test
+    fun theFirstLineIsEnglishAtVolumeZero() {
+        voice(ready = false)
+        engine.onInitListener.onInit(TextToSpeech.SUCCESS)
+        val probe = engine.spoken.single()
+        assertEquals(Locale.ENGLISH, engine.currentLanguage)
+        assertEquals(0f, probe.params!!.getFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME), 0f)
+        assertEquals(TextToSpeech.QUEUE_FLUSH, probe.queueMode)
+        assertEquals(emptyList<String>(), speechLog()) // the probe is not one of the lines the player hears
+    }
+
+    // A freshly installed eSpeak NG has no voice data until its own app has been opened once.
+    @Test
+    fun anEngineThatWillNotTakeEnglishIsNoEngineAndSpeaksNothing() {
+        val voice = voice(ready = false, english = false)
+        engine.onInitListener.onInit(TextToSpeech.SUCCESS)
+        assertEquals(TtsState.NO_ENGINE, voice.state.value)
+        assertEquals(emptyList<Spoken>(), engine.spoken.toList())
+    }
+
+    @Test
+    fun anEngineThatRefusesTheFirstLineIsNoEngine() {
+        val voice = voice(ready = false)
+        engine.speakResult = TextToSpeech.ERROR
+        engine.onInitListener.onInit(TextToSpeech.SUCCESS)
+        assertEquals(TtsState.NO_ENGINE, voice.state.value)
+    }
+
+    @Test
+    fun anEngineThatFailsTheFirstLineIsNoEngineAtOnce() {
+        val voice = voice(ready = false)
+        engine.onInitListener.onInit(TextToSpeech.SUCCESS)
+        @Suppress("DEPRECATION")
+        progress.onError(lastId())
+        idle()
+        assertEquals(TtsState.NO_ENGINE, voice.state.value)
     }
 
     @Test

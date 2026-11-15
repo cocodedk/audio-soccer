@@ -18,7 +18,7 @@ and ZWNJ where Persian needs it. `eSpeak` stays in Latin letters, as a product n
 | voiceEngine(name) | Voice: {name} | صدا: {name} |
 | resume | Resume | ادامه |
 | giveUp | Give up this round | رها کردن این دور |
-| noEngine | This phone has no speech engine, so the game cannot speak. Install one, for example eSpeak, and open the game again. | این گوشی موتور گفتار ندارد، برای همین بازی نمی‌تواند حرف بزند. یکی نصب کنید، مثلاً eSpeak، و بازی را دوباره باز کنید. |
+| noEngine | This phone has no speech engine, so the game cannot speak. Install one, for example eSpeak. After installing it, open the speech engine's own app once, so it can get its voices ready. Then open the game again. | این گوشی موتور گفتار ندارد، برای همین بازی نمی‌تواند حرف بزند. یکی نصب کنید، مثلاً eSpeak. بعد از نصب، یک بار برنامه خود موتور گفتار را باز کنید تا صدایش آماده شود. بعد بازی را دوباره باز کنید. |
 | englishOnly | This voice cannot speak Persian, so the game speaks English. | این صدا فارسی حرف نمی‌زند، برای همین بازی انگلیسی حرف می‌زند. |
 
 ## Reused word for word from the trial
