@@ -1,0 +1,11 @@
+Audio Soccer is a football game you play by ear. It is made for blind and low-vision players, and everything you need to know comes to you as sound and speech.
+
+There are three levels. In the first you find the ball. In the second you take the ball to the goal and score. In the third you beat the keeper. Each level has three rounds.
+
+You play on the phone's speaker, with the screen reader turned off. While the screen reader is off, the game speaks its own menus. Touch an option to hear it, and double-tap to choose it. If the screen reader is still on when a level is about to start, the game asks you to turn it off and waits. When you are done, you turn it back on yourself.
+
+To run, put a finger anywhere on the screen and drag it the way you want to go. Up the screen is toward the goal. Tap to kick. Tap with two fingers to hear where you are, and with three fingers to pause. The phone buzzes when the ball comes into reach and when you line up with the goal.
+
+The game speaks English and Persian. It uses the speech engines installed on your phone, for example eSpeak, and in Settings you can choose which one it uses. If your phone has no speech engine, install one first.
+
+The game needs no internet, shows no ads and does no tracking. It asks for one permission, to make the phone vibrate. It keeps two settings, your language and your speech engine, on your phone and nowhere else.

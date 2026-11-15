@@ -1,0 +1,1 @@
+First release. A football game played by ear for blind and low-vision players, in English and Persian. It has three levels: find the ball, score a goal and beat the keeper. You play with the screen reader turned off, while the game speaks its own menus with the speech engine you choose.

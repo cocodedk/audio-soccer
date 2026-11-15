@@ -220,16 +220,19 @@ replaces the earlier rule that TalkBack always stays on.
 - **With TalkBack on**, menus, settings, results and the sound gallery are ordinary Android
   screens, built the same way as in the chess app. This is how the player finds and opens the game.
 - **With TalkBack off**, the game speaks for itself. It notices the change, reads the current
-  screen, and from then on speaks the item under focus. The gestures are the ones a TalkBack user
-  already knows: swipe to move through the options, double-tap to choose. When TalkBack comes back
-  on, the game stops speaking the menus.
+  screen, and from then on speaks the item under focus. The options are equal bands down the
+  screen, and the gestures are the ones a TalkBack user already knows: touch an option to hear it,
+  swipe to move through the options, double-tap anywhere to choose. When TalkBack comes back on,
+  the game stops speaking the menus.
 - **The match is played with TalkBack off**, with plain touch controls. If TalkBack is on when a
   match is about to start, the game says how to turn it off and waits. A Bluetooth keyboard or
   gamepad works either way.
 - **The game's menu voice** is the phone's own speech engine through Android's text-to-speech, the
-  same Persian voice the player already hears from TalkBack, with no network. If that voice can't be
-  reached, the fixed lines ship as recorded clips from the commentary pipeline. Which one it is
-  depends on the tester's answer about their phone's voice (asked 2026-11-12).
+  same voice the player already hears from TalkBack, with no network. The tester's answer (2026-11-15)
+  is that their engine is eSpeak NG, so the menus need no recorded clips. Settings lists the speech
+  engines installed on the phone, and the player chooses one of them. When Android has no default
+  engine, the app opens the first installed one itself. If the phone has no engine at all, the game
+  says so on the screen.
 - Pause is always one action away, and the pause menu speaks like every other menu.
 
 ## Controls: plain touch, screen reader off
@@ -249,11 +252,6 @@ Candidates for the phone controls test (0b), in my order of preference:
 
 The test also settles where "ask" and "pause" live in the touch scheme. The result picks the
 default scheme; the others can stay as options if they work.
-
-**Not confirmed yet:** the tester wrote about screen readers in general. Whether turning TalkBack off
-and on is as easy on their phone as on the computer was asked on 2026-11-12. If it isn't, the
-TalkBack-on candidates from the third draft (a joystick read from touch-exploration events, tilt, a
-keyboard) come back.
 
 ## After v1: 3D audio for headphone players
 
@@ -342,8 +340,16 @@ Each slice goes to the tester and waits for their feedback before the next one s
     APK instead. Output: the chosen control scheme, whether the buzzes help, and whether the game's
     own voice is enough to get around without the screen reader.
 
-(The old slice 0c, a 3D audio library test on Android, is dropped: the game no longer depends on 3D
-audio. See "After v1".)
+0c. **The app's first release, 0.1.0** (built, in `core/` and `app/`): the trial's three levels as an
+    Android app, with drag steering. It replaces the phone controls test: the tester plays the real
+    game on the phone's speaker with the screen reader off, in English and Persian, instead of a
+    throwaway page. Its menus and speech engines are as described under "Menus, the screen reader
+    and the match screen". Tilt, results sharing and a speech-speed setting were left out of 0.1.0.
+    All sound is synthesized in code and all speech comes from the phone's engine, so the app ships
+    no audio files.
+
+(An earlier plan had a slice 0c here, a 3D audio library test on Android. It is dropped: the game no
+longer depends on 3D audio. See "After v1".)
 
 1. **Penalty shootout**: five penalties each, taking and saving. As the taker, pick a direction and
    time the shot. As the keeper, listen to the run-up and dive. This proves the audio engine,
@@ -367,9 +373,11 @@ These go in a later email, most important first:
 5. ~~Which language should the commentator speak?~~ The owner chose English and Persian on
    2026-11-09. Ask whether the Persian voice sounds right.
 6. Are loud sounds a problem on speakers too? Which ones, and is the capped mix comfortable?
-7. Is turning TalkBack off and back on as easy on the phone as on the computer? (Asked 2026-11-12.)
-8. Which Persian voice or speech engine does their phone use? (Asked 2026-11-12. If the game can
-   use it, the menus speak offline in the voice they know.)
+7. ~~Is turning TalkBack off and back on as easy on the phone as on the computer?~~ Answered
+   2026-11-15: yes, for most players it is easy. (Asked 2026-11-12.)
+8. ~~Which Persian voice or speech engine does their phone use?~~ Answered 2026-11-15: eSpeak NG.
+   (Asked 2026-11-12.) The game uses the phone's own engine, so the menus speak offline in the
+   voice they know.
 
 ## Left to the builder
 

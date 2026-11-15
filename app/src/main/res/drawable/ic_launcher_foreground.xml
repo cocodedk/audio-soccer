@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A football, white with black patches, on the app's black. It sits inside the adaptive icon's safe zone (the 66dp circle in
+     the middle of the 108dp canvas), so no launcher shape cuts it. The patches stop short of the rim, which keeps the ball's
+     outline round against the black. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M25,54 a29,29 0 1,0 58,0 a29,29 0 1,0 -58,0 Z" />
+    <group>
+        <clip-path android:pathData="M28,54 a26,26 0 1,0 52,0 a26,26 0 1,0 -52,0 Z" />
+        <path
+            android:fillColor="#000000"
+            android:pathData="M54,46 L61.61,51.53 L58.7,60.47 L49.3,60.47 L46.39,51.53 Z M54,35.5 L45.92,29.63 L49,20.12 L59,20.12 L62.08,29.63 Z M71.59,48.28 L74.68,38.78 L84.67,38.78 L87.76,48.28 L79.68,54.16 Z M64.87,68.97 L74.87,68.97 L77.95,78.47 L69.87,84.34 L61.79,78.47 Z M43.13,68.97 L46.21,78.47 L38.13,84.34 L30.05,78.47 L33.13,68.97 Z M36.41,48.28 L28.32,54.16 L20.24,48.28 L23.33,38.78 L33.32,38.78 Z" />
+        <path
+            android:pathData="M54,46 L54,35.5 M61.61,51.53 L71.59,48.28 M58.7,60.47 L64.87,68.97 M49.3,60.47 L43.13,68.97 M46.39,51.53 L36.41,48.28"
+            android:strokeColor="#000000"
+            android:strokeWidth="2.2" />
+    </group>
+</vector>

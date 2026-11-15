@@ -6,9 +6,48 @@ An audio-first 5-a-side football game for blind and visually impaired players. E
 and shot is a sound you can place. The rules borrow from blind football, the Paralympic sport built
 around sound.
 
-The real game will be an Android app that speaks for itself, so the screen reader can be off during
-a match. Before that, this repository holds a browser trial that answers one question: can a blind
-player find the ball, take it to the goal and score using sound alone?
+The real game is an Android app that speaks for itself, so the screen reader can be off during a
+match; its first release is in this repository (see [The Android app](#the-android-app)). The browser
+trial, also here, answers one question: can a blind player find the ball, take it to the goal and score
+using sound alone?
+
+## The Android app
+
+Version 0.1.0 is the trial's three levels as an app: find the ball, score a goal, beat the keeper, three rounds each. You
+play on the phone's speaker with the screen reader turned off. The game speaks its own menus, in English or Persian
+(touch an option to hear it, double-tap to choose), through the speech engines installed on the phone, for example eSpeak.
+Settings lets you choose which engine. You steer by dragging a finger anywhere on the screen and tap to kick. The app needs
+no internet, has no ads and no tracking, and asks for one permission, vibration. Tilt steering, sharing results and a
+speech-speed setting are left out of 0.1.0. See the [privacy policy](docs/privacy.md).
+
+**Build.** You need JDK 17 (the default JDK on your machine may be newer, so point `JAVA_HOME` at a 17) and the Android SDK,
+whose path goes in `local.properties` as `sdk.dir=...` (not committed).
+
+```
+./gradlew buildSmoke
+```
+
+This runs the tests with the 100% line coverage gate and lint, and builds the debug APK at
+`app/build/outputs/apk/debug/app-debug.apk`. `:core` is the game's logic in pure Kotlin, ported from the trial so the
+numbers and the spoken lines match it, and `:app` is the Android shell around it.
+
+**Play it on an emulator.** Run `./gradlew buildSmoke` first, then:
+
+- `scripts/emu.sh` starts a headless emulator, installs the debug APK and opens the app. It looks for an AVD named
+  `soccer`. If there is none and no `avdmanager` to make one, name an AVD you have: `AVD=<name> scripts/emu.sh`.
+- `scripts/e2e.sh` plays the game through adb and prints PASS or FAIL for each check. Every verdict comes from the app's own
+  log lines. The first run downloads eSpeak NG from F-Droid, to test a second speech engine.
+- `scripts/emu.sh stop` stops the emulator.
+
+The scripts only talk to the emulator (port 5584 unless `PORT` says otherwise), so a phone on USB is left alone.
+
+**Releases.** Nothing is published yet. Each release will be a signed `AudioSoccer.apk` on this repository's GitHub Releases
+page, and the app is meant to go to F-Droid, which builds from this source; the texts it shows are in
+[`fastlane/metadata/android/`](fastlane/metadata/android/). To make a release, raise `VERSION_NAME` and `VERSION_CODE` in
+`gradle.properties`, then run the **Release APK** workflow from the Actions tab. It needs four repository secrets,
+`KEYSTORE_BASE64` (the signing keystore, base64-encoded), `KEYSTORE_PASSWORD`, `KEY_ALIAS` and `KEY_PASSWORD`. It runs the
+tests and the coverage gate, builds the signed APK and tags `v<VERSION_NAME>`. It stops before the tag if a secret is missing
+or that version is already released.
 
 ## The browser trial
 
@@ -83,6 +122,10 @@ http://localhost:8000/phone/.
 - [`prototype/`](prototype/): the browser trial. Plain JavaScript modules, no build step.
   Run the logic tests with `node --test prototype/test/*.test.mjs`.
 - [`prototype/phone/`](prototype/phone/): the phone controls test, built on the trial's modules.
+- [`core/`](core/) and [`app/`](app/): the Android app, its game logic and its Android shell.
+- [`scripts/`](scripts/): the file-length check, the git hooks installer and the emulator scripts.
+- [`fastlane/metadata/android/`](fastlane/metadata/android/): the store texts F-Droid reads, in English and Persian.
+- [`docs/privacy.md`](docs/privacy.md): the app's privacy policy.
 - [`site/`](site/): what GitHub Pages adds around the trial (page head, footer, share image, sitemap).
 
 To run the trial locally: `python3 -m http.server --directory prototype`, then open
