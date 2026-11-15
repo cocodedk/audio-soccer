@@ -1,28 +1,21 @@
 package dk.cocode.soccer.core.sim
 
+import dk.cocode.soccer.core.game.setupRound
+import dk.cocode.soccer.core.game.toWorld
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.math.hypot
+import kotlin.random.Random
 
 // From prototype/test/keeper.test.mjs.
 class KeeperTest {
-    private fun between(rand: () -> Double, a: Double, b: Double) = a + rand() * (b - a)
-
-    // levels.js setupRound for levels 2 and 3 (Levels.kt arrives with the game): the player starts with
-    // the ball in their own half, the keeper in goal.
-    private fun setupRound3(rand: () -> Double): World {
-        val x = between(rand, 4.0, 16.0)
-        val y = between(rand, 4.0, 16.0)
-        return createWorld(Vec(x, y), Vec(x + 0.5, y), hasBall = true, keeper = true)
-    }
-
     // One level 3 round played by a scripted player: run straight to (sx, sy) with the ball, optionally
     // settle for a second, kick holding `keys`, then watch 3 s. Returns goal, save, post or wide.
-    private fun play(rand: () -> Double, sx: Double, sy: Double, keys: List<String>, settle: Boolean): String {
-        val w = setupRound3(rand)
+    private fun play(rand: Random, sx: Double, sy: Double, keys: List<String>, settle: Boolean): String {
+        val w = setupRound(3, rand).toWorld()
         for (i in 0 until 4000) {
             val dx = sx - w.player.x
             val dy = sy - w.player.y
@@ -43,7 +36,7 @@ class KeeperTest {
 
     // The outcomes of n rounds with a random start and a shooting spot picked by spot(rand).
     private fun outcomes(
-        n: Int, seed: Int, settle: Boolean, keys: (Double) -> List<String>, spot: (() -> Double) -> Pair<Double, Double>,
+        n: Int, seed: Int, settle: Boolean, keys: (Double) -> List<String>, spot: (Random) -> Pair<Double, Double>,
     ): Set<String> {
         val rand = seeded(seed)
         val seen = mutableSetOf<String>()
@@ -58,14 +51,14 @@ class KeeperTest {
     fun keeperTuningSlowShortReachNoRandomError() {
         assertTrue(KEEPER_SPEED in 1.2..1.4)
         assertTrue(KEEPER_REACH in 0.6..0.7)
-        val k = setupRound3(seeded(1)).keeper
+        val k = setupRound(3, seeded(1)).toWorld().keeper
         assertEquals(Vec(KEEPER_X, GOAL.y), k?.pos)
     }
 
     @Test
     fun headOnAStraightCentredShotFrom8To12mIsAlwaysSaved() {
         for (settle in listOf(false, true)) {
-            val got = outcomes(200, 11, settle, { emptyList() }) { r -> between(r, 28.0, 32.0) to 10.0 }
+            val got = outcomes(200, 11, settle, { emptyList() }) { r -> r.nextDouble(28.0, 32.0) to 10.0 }
             assertEquals(setOf("save"), got, "settled $settle")
         }
     }
@@ -74,8 +67,8 @@ class KeeperTest {
     fun standSlightlyOffToOneSideAndHoldThatArrowAlwaysAGoalFrom10m() {
         // y 7.5 to 8.6, 10 m out, Right: the 15 degree line crosses at 10.2 to 11.3 and aim help pulls it inside the post
         for (settle in listOf(false, true)) {
-            assertEquals(setOf("goal"), outcomes(200, 12, settle, { listOf("Right") }) { r -> 30.0 to between(r, 7.5, 8.6) })
-            assertEquals(setOf("goal"), outcomes(200, 13, settle, { listOf("Left") }) { r -> 30.0 to between(r, 11.4, 12.5) })
+            assertEquals(setOf("goal"), outcomes(200, 12, settle, { listOf("Right") }) { r -> 30.0 to r.nextDouble(7.5, 8.6) })
+            assertEquals(setOf("goal"), outcomes(200, 13, settle, { listOf("Left") }) { r -> 30.0 to r.nextDouble(11.4, 12.5) })
         }
     }
 

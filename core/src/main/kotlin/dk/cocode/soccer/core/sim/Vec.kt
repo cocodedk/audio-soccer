@@ -22,6 +22,14 @@ fun clamp(v: Double, a: Double, b: Double): Double = max(a, min(v, b))
 // JavaScript's Math.round: halves go up. The trial's spoken numbers rely on it.
 fun roundHalfUp(v: Double): Double = floor(v + 0.5)
 
+// One decimal place, rounded half up on the scaled value (String.format would follow the phone's locale). Shared by
+// the kick report and the spoken times. This is not JavaScript's toFixed(1) on binary ties: 0.15 and 2.05 sit just
+// below the tie and toFixed rounds them down, while v * 10 lands exactly on the tie here and rounds up.
+internal fun tenths(v: Double): String {
+    val n = roundHalfUp(v * 10).toLong()
+    return "${n / 10}.${n % 10}"
+}
+
 private val D = sqrt(0.5)
 
 // The 8 directions the keyboard gave in the trial, counter-clockwise from straight up the pitch, with

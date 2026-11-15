@@ -3,6 +3,7 @@ package dk.cocode.soccer.core.sim
 import org.junit.jupiter.api.Assertions.assertTrue
 import kotlin.math.abs
 import kotlin.math.hypot
+import kotlin.random.Random
 
 // Shared test helpers, from prototype/test/helpers.mjs.
 
@@ -39,13 +40,19 @@ fun arrows(vararg keys: String): Vec {
     return if (len != 0.0) Vec(x / len, y / len) else Vec.ZERO
 }
 
-// A small seeded random generator (mulberry32), so simulated rates are the same on every run.
-fun seeded(seed: Int): () -> Double {
+// A small seeded random generator (mulberry32), so simulated rates are the same on every run. Only nextDouble
+// is the trial's sequence; the other draws of Random are derived from it.
+fun seeded(seed: Int): Random {
     var a = seed
-    return {
-        a += 0x6D2B79F5
-        var t = (a xor (a ushr 15)) * (1 or a)
-        t = (t + (t xor (t ushr 7)) * (61 or t)) xor t
-        ((t xor (t ushr 14)).toLong() and 0xFFFFFFFFL).toDouble() / 4294967296.0
+    return object : Random() {
+        override fun nextDouble(): Double {
+            a += 0x6D2B79F5
+            var t = (a xor (a ushr 15)) * (1 or a)
+            t = (t + (t xor (t ushr 7)) * (61 or t)) xor t
+            return ((t xor (t ushr 14)).toLong() and 0xFFFFFFFFL).toDouble() / 4294967296.0
+        }
+
+        override fun nextBits(bitCount: Int): Int =
+            if (bitCount == 0) 0 else (nextDouble() * 4294967296.0).toLong().toInt() ushr (32 - bitCount)
     }
 }

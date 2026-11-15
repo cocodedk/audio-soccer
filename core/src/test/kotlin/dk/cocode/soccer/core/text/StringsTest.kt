@@ -142,15 +142,30 @@ class StringsTest {
         for (lang in Lang.entries) {
             val ui = uiStrings(lang)
             assertEquals(2, ui.dragIntro.size, "$lang")
-            assertEquals(5, ui.howToPlayLines.size, "$lang")
+            assertEquals(6, ui.howToPlayLines.size, "$lang")
         }
         val intro = uiStrings(Lang.EN).dragIntro.joinToString(" ")
-        for (word in listOf("Drag", "run", "goal", "stop", "kick")) assertTrue(intro.contains(word), word)
+        for (word in listOf("drag", "run", "goal", "stop", "kick")) assertTrue(intro.contains(word), word)
         assertFalse(intro.contains("two fingers") || intro.contains("three fingers"))
         val how = uiStrings(Lang.EN).howToPlayLines
-        for ((line, word) in how.zip(listOf("drag", "Lift your finger to stop", "Tap to kick", "two fingers", "three fingers"))) {
-            assertTrue(line.contains(word), "$word in $line")
-        }
-        assertTrue(how.last().contains("pause"))
+        val words = listOf("drag", "Lift your finger to stop", "Tap to kick", "two fingers", "three fingers", "A kick goes straight")
+        for ((line, word) in how.zip(words)) assertTrue(line.contains(word), "$word in $line")
+        assertTrue(how[4].contains("pause"))
+    }
+
+    @Test
+    fun theFirstDragIntroLineIsTheTrialsTwoSentencesAndHowToPlayEndsWithItsKickingTip() {
+        assertEquals(
+            "Put a finger anywhere on the screen and drag it the way you want to run. " +
+                "Up the screen is toward the goal. Lift your finger to stop.",
+            uiStrings(Lang.EN).dragIntro[0],
+        )
+        assertEquals(
+            "A kick goes straight up the pitch. Line up with the goal, within about twenty metres, and kick.",
+            uiStrings(Lang.EN).howToPlayLines[5],
+        )
+        // the trial's Persian, with its ZWNJ (U+200C) in the same places
+        assertEquals(uiStrings(Lang.FA).howToPlayLines[0] + " " + uiStrings(Lang.FA).howToPlayLines[1], uiStrings(Lang.FA).dragIntro[0])
+        assertEquals("شوت مستقیم به سمت جلوی زمین می\u200Cرود. با دروازه هم\u200Cراستا شوید، تا حدود بیست متر، و شوت بزنید.", uiStrings(Lang.FA).howToPlayLines[5])
     }
 }

@@ -18,7 +18,6 @@ and ZWNJ where Persian needs it. `eSpeak` stays in Latin letters, as a product n
 | voiceEngine(name) | Voice: {name} | صدا: {name} |
 | resume | Resume | ادامه |
 | giveUp | Give up this round | رها کردن این دور |
-| dragIntro\[0] | Drag a finger on the screen to run. Up the screen is toward the goal. Lift your finger to stop. | انگشتتان را روی صفحه بکشید تا بدوید. بالای صفحه به سمت دروازه است. انگشتتان را بردارید تا بایستید. |
 | noEngine | This phone has no speech engine, so the game cannot speak. Install one, for example eSpeak, and open the game again. | این گوشی موتور گفتار ندارد، برای همین بازی نمی‌تواند حرف بزند. یکی نصب کنید، مثلاً eSpeak، و بازی را دوباره باز کنید. |
 | englishOnly | This voice cannot speak Persian, so the game speaks English. | این صدا فارسی حرف نمی‌زند، برای همین بازی انگلیسی حرف می‌زند. |
 
@@ -39,8 +38,10 @@ still the same words.
 | howToPlayLines\[1] | Up the screen is toward the goal. Lift your finger to stop. | بالای صفحه به سمت دروازه است. انگشتتان را بردارید تا بایستید. |
 | howToPlayLines\[2] | Tap to kick, with any finger, even while you steer. | برای شوت، با هر انگشتی ضربه بزنید، حتی وقتی دارید هدایت می‌کنید. |
 | howToPlayLines\[3] | Tap with two fingers to hear where you are. | با دو انگشت ضربه بزنید تا بشنوید کجا هستید. |
+| howToPlayLines\[5] | A kick goes straight up the pitch. Line up with the goal, within about twenty metres, and kick. | شوت مستقیم به سمت جلوی زمین می‌رود. با دروازه هم‌راستا شوید، تا حدود بیست متر، و شوت بزنید. |
 | paused | Paused | مکث |
 | backToMenu | Back to menu | برگشت به منو |
 | hearAgain | Hear again | شنیدن دوباره |
 | handOver | Turn your screen reader off now. | حالا صفحه‌خوان را خاموش کنید. |
+| dragIntro\[0] | Put a finger anywhere on the screen and drag it the way you want to run. Up the screen is toward the goal. Lift your finger to stop. | انگشتتان را هر جای صفحه بگذارید و به سمتی که می‌خواهید بدوید بکشید. بالای صفحه به سمت دروازه است. انگشتتان را بردارید تا بایستید. |
 | dragIntro\[1] | Tap to kick, with any finger, even while you steer. | برای شوت، با هر انگشتی ضربه بزنید، حتی وقتی دارید هدایت می‌کنید. |

@@ -52,11 +52,3 @@ fun kickText(k: KickRecord): String {
     val off = if (abs(k.offset) < 0.05) "centre" else "${tenths(abs(k.offset))} m ${if (k.offset < 0) "left" else "right"}"
     return "${roundHalfUp(k.dist).toInt()} m, $off, ${k.aim.text}, ${k.outcome?.text ?: "unfinished"}"
 }
-
-// One decimal place, rounded half up on the scaled value (String.format would follow the phone's locale).
-// This is not JavaScript's toFixed(1) on binary ties: 0.15 and 2.05 sit just below the tie and toFixed
-// rounds them down, while v * 10 lands exactly on the tie here and rounds up.
-private fun tenths(v: Double): String {
-    val n = roundHalfUp(v * 10).toLong()
-    return "${n / 10}.${n % 10}"
-}
