@@ -238,7 +238,7 @@ Thresholds, in dp and ms: dead zone 24, tap at most 300, fingers landing within 
 
 ### Task 8: Phone adapters
 
-**Files:** `platform/AudioOut.kt`, `TtsVoice.kt`, `ScreenReader.kt`, `Buzzer.kt`, `Settings.kt`; one Robolectric test class each.
+**Files:** `platform/Ports.kt`, `AudioOut.kt`, `TtsVoice.kt`, `ScreenReader.kt`, `Buzzer.kt`, `Settings.kt`; one Robolectric test class each.
 
 **Interfaces (consumes):** `Mixer`, `Voice`, `Lang`, `Buzz`. **Produces:**
 ```kotlin
@@ -258,6 +258,8 @@ class Settings(context: Context) {                                      // DataS
     suspend fun setLang(lang: Lang); suspend fun setEngine(pkg: String)
 }
 ```
+
+Each adapter implements a small interface in `platform/Ports.kt`, which is what Task 9 and its fakes use: `interface Speech : Voice { val state: StateFlow<TtsState>; fun engines(): List<Engine>; fun useLanguage(lang: Lang): Lang; fun shutdown() }`, `interface Reader { val on: StateFlow<Boolean> }`, `interface Haptics { fun buzz(b: Buzz) }`, `interface Audio { fun start(); fun stop() }`, `interface Prefs { val lang: Flow<Lang>; val enginePkg: Flow<String?>; suspend fun setLang(lang: Lang); suspend fun setEngine(pkg: String) }`.
 
 `TtsVoice.speak` uses `QUEUE_FLUSH`, sets the pitch per line, calls `onDone` from `UtteranceProgressListener` (done and error both), and logs the text to `SoccerSpeech`. It never sets a speech rate, so the engine's own setting applies.
 
@@ -281,7 +283,8 @@ sealed interface Screen {
     data class Paused(val level: Int) : Screen
     data class Summary(val result: LevelResult) : Screen
 }
-class Session(/* the adapters as interfaces, a clock */) {
+class Session(speech: (enginePkg: String?) -> Speech, reader: Reader, haptics: Haptics, audio: Audio, sink: SoundSink,
+              prefs: Prefs, scope: CoroutineScope, nowMs: () -> Long, rand: Random) {
     val screen: StateFlow<Screen>; val items: StateFlow<List<String>>; val focus: StateFlow<Int>
     val lastLine: StateFlow<String>
     fun frame(dtSec: Double); fun menu(input: MenuInput); fun play(input: PlayInput)
