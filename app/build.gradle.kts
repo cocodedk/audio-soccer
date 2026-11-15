@@ -13,11 +13,11 @@ val appVersionName: String = providers.gradleProperty("VERSION_NAME").get()
 val appVersionCode: Int = providers.gradleProperty("VERSION_CODE").get().toInt()
 
 // Optional release signing — supplied via env in CI; absent locally so debug still builds.
-val ksFile = System.getenv("KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
-    ?.let { rootProject.file(it).absoluteFile }?.takeIf { it.isFile }
-val ksPassword = System.getenv("KEYSTORE_PASSWORD")?.takeIf { it.isNotBlank() }
-val ksAlias = System.getenv("KEY_ALIAS")?.takeIf { it.isNotBlank() }
-val ksKeyPassword = System.getenv("KEY_PASSWORD")?.takeIf { it.isNotBlank() }
+fun env(name: String) = System.getenv(name)?.takeIf { it.isNotBlank() }
+val ksFile = env("KEYSTORE_PATH")?.let { rootProject.file(it) }?.takeIf { it.isFile }
+val ksPassword = env("KEYSTORE_PASSWORD")
+val ksAlias = env("KEY_ALIAS")
+val ksKeyPassword = env("KEY_PASSWORD")
 val hasSigning = ksFile != null && ksPassword != null && ksAlias != null && ksKeyPassword != null
 
 android {

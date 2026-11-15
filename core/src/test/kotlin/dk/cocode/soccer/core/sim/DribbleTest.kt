@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import kotlin.math.hypot
 import kotlin.math.max
 
 // From prototype/test/dribble.test.mjs.
@@ -57,7 +56,7 @@ class DribbleTest {
         assertTrue(w.hasBall)
         assertTrue(w.ball.y - w.player.y > 0.5, "the ball went right with the player")
         run(w, 3.0)
-        assertTrue(hypot(w.ball.x - w.player.x, w.ball.y - w.player.y) < 3, "still within reach after stopping")
+        assertTrue(dist(w.ball, w.player) < 3, "still within reach after stopping")
         assertTrue(w.hasBall)
     }
 

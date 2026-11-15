@@ -4,16 +4,17 @@ set -eu
 # The commit subject must follow Conventional Commits — a project convention that keeps
 # history consistent and aligned with branch-name prefixes.
 SUBJECT=$(head -1 "$1")
+TYPES='feat|fix|chore|docs|style|refactor|test|ci|build|perf|revert'
 
 # Exempt git's auto-generated subjects (merge, revert, autosquash fixup/squash/amend).
 case "$SUBJECT" in
   "Merge "*|"Revert "*|"fixup! "*|"squash! "*|"amend! "*) exit 0 ;;
 esac
 
-if ! printf '%s' "$SUBJECT" | grep -qE '^(feat|fix|chore|docs|style|refactor|test|ci|build|perf|revert)(\(.+\))?!?: .+'; then
+if ! printf '%s' "$SUBJECT" | grep -qE "^($TYPES)(\(.+\))?!?: .+"; then
   echo "ERROR: Commit subject must follow Conventional Commits." >&2
   echo "  Got:     $SUBJECT" >&2
   echo "  Example: feat: add hint button" >&2
-  echo "  Types:   feat|fix|chore|docs|style|refactor|test|ci|build|perf|revert" >&2
+  echo "  Types:   $TYPES" >&2
   exit 1
 fi

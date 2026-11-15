@@ -34,5 +34,5 @@ private val DIRS = listOf(
 fun snap8(forward: Double, right: Double): Vec {
     if (forward == 0.0 && right == 0.0) return Vec.ZERO
     val i = roundHalfUp(atan2(right, forward) / (PI / 4)).toInt()
-    return DIRS[((i % 8) + 8) % 8]
+    return DIRS[i.mod(8)]
 }

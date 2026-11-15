@@ -15,12 +15,12 @@ inline fun <reified T : Event> List<Event>.has() = any { it is T }
 inline fun <reified T : Event> List<Event>.ofType(): List<T> = filterIsInstance<T>()
 
 // Step a world for secs seconds at 120 Hz with a fixed direction; returns every event.
-fun run(w: World, secs: Double, dir: Vec = Vec.ZERO, dt: Double = DT): List<Event> {
+fun run(w: World, secs: Double, dir: Vec = Vec.ZERO): List<Event> {
     val events = mutableListOf<Event>()
     var t = 0.0
     while (t < secs) {
-        events += step(w, dt, dir)
-        t += dt
+        events += step(w, DT, dir)
+        t += DT
     }
     return events
 }

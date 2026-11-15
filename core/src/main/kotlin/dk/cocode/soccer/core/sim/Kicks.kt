@@ -45,7 +45,7 @@ fun settleKick(kicks: List<KickRecord>, e: Event) {
 // At the end of a round, a kick that never reached the line stopped short of it, unless the round was
 // left with the ball still rolling (`left`). Returns new records; the ones passed in are not changed.
 fun closeKicks(kicks: List<KickRecord>, left: Boolean): List<KickRecord> =
-    kicks.map { k -> if (k.outcome != null) k.copy() else k.copy(outcome = if (left) Outcome.UNFINISHED else Outcome.SHORT) }
+    kicks.map { k -> k.copy(outcome = k.outcome ?: if (left) Outcome.UNFINISHED else Outcome.SHORT) }
 
 // "18 m, 2.1 m right, straight, wide right"
 fun kickText(k: KickRecord): String {
@@ -53,7 +53,9 @@ fun kickText(k: KickRecord): String {
     return "${roundHalfUp(k.dist).toInt()} m, $off, ${k.aim.text}, ${k.outcome?.text ?: "unfinished"}"
 }
 
-// One decimal place, as JavaScript's toFixed(1) (String.format would follow the phone's locale).
+// One decimal place, rounded half up on the scaled value (String.format would follow the phone's locale).
+// This is not JavaScript's toFixed(1) on binary ties: 0.15 and 2.05 sit just below the tie and toFixed
+// rounds them down, while v * 10 lands exactly on the tie here and rounds up.
 private fun tenths(v: Double): String {
     val n = roundHalfUp(v * 10).toLong()
     return "${n / 10}.${n % 10}"
