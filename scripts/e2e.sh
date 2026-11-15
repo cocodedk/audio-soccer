@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # Plays the debug build on the emulator with no eyes and no ears: fingers go in through adb input, and every verdict comes from
-# the app's own logcat lines (SoccerSpeech, SoccerEvent), apart from eSpeak's own log of the voice it was given. Start the
-# emulator first: scripts/emu.sh. Each check prints PASS or FAIL, and the exit status is non-zero if any failed. The full
-# logcat of the run is kept in $CACHE/e2e-run.log. eSpeak NG, the second engine, is fetched from F-Droid into $CACHE (the
-# APK found there is used again; delete it to fetch the current one).
+# the app's own logcat lines (SoccerSpeech, SoccerEvent). Start the emulator first: scripts/emu.sh. Each check prints PASS or
+# FAIL, and the exit status is non-zero if any failed. The full logcat of the run is kept in $CACHE/e2e-run.log. eSpeak NG,
+# the second engine, is fetched from F-Droid into $CACHE (the APK found there is used again; delete it to fetch the current one).
 # Env: PORT (default 5584), the emulator's port. Needs bash, curl, awk and a GNU grep with -P.
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -16,6 +15,7 @@ ESPEAK=com.reecedunn.espeak
 FULL_LOG="$CACHE/e2e-run.log" # all of logcat, kept step by step: the checks of the last step read it
 FAILS=0
 : >"$FULL_LOG"
+adb logcat -c # earlier use of the emulator left lines in it that are not this run's
 
 # --- logs: SoccerSpeech has every line the speech engine accepted, SoccerEvent the screen changes, game events and the
 # player's position. They are read as message text only. keep_log files what logcat holds and empties it, so that a check
@@ -42,6 +42,9 @@ show_logs() { { log_of SoccerSpeech | tail -6; log_of SoccerEvent | tail -6; } |
 expect() {
   if wait_for "$2" "$3" "${4:-10}"; then pass "$1"; else fail "$1 (no line like '$3' in $2)"; show_logs; return 1; fi
 }
+
+# reports TITLE EN|FA [SECONDS]: the app says it speaks that language through eSpeak ("voice engine=<package> lang=<EN|FA>").
+reports() { expect "$1" SoccerEvent "^voice engine=\Q$ESPEAK\E lang=$2\$" "${3:-10}"; }
 
 # --- fingers. The menu is equal bands down the whole height of the screen: the middle of band I (from 0) of N is at y.
 # Each gesture starts a fresh log, so what a check finds after it is what the gesture caused.
@@ -98,10 +101,9 @@ if [ "$(engine_count)" -eq 0 ]; then
   echo "   this image has no speech engine"
   expect "with no speech engine the app says so" SoccerEvent '^screen NoEngine$' 30
   install_espeak || fail "eSpeak NG could not be installed (BLOCKED)"
-  # A phone with no engine of its own has no default either: Android only picks a default among its own (system) engines,
-  # so the player chooses the one just installed in the phone's text-to-speech settings.
-  adb shell settings put secure tts_default_synth "$ESPEAK"
+  # No default engine is set (Android makes only a system engine the default): the app has to open the installed one itself.
   launch
+  reports "the game opened the engine just installed, which is no default" EN 40
 fi
 expect "launch: the app speaks its greeting" SoccerSpeech '^Audio Soccer\. Touch the screen to hear the options' 40
 
@@ -149,17 +151,24 @@ if install_espeak; then
   expect "Settings opens" SoccerEvent '^screen Settings$'
   hold 1 3
   expect "the voice option names the engine in use" SoccerSpeech '^Voice: '
-  first="$(log_of SoccerSpeech | grep '^Voice: ' | tail -1)"
-  voice_becomes() { double_tap 1 3; expect "$1" SoccerSpeech "$2" 20; }
-  voice_becomes "the voice option moves to eSpeak" '^Voice: eSpeak'
-  if [ "$(engine_count)" -eq 2 ]; then
-    voice_becomes "...and, with two engines, back to the first" "^$first\$"
-    voice_becomes "...and on to eSpeak again" '^Voice: eSpeak'
+  engines="$(engine_count)"
+  if [ "$engines" -eq 2 ]; then
+    first="$(log_of SoccerSpeech | grep '^Voice: ' | tail -1)"
+    voice_becomes() { double_tap 1 3; expect "$1" SoccerSpeech "$2" 20; }
+    to_other() { voice_becomes "$1" "^(?!\Q$first\E\$)Voice: " && reports "...which the app says is eSpeak" EN; }
+    to_other "the voice option moves on to the other engine"
+    voice_becomes "...and, with two engines, back to the first" "^\Q$first\E\$"
+    to_other "...and on to the other again"
+  else
+    echo "   skipped: $engines speech engine(s) installed, so cycling the voice option is not checked"
   fi
   hold 0 3
   double_tap 0 3
   expect "with Persian chosen, Persian lines are spoken" SoccerSpeech '(*UTF8)[\x{0600}-\x{06FF}]' 20
-  expect "...by eSpeak, with its Persian voice" eSpeakService 'language=fa'
+  reports "...through eSpeak, as the app says" FA
+  # Extra evidence only: eSpeak NG's own log of the voice it was given. Its wording is not ours, so it never fails the run.
+  if wait_for eSpeakService 'language=fa' 2; then echo "info  eSpeak's own log shows its Persian voice (language=fa)"
+  else echo "info  eSpeak's own log has no language=fa line (its log wording may have changed)"; fi
   if wait_for SoccerSpeech 'This voice cannot speak Persian' 2; then fail "the app fell back to English for Persian"; else pass "the app did not fall back to English"; fi
 else
   fail "BLOCKED: eSpeak NG could not be fetched or installed"
