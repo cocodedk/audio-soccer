@@ -40,7 +40,7 @@ class Session(
     log: (String) -> Unit = { Log.d("SoccerEvent", it) },
 ) {
     private var visible = true // false while the app is in the background
-    private val talk = Talk(speech, prefs, scope, nowMs) { !visible || reader.on.value }
+    private val talk = Talk(speech, prefs, scope, nowMs, log) { !visible || reader.on.value }
     private var learn: Learn? = null
     private var heightDp = DEFAULT_HEIGHT_DP
     private val menuGestures = MenuGestures({ stage.options.size }, { heightDp })

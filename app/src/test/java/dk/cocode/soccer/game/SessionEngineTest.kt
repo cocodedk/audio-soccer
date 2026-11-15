@@ -127,6 +127,7 @@ class SessionEngineTest {
         assertEquals(r.en.levelNames, r.items.take(3))
         assertEquals(listOf(r.en.englishOnly, r.en.greeting), r.spoken)
         assertEquals(1, r.spoken.count { it == r.en.englishOnly })
+        assertEquals(listOf(voice(ESPEAK.pkg, "EN")), r.logged("voice")) // the language it speaks, not the one asked for
     }
 
     @Test
@@ -145,6 +146,20 @@ class SessionEngineTest {
         r.choose(r.en.language)
         assertEquals(listOf("stop", "language"), r.speech.calls)
     }
+
+    // What the end-to-end script reads to know which engine speaks which language.
+    @Test
+    fun theEngineAndTheLanguageSpokenAreLoggedEachTimeTheyAreSet() {
+        val r = Rig()
+        r.choose(r.en.settings)
+        r.choose(r.en.language)
+        r.choose(r.fa.language)
+        r.choose(r.en.voiceEngine(ESPEAK.label))
+        val expected = listOf(voice(ESPEAK.pkg, "EN"), voice(ESPEAK.pkg, "FA"), voice(ESPEAK.pkg, "EN"), voice(GOOGLE.pkg, "EN"))
+        assertEquals(expected, r.logged("voice"))
+    }
+
+    private fun voice(pkg: String, lang: String) = "voice engine=$pkg lang=$lang"
 
     @Test
     fun anEnglishOnlyEngineIsSaidAgainWhenPersianIsChosenOnIt() {

@@ -24,12 +24,15 @@ private const val LOAD_LIMIT_MS = 5000L // an engine still starting after this l
 // Everything the game says: the speech engine in use, the language it speaks, and the queue in front of it. A line is
 // kept as lastLine for the screen, and goes to the queue unless muted() (a screen reader is on, or the app is in the
 // background). The engine is built from factory, which takes the package of the engine to use, null for the system's.
-// nowMs is the clock of the queue and of the limit an engine is given to start; tick() counts it.
+// nowMs is the clock of the queue and of the limit an engine is given to start; tick() counts it. Each time the engine or
+// its language is set, log gets a "voice engine=<package> lang=<EN or FA>" line (the package is "system" if the phone does
+// not say): what the end-to-end script reads.
 internal class Talk(
     private val factory: (String?) -> Speech,
     private val prefs: Prefs,
     private val scope: CoroutineScope,
     private val nowMs: () -> Long,
+    private val log: (String) -> Unit,
     private val muted: () -> Boolean,
 ) {
     private var speech: Speech? = null
@@ -135,6 +138,7 @@ internal class Talk(
 
     private fun speakLanguage() {
         lang = checkNotNull(speech).useLanguage(wantLang)
+        log("voice engine=${engine ?: "system"} lang=${lang.name}")
     }
 
     // After start() or a switch gave up on an engine: waits for it to settle. True if it comes up, and then it speaks.
