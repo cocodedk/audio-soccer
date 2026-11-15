@@ -20,8 +20,8 @@ fun Modifier.touchSurface(session: Session): Modifier = pointerInput(session) {
             for (change in awaitPointerEvent().changes) {
                 val phase = when {
                     change.changedToDown() -> Phase.DOWN
-                    change.changedToUp() -> Phase.UP
-                    change.changedToUpIgnoreConsumed() -> Phase.CANCEL // a lift nobody has consumed was a real one
+                    change.changedToUp() -> Phase.UP // a lift nobody has consumed is a real one
+                    change.changedToUpIgnoreConsumed() -> Phase.CANCEL
                     change.positionChanged() -> Phase.MOVE
                     else -> continue
                 }

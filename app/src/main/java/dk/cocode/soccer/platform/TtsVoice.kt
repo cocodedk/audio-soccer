@@ -26,8 +26,9 @@ private val PERSIAN = listOf(Locale.forLanguageTag("fa-IR"), Locale.forLanguageT
 // An engine that reports it is up may still be silent (eSpeak NG has no voice data until its own app has been opened once),
 // so the state stays LOADING until the engine has been heard to work: it must take English (a refused setLanguage is
 // NO_ENGINE) and then report onStart for a first line, which is one it is given here, spoken at volume 0, right after it
-// comes up. The caller's limit on LOADING, not this class, ends the wait for an engine that never starts it. Shutting
-// the engine down makes it NO_ENGINE.
+// comes up. That line is cut off at once, before the state is READY, so that the engine is idle when its language is set
+// (set mid-line, eSpeak keeps speaking in its English voice); until then a stop() leaves it alone. The caller's limit on
+// LOADING, not this class, ends the wait for an engine that never starts it. Shutting the engine down makes it NO_ENGINE.
 // onDone is called at most once per speak(), on the main thread, never inside speak() or stop() themselves: when the line
 // ends, is stopped or flushed by the next one, or fails, and when it never started (the engine is not ready, or refused
 // it). A line whose engine service dies reports nothing; SpeechQueue releases it, and its stop() settles the entry kept
@@ -44,7 +45,7 @@ class TtsVoice(context: Context, private val enginePkg: String?) : Speech {
 
     private val progress = object : UtteranceProgressListener() {
         override fun onStart(utteranceId: String?) {
-            if (utteranceId == PROBE_ID) mutableState.compareAndSet(TtsState.LOADING, TtsState.READY)
+            if (utteranceId == PROBE_ID) main.post(::probed)
         }
 
         override fun onDone(utteranceId: String?) = finish(utteranceId)
@@ -52,7 +53,7 @@ class TtsVoice(context: Context, private val enginePkg: String?) : Speech {
         // The engine calls onError(id, code) from API 21, whose default is this one.
         @Suppress("OVERRIDE_DEPRECATION")
         override fun onError(utteranceId: String?) {
-            if (utteranceId == PROBE_ID) noEngine()
+            if (utteranceId == PROBE_ID) mutableState.compareAndSet(TtsState.LOADING, TtsState.NO_ENGINE)
             finish(utteranceId)
         }
 
@@ -74,6 +75,13 @@ class TtsVoice(context: Context, private val enginePkg: String?) : Speech {
     private fun probe() {
         val silent = Bundle().apply { putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 0f) }
         if (tts.speak(PROBE_TEXT, TextToSpeech.QUEUE_FLUSH, silent, PROBE_ID) != TextToSpeech.SUCCESS) noEngine()
+    }
+
+    // The first line has started: the engine works, and is cut off before it is READY.
+    private fun probed() {
+        if (mutableState.value != TtsState.LOADING) return
+        tts.stop()
+        mutableState.compareAndSet(TtsState.LOADING, TtsState.READY)
     }
 
     private fun noEngine() {
@@ -104,7 +112,7 @@ class TtsVoice(context: Context, private val enginePkg: String?) : Speech {
     }
 
     override fun stop() {
-        tts.stop()
+        if (mutableState.value != TtsState.LOADING) tts.stop()
         finishAll()
     }
 

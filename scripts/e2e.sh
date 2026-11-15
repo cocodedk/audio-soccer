@@ -7,6 +7,7 @@
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/e2e-lib.sh"
+source "$HERE/e2e-relaunch.sh"
 
 up || { echo "no emulator on $SERIAL: run scripts/emu.sh first" >&2; exit 2; }
 read -r W H < <(adb shell wm size | sed -En 's/.*: *([0-9]+)x([0-9]+).*/\1 \2/p' | tail -1)
@@ -20,7 +21,7 @@ adb logcat -c # earlier use of the emulator left lines in it that are not this r
 # --- logs: SoccerSpeech has every line the speech engine accepted, SoccerEvent the screen changes, game events and the
 # player's position. They are read as message text only. keep_log files what logcat holds and empties it, so that a check
 # reads only the lines since the step (or the gesture) began.
-log_of() { adb logcat -d -v raw -s "$1"; }
+log_of() { adb logcat -d -v raw -s "$@"; }
 keep_log() {
   adb logcat -d -v threadtime >>"$FULL_LOG"
   adb logcat -c
@@ -168,7 +169,7 @@ if install_espeak; then
   double_tap 0 3
   expect "with Persian chosen, Persian lines are spoken" SoccerSpeech '(*UTF8)[\x{0600}-\x{06FF}]' 20
   reports "...through eSpeak, as the app says" FA
-  # Extra evidence only: eSpeak NG's own log of the voice it was given. Its wording is not ours, so it never fails the run.
+  # Extra evidence only: eSpeak NG's own log of the voice it was given (step 8 checks it for each relaunch).
   if wait_for eSpeakService 'language=fa' 2; then echo "info  eSpeak's own log shows its Persian voice (language=fa)"
   else echo "info  eSpeak's own log has no language=fa line (its log wording may have changed)"; fi
   if wait_for SoccerSpeech 'This voice cannot speak Persian' 2; then fail "the app fell back to English for Persian"; else pass "the app did not fall back to English"; fi
@@ -176,7 +177,10 @@ else
   fail "BLOCKED: eSpeak NG could not be fetched or installed"
 fi
 
-step "8. the whole run is clean"
+step "8. relaunched with Persian and eSpeak saved, the greeting is in a Persian voice"
+if [ -n "$ESPEAK_READY" ]; then relaunch_persian; else echo "   skipped: eSpeak NG was not installed, so there is no Persian voice to check"; fi
+
+step "9. the whole run is clean"
 crash="$(grep -A3 'FATAL EXCEPTION' "$FULL_LOG")" # in a variable: grep -q closing a pipe early fails it under pipefail
 if grep -q "Process: $PKG" <<<"$crash"; then
   fail "the app crashed"; grep -A8 'FATAL EXCEPTION' "$FULL_LOG" | head -12 | sed 's/^/        /'

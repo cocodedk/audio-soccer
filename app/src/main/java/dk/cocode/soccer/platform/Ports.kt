@@ -26,7 +26,7 @@ interface Speech : Voice {
     fun currentEngine(): String?
 
     // Chooses the language to speak and returns the one the engine will really speak: Persian only if the engine has it,
-    // English otherwise. Call it once the state is READY.
+    // English otherwise. Call it once the state is READY, and with the engine stopped (Talk does): see Talk.speakLanguage.
     fun useLanguage(lang: Lang): Lang
     fun shutdown()
 }

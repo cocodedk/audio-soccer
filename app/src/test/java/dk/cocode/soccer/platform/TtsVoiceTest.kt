@@ -27,6 +27,50 @@ class TtsVoiceTest : TtsTestBase() {
         assertEquals(TtsState.READY, voice.state.value)
     }
 
+    // The caller sets the language once the state is READY, on an engine that must be idle (see Talk.speakLanguage).
+    @Test
+    fun theFirstLineIsCutOffBeforeTheEngineIsReady() {
+        val voice = voice(ready = false)
+        engine.onInitListener.onInit(TextToSpeech.SUCCESS)
+        val statesAtStop = mutableListOf<TtsState>()
+        engine.onStop = { statesAtStop += voice.state.value }
+        progress.onStart(lastId())
+        idle()
+        assertEquals(listOf(TtsState.LOADING), statesAtStop)
+        assertEquals(TtsState.READY, voice.state.value)
+    }
+
+    // Between the engine coming up and its first line starting, a stop would cancel that line, and a working engine would sit
+    // in LOADING until the caller gave up on it.
+    @Test
+    fun aStopBeforeTheFirstLineHasStartedDoesNotCancelIt() {
+        val voice = voice(ready = false)
+        engine.onInitListener.onInit(TextToSpeech.SUCCESS)
+        voice.say() // a line given too early is not spoken, and ends at once
+        voice.stop()
+        assertEquals(0, engine.stops)
+        idle()
+        assertEquals(1, done)
+        progress.onStart(lastId())
+        idle()
+        assertEquals(TtsState.READY, voice.state.value)
+        voice.stop()
+        assertEquals(2, engine.stops) // the cut after the first line, and this stop
+    }
+
+    @Test
+    fun aLateErrorOfTheFirstLineDoesNotMuteAnEngineThatWorks() {
+        val voice = voice(ready = false)
+        engine.onInitListener.onInit(TextToSpeech.SUCCESS)
+        val probe = lastId()
+        progress.onStart(probe)
+        idle()
+        @Suppress("DEPRECATION")
+        progress.onError(probe)
+        idle()
+        assertEquals(TtsState.READY, voice.state.value)
+    }
+
     @Test
     fun theFirstLineIsEnglishAtVolumeZero() {
         voice(ready = false)

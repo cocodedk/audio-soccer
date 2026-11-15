@@ -69,8 +69,9 @@ class TtsVoiceSpeakTest : TtsTestBase() {
     fun stopStopsTheEngineAndEndsTheLineOnce() {
         val voice = voice()
         voice.say()
+        val stopped = engine.stops
         voice.stop()
-        assertTrue(engine.isStopped)
+        assertEquals(stopped + 1, engine.stops)
         idle()
         assertEquals(1, done)
         progress.onStop(lastId(), true)

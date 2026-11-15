@@ -34,6 +34,8 @@ class Spoken(val text: String, val queueMode: Int, val id: String?, val params: 
 class ManualTtsShadow : ShadowTextToSpeech() {
     val spoken = mutableListOf<Spoken>()
     var speakResult = TextToSpeech.SUCCESS
+    var stops = 0 // how many times the engine was told to stop
+    var onStop: (() -> Unit)? = null // runs as the engine is told to stop, before it has stopped
 
     // The stock shadow has not stored the init listener yet when initTts runs, so the real engine, which has, is asked.
     @RealObject
@@ -54,6 +56,13 @@ class ManualTtsShadow : ShadowTextToSpeech() {
         fun reset() {
             initFailsAtOnce = false
         }
+    }
+
+    @Implementation
+    override fun stop(): Int {
+        stops += 1
+        onStop?.invoke()
+        return super.stop()
     }
 
     @Implementation

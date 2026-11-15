@@ -154,7 +154,10 @@ internal class Talk(
         return state == TtsState.READY
     }
 
+    // Sets the language the engine speaks, on an engine that is idle: one changes its language only when it is, and set mid-line,
+    // eSpeak read the next lines in the old voice (Persian text in its English one). Lines still queued are in the old language.
     private fun speakLanguage() {
+        queue.clear()
         lang = checkNotNull(speech).useLanguage(wantLang)
         log("voice engine=${engine ?: "system"} lang=${lang.name}")
     }
@@ -175,9 +178,6 @@ internal class Talk(
     fun nextLanguage() {
         wantLang = Lang.entries[(wantLang.ordinal + 1) % Lang.entries.size]
         scope.launch { save { prefs.setLang(wantLang) } }
-        // Lines still queued are in the old language, and an engine changes its language only when idle: set mid-line, eSpeak
-        // read the next line in the old voice (Persian text in its English one).
-        queue.clear()
         speakLanguage()
     }
 
