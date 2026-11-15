@@ -170,6 +170,12 @@ class SessionTest {
         r.start(1)
         assertTrue(r.session.back())
         assertEquals(Screen.Paused(1), r.screen)
+        assertTrue(r.session.back()) // back on the pause menu goes on with the round
+        assertEquals(Screen.Play(1), r.screen)
+        assertTrue(r.session.back())
+        r.choose(r.en.backToMenu)
+        assertEquals(Screen.Home, r.screen)
+        r.choose(r.en.howToPlay)
         assertTrue(r.session.back())
         assertEquals(Screen.Home, r.screen)
     }

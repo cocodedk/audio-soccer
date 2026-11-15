@@ -36,6 +36,11 @@ class MenuScreenTest {
     // The screen with a screen reader on: the options are the buttons to choose from.
     private fun showWithReader() = Rig(readerOn = true).also(::show)
 
+    private fun click(text: String) {
+        compose.onNodeWithText(text).performClick()
+        compose.waitForIdle()
+    }
+
     private fun assertAllButtons(r: Rig) {
         for (text in r.items) compose.onNode(hasText(text).and(button)).assertExists()
     }
@@ -50,8 +55,7 @@ class MenuScreenTest {
     @Test
     fun clickingAButtonChoosesItAndTheScreenFollows() {
         val r = showWithReader()
-        compose.onNodeWithText(r.en.settings).performClick()
-        compose.waitForIdle()
+        click(r.en.settings)
         assertEquals(Screen.Settings, r.screen)
         assertAllButtons(r)
         assertTrue(r.spoken.isEmpty())
@@ -102,9 +106,11 @@ class MenuScreenTest {
     fun theSelfVoicingLayerGoesWhenAScreenReaderComesOn() {
         val r = Rig()
         show(r)
+        click(r.en.settings) // the layer takes this touch, and it chooses nothing
+        assertEquals(Screen.Home, r.screen)
         r.reader.on.value = true
         compose.waitForIdle()
-        compose.onRoot().performTouchInput { swipeDown() }
-        assertEquals(0, r.session.focus.value)
+        click(r.en.settings) // now it reaches the button
+        assertEquals(Screen.Settings, r.screen)
     }
 }

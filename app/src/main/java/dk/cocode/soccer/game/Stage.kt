@@ -81,4 +81,23 @@ internal class Stage(
     }
 
     fun sayOption(i: Int) = talk.say(optionLine(options[i].text))
+
+    // An engine speaks: the menus work, in the language it speaks, and say what the player needs to hear.
+    fun engineUp() {
+        ready = true
+        if (current == Screen.NoEngine) show(Screen.Home) else refresh()
+        sayEnglishOnly()
+        announce()
+    }
+
+    // A setting was stepped: its option, now with the new value and in the new language, then the notice if Persian was not had.
+    fun saySetting() {
+        refresh()
+        sayOption(focus.value)
+        sayEnglishOnly()
+    }
+
+    private fun sayEnglishOnly() {
+        if (talk.fellBack) talk.say(menuLine(talk.ui.englishOnly))
+    }
 }

@@ -113,6 +113,7 @@ internal class Round(
         soundscape.reset(level)
         cues.reset(w)
         lineUp.reset(w)
+        reset() // a finger held through the gap between rounds is dropped, and the new round starts standing still
         log("round ${game.round} level=$level")
     }
 

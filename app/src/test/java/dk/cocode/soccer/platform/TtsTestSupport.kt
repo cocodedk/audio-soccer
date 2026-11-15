@@ -73,7 +73,10 @@ fun installEngine(app: Application, pkg: String, label: String) {
         applicationInfo = ApplicationInfo().apply { packageName = pkg }
     }
     val intent = Intent(TextToSpeech.Engine.INTENT_ACTION_TTS_SERVICE)
-    shadowOf(app.packageManager).addResolveInfoForIntent(intent, ResolveInfo().apply { serviceInfo = service })
+    val info = ResolveInfo().apply { serviceInfo = service }
+    shadowOf(app.packageManager).addResolveInfoForIntent(intent, info)
+    // The platform asks about one engine by package, which is how it knows the default is installed.
+    shadowOf(app.packageManager).addResolveInfoForIntent(Intent(intent).setPackage(pkg), info)
 }
 
 // What the TtsVoice tests share: a phone with one speech engine installed, and the engine's side of the conversation.

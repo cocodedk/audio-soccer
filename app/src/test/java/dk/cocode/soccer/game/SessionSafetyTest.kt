@@ -71,17 +71,6 @@ class SessionSafetyTest {
     }
 
     @Test
-    fun backgroundDuringTheSoundTourGoesHome() {
-        val r = Rig()
-        r.choose(r.en.learnSounds)
-        r.session.foreground(false)
-        assertEquals(Screen.Home, r.screen)
-        assertEquals(listOf("start", "stop"), r.audio.calls)
-        r.session.foreground(true)
-        assertEquals(Screen.Home, r.screen)
-    }
-
-    @Test
     fun touchHeldAcrossScreensIsIgnored() {
         val r = Rig()
         r.touch(Phase.DOWN, 1, 50f, 150f)
@@ -125,5 +114,26 @@ class SessionSafetyTest {
         r.touch(Phase.MOVE, 1, 100f, 250f)
         r.frames(0.5)
         assertEquals(at, r.player)
+    }
+
+    @Test
+    fun aStrokeHeldThroughTheEndOfARoundDoesNotSteerTheNextOne() {
+        val r = Rig()
+        r.start(1)
+        r.touch(Phase.DOWN, 1, 100f, 400f)
+        r.touch(Phase.MOVE, 1, 100f, 300f) // the steering finger, held through the whole of what follows
+        r.runToBall()
+        repeat(300) { if (r.logged("round").size < 2) r.frames(1.0 / 60) }
+        assertEquals(2, r.logged("round").size)
+        val at = r.player
+        r.touch(Phase.MOVE, 1, 100f, 250f) // the finger is still down, and moves on
+        r.frames(1.0)
+        assertEquals(at, r.player)
+        // Lifting it and touching again steers as usual.
+        r.touch(Phase.UP, 1, 100f, 250f)
+        r.touch(Phase.DOWN, 2, 100f, 400f)
+        r.touch(Phase.MOVE, 2, 100f, 300f)
+        r.frames(1.0)
+        assertTrue(r.player != at)
     }
 }

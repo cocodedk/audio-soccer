@@ -24,7 +24,7 @@ private val PERSIAN = listOf(Locale.forLanguageTag("fa-IR"), Locale.forLanguageT
 // ends, is stopped or flushed by the next one, or fails, and when it never started (the engine is not ready, or refused
 // it). A line whose engine service dies reports nothing; SpeechQueue releases it, and its stop() settles the entry kept
 // here. The engine reports from a binder thread, so each report is posted to the main thread.
-class TtsVoice(context: Context, enginePkg: String?) : Speech {
+class TtsVoice(context: Context, private val enginePkg: String?) : Speech {
     private val main = Handler(Looper.getMainLooper())
     private val mutableState = MutableStateFlow(TtsState.LOADING)
     override val state: StateFlow<TtsState> = mutableState.asStateFlow()
@@ -59,6 +59,8 @@ class TtsVoice(context: Context, enginePkg: String?) : Speech {
     }
 
     override fun engines(): List<Engine> = tts.engines.map { Engine(it.name, it.label) }
+
+    override fun currentEngine(): String? = enginePkg ?: tts.defaultEngine
 
     override fun useLanguage(lang: Lang): Lang {
         if (lang == Lang.FA && PERSIAN.any { tts.setLanguage(it) >= TextToSpeech.LANG_AVAILABLE }) return Lang.FA

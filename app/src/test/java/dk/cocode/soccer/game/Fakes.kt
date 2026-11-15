@@ -29,6 +29,8 @@ class FakeSpeech(
 
     override fun engines() = installed
 
+    override fun currentEngine() = pkg ?: installed.firstOrNull()?.pkg
+
     override fun useLanguage(lang: Lang): Lang = (if (lang in voices) lang else Lang.EN).also { language = it }
 
     override fun speak(text: String, pitch: Float, onDone: () -> Unit) {

@@ -61,11 +61,11 @@ class Session(
 
         override fun nextLanguage() {
             talk.nextLanguage()
-            saySetting()
+            stage.saySetting()
         }
 
         override fun nextEngine() = talk.nextEngine { up ->
-            if (!up) stage.show(Screen.NoEngine) else if (stage.current == Screen.Settings) saySetting()
+            if (!up) noEngine() else if (stage.current == Screen.Settings) stage.saySetting()
         }
     }
 
@@ -84,27 +84,14 @@ class Session(
 
     init {
         stage.refresh()
-        scope.launch { start() }
+        scope.launch { if (talk.start()) stage.engineUp() else noEngine() }
         scope.launch { reader.on.drop(1).collect(::readerChanged) }
     }
 
-    private suspend fun start() {
-        if (!talk.start()) return stage.show(Screen.NoEngine)
-        stage.ready = true
-        stage.refresh()
-        sayEnglishOnly()
-        stage.announce()
-    }
-
-    // A setting was stepped: the option, now with its new value and in the new language, then the notice if Persian was not had.
-    private fun saySetting() {
-        stage.refresh()
-        stage.sayOption(stage.focus.value)
-        sayEnglishOnly()
-    }
-
-    private fun sayEnglishOnly() {
-        if (talk.fellBack) talk.say(menuLine(talk.ui.englishOnly))
+    // No engine speaks. One that is only slow may still come up, and then the game goes on as if it had at once.
+    private suspend fun noEngine() {
+        stage.show(Screen.NoEngine)
+        if (talk.awaitEngine()) stage.engineUp()
     }
 
     // The height of the screen the touches come from, in dp: the menu's bands are equal parts of it.
@@ -137,6 +124,7 @@ class Session(
     fun back(): Boolean = when (stage.current) {
         Screen.Home, Screen.NoEngine -> false
         is Screen.Play -> true.also { run.pause() }
+        is Screen.Paused -> true.also { run.resume() }
         else -> true.also { home() }
     }
 
@@ -156,11 +144,11 @@ class Session(
 
     // One frame of dtSec seconds: the speech queue, then what the screen has running.
     fun frame(dtSec: Double) {
-        talk.queue.tick()
+        talk.tick()
         val dt = dtSec.coerceIn(0.0, MAX_FRAME)
         when (stage.current) {
             is Screen.Play -> run.frame(dt)
-            Screen.Learn -> learn?.update(dt)
+            Screen.Learn -> if (learn?.update(dt) == true) stage.show(Screen.Home) // the tour is over
             else -> if (!reader.on.value) menuGestures.tick(nowMs())?.let(stage::menu)
         }
     }

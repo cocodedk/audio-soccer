@@ -24,7 +24,7 @@ class Rig(
     state: TtsState = TtsState.READY,
     private val voices: Set<Lang> = setOf(Lang.EN, Lang.FA),
     private val engines: List<Engine> = listOf(ESPEAK, GOOGLE),
-    var broken: Set<String?> = emptySet(),
+    var states: Map<String?, TtsState> = emptyMap(), // what a given engine reports; the rest report state
 ) {
     val speeches = mutableListOf<FakeSpeech>()
     val reader = FakeReader(readerOn)
@@ -37,8 +37,7 @@ class Rig(
     private val initial = state
     val session = Session(
         speech = { pkg ->
-            val up = if (pkg in broken) TtsState.NO_ENGINE else initial
-            FakeSpeech(pkg, up, voices, engines).also { speeches += it }
+            FakeSpeech(pkg, states[pkg] ?: initial, voices, engines).also { speeches += it }
         },
         reader = reader,
         haptics = haptics,

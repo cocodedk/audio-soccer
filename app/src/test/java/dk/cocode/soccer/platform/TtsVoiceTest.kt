@@ -1,5 +1,6 @@
 package dk.cocode.soccer.platform
 
+import android.provider.Settings
 import android.speech.tts.TextToSpeech
 import dk.cocode.soccer.core.text.Lang
 import org.junit.Assert.assertEquals
@@ -55,6 +56,18 @@ class TtsVoiceTest : TtsTestBase() {
     fun noChosenEngineMeansTheSystemDefault() {
         voice()
         assertNull(ReflectionHelpers.getField<String?>(tts, "mRequestedEngine"))
+    }
+
+    @Test
+    fun theChosenEngineIsTheOneThatSpeaks() {
+        assertEquals("com.example.tts", voice("com.example.tts").currentEngine())
+    }
+
+    @Test
+    fun withNoneChosenTheSystemDefaultSpeaks() {
+        val voice = voice()
+        Settings.Secure.putString(app.contentResolver, Settings.Secure.TTS_DEFAULT_SYNTH, "com.example.tts")
+        assertEquals("com.example.tts", voice.currentEngine())
     }
 
     @Test
