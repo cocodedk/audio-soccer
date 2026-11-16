@@ -60,6 +60,7 @@ internal class Stage(
             MenuInput.Next -> m.next()
             MenuInput.Prev -> m.prev()
             MenuInput.Activate -> return choose(m.index)
+            MenuInput.Repeat -> return sayOption(m.index)
         }
         mutableFocus.value = m.index
         sayOption(m.index)

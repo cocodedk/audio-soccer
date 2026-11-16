@@ -3,6 +3,7 @@ package dk.cocode.soccer.core.input
 import dk.cocode.soccer.core.input.MenuInput.Focus
 import dk.cocode.soccer.core.input.MenuInput.Next
 import dk.cocode.soccer.core.input.MenuInput.Prev
+import dk.cocode.soccer.core.input.MenuInput.Repeat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -47,7 +48,7 @@ class MenuGesturesTwoFingerTest {
         twoFingers(1, 2, 0, 200, 450, 210, 470)
         r.tap(3, 1000 + 100, 450) // were the stroke a tap, this would be its second
         r.tick(5000)
-        assertEquals(listOf(Focus(1)), r.got, "only the later tap, on its own")
+        assertEquals(listOf(Repeat), r.got, "only the later tap, on its own")
     }
 
     @Test
@@ -90,6 +91,6 @@ class MenuGesturesTwoFingerTest {
         assertEquals(listOf(Next), r.got, "the finger left behind neither steers nor swipes")
         r.tap(3, 2000, 750)
         r.tick(5000)
-        assertEquals(listOf(Next, Focus(2)), r.got)
+        assertEquals(listOf(Next, Repeat), r.got)
     }
 }

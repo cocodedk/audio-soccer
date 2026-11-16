@@ -2,6 +2,7 @@ package dk.cocode.soccer.core.input
 
 import dk.cocode.soccer.core.input.MenuInput.Focus
 import dk.cocode.soccer.core.input.MenuInput.Next
+import dk.cocode.soccer.core.input.MenuInput.Repeat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -68,7 +69,7 @@ class MenuGesturesEdgeTest {
         r.up(2, 200, 100, 60)
         r.up(1, 200, 450, 80)
         r.tick(9000)
-        assertEquals(listOf(Focus(1)), r.got)
+        assertEquals(listOf(Repeat), r.got)
     }
 
     @Test
@@ -77,7 +78,7 @@ class MenuGesturesEdgeTest {
         r.up(1, 200, 100, 400)
         r.tap(2, 500, 700)
         r.tick(9000)
-        assertEquals(listOf(Focus(0), Focus(2)), r.got)
+        assertEquals(listOf(Focus(0), Repeat), r.got)
     }
 
     @Test
@@ -111,10 +112,10 @@ class MenuGesturesEdgeTest {
     fun aTapWhoseWindowHasPassedIsReportedWhenTheNextFingerLands() {
         r.tap(1, 0, 450) // lifted at 80, and no tick came
         r.down(2, 100, 100, 80 + DOUBLE_MS + 1)
-        assertEquals(listOf(Focus(1)), r.got)
+        assertEquals(listOf(Repeat), r.got)
         r.up(2, 100, 100, 80 + DOUBLE_MS + 60)
         r.tick(9000)
-        assertEquals(listOf(Focus(1), Focus(0)), r.got)
+        assertEquals(listOf(Repeat, Repeat), r.got)
     }
 
     @Test
@@ -129,8 +130,7 @@ class MenuGesturesEdgeTest {
     fun aFingerLandingForAnIdAlreadyDownStartsItsStrokeAgain() {
         r.down(1, 100, 400, 0)
         r.down(1, 300, 700, 1000) // the lift was missed
-        r.up(1, 302, 701, 1060)
-        r.tick(9000)
+        r.tick(1000 + TAP_MS + 1) // the old stroke would explore where it began, in band 1
         assertEquals(listOf(Focus(2)), r.got)
     }
 
@@ -144,14 +144,13 @@ class MenuGesturesEdgeTest {
         assertEquals(nothing, r.got)
         r.tap(3, 10000, 700)
         r.tick(11000)
-        assertEquals(listOf(Focus(2)), r.got, "the next touch works normally")
+        assertEquals(listOf(Repeat), r.got, "the next touch works normally")
     }
 
     @Test
     fun anEmptyMenuHasNoBandToThrowAbout() {
         val rig = MenuRig(count = 0)
-        rig.tap(1, 0, 450)
-        rig.tick(1000)
+        rig.explore(1, 0, 450)
         assertEquals(listOf(Focus(0)), rig.got)
     }
 }
