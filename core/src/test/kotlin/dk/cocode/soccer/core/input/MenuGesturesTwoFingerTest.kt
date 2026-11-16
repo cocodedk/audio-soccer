@@ -58,6 +58,17 @@ class MenuGesturesTwoFingerTest {
         assertEquals(listOf(Next), r.got)
     }
 
+    // The frames may lag the touches: a finger landing after TAP_MS is too late to make the stroke a two-finger one.
+    @Test
+    fun aSecondFingerLandingAfterTheTapTimeLeavesTheFirstFingerExploring() {
+        r.down(1, 200, 450, 0)
+        r.down(2, 280, 450, TAP_MS + 1) // before any frame has ticked
+        assertEquals(listOf(Focus(1)), r.got, "it explores at once")
+        r.tick(TAP_MS + 10)
+        r.move(1, 200, 700, TAP_MS + 100)
+        assertEquals(listOf(Focus(1), Focus(2)), r.got, "and goes on exploring")
+    }
+
     @Test
     fun theSecondFingerLiftingFirstDoesNotEndTheStroke() {
         r.down(1, 200, 300, 0)

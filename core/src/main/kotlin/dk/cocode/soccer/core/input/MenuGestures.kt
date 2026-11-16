@@ -14,9 +14,9 @@ sealed interface MenuInput {
 // bands down the screen (count() of them over heightDp()).
 //  - A finger still down after TAP_MS explores: Focus(band) at once, and again each time it crosses into another band.
 //  - A stroke of SWIPE_DP or more lifted within TAP_MS is a swipe: right or down is Next, left or up is Prev.
-//  - A stroke that a second finger joins before it explores never explores: when the followed finger lifts after
-//    travelling SWIPE_DP or more it is Next or Prev at any speed, a two-finger swipe as slow as a scroll. Otherwise it
-//    is what the followed finger alone would have been (a quick two-finger tap is still a tap).
+//  - A stroke that a second finger joins within TAP_MS never explores: when the followed finger lifts after
+//    travelling SWIPE_DP or more it is Next or Prev at any speed, a two-finger swipe as slow as a scroll. Lifted
+//    within TAP_MS it is otherwise judged as one finger would be (a quick two-finger tap is still a tap); later, nothing.
 //  - A tap followed by a second tap landing within DOUBLE_MS of its lift is Activate, wherever it lands.
 //  - A tap on its own is Focus(band) from tick, once DOUBLE_MS pass with no second tap.
 // Anything else (a stroke that moved DEAD_DP or more without being a swipe, or one lifted after TAP_MS without having
@@ -32,7 +32,7 @@ class MenuGestures(private val count: () -> Int, private val heightDp: () -> Flo
         var y = y0
         var moved = false
         var exploring = false
-        var twoFinger = false // a second finger joined it
+        var twoFinger = false // a second finger joined it before it explored
         var band = 0 // while exploring, the band last focused
     }
 
@@ -69,8 +69,9 @@ class MenuGestures(private val count: () -> Int, private val heightDp: () -> Flo
     private fun down(t: Touch): MenuInput? {
         val s = stroke
         if (s != null && t.id != s.id) {
-            s.twoFinger = true
-            return null
+            val focus = hold(s, t.tMs) // past TAP_MS already, though no frame has ticked yet: it explores
+            if (!s.exploring) s.twoFinger = true
+            return focus
         }
         val waiting = tap
         tap = null
