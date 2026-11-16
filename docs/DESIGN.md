@@ -222,7 +222,8 @@ replaces the earlier rule that TalkBack always stays on.
 - **With TalkBack off**, the game speaks for itself. It notices the change, reads the current
   screen, and from then on speaks the item under focus. The options are equal bands down the
   screen, and the gestures are the ones a TalkBack user already knows: touch an option to hear it,
-  swipe to move through the options, double-tap anywhere to choose. When TalkBack comes back on,
+  swipe to move through the options (quickly with one finger, or at any speed with two), double-tap
+  anywhere to choose. When TalkBack comes back on,
   the game stops speaking the menus.
 - **The match is played with TalkBack off**, with plain touch controls. If TalkBack is on when a
   match is about to start, the game says how to turn it off and waits. A Bluetooth keyboard or

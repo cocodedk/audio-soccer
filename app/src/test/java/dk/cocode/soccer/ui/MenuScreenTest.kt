@@ -1,6 +1,7 @@
 package dk.cocode.soccer.ui
 
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -127,6 +128,27 @@ class MenuScreenTest {
         val r = Rig()
         show(r)
         compose.onRoot().performTouchInput { swipeDown() }
+        compose.waitForIdle()
+        assertEquals(1, r.session.focus.value)
+        assertEquals(r.en.levelNames[1], r.spoken.last())
+    }
+
+    // A slow scroll with two fingers, as a player asked for: with one finger this slow, the menu would explore instead.
+    @Test
+    fun withNoScreenReaderASlowTwoFingerSwipeMovesTheCursor() {
+        val r = Rig()
+        show(r)
+        compose.onRoot().performTouchInput {
+            down(0, center)
+            down(1, center + Offset(80f, 0f))
+            repeat(5) {
+                updatePointerBy(0, Offset(0f, height / 15f))
+                updatePointerBy(1, Offset(0f, height / 15f))
+                move(delayMillis = 200)
+            }
+            up(0)
+            up(1)
+        }
         compose.waitForIdle()
         assertEquals(1, r.session.focus.value)
         assertEquals(r.en.levelNames[1], r.spoken.last())
