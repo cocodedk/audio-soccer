@@ -15,7 +15,8 @@ using sound alone?
 
 Version 0.1.0 is the trial's three levels as an app: find the ball, score a goal, beat the keeper, three rounds each. You
 play on the phone's speaker with the screen reader turned off. The game speaks its own menus, in English or Persian
-(touch an option to hear it, double-tap to choose), through the speech engines installed on the phone, for example eSpeak.
+(hold a finger on an option to hear it, swipe to move, tap to hear it again, double-tap to choose), through the speech
+engines installed on the phone, for example eSpeak.
 Settings lets you choose which engine. You steer by dragging a finger anywhere on the screen and tap to kick. The app needs
 no internet, has no ads and no tracking, and asks for one permission, vibration. Tilt steering, sharing results and a
 speech-speed setting are left out of 0.1.0. See the [privacy policy](docs/privacy.md).

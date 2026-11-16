@@ -130,6 +130,8 @@ class MenuGesturesEdgeTest {
     fun aFingerLandingForAnIdAlreadyDownStartsItsStrokeAgain() {
         r.down(1, 100, 400, 0)
         r.down(1, 300, 700, 1000) // the lift was missed
+        r.tick(1000 + TAP_MS)
+        assertEquals(nothing, r.got, "the stroke's clock starts again too")
         r.tick(1000 + TAP_MS + 1) // the old stroke would explore where it began, in band 1
         assertEquals(listOf(Focus(2)), r.got)
     }

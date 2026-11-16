@@ -3,7 +3,7 @@ package dk.cocode.soccer.core.text
 // فارسی: the same lines as EnUi. Formal "شما", plain everyday Persian, and a ZWNJ (U+200C) where Persian needs it. Lines
 // taken word for word from prototype/js/i18n/fa-phone.js and fa.js; the new ones are in docs/persian-to-check.md.
 internal object FaUi : UiStrings {
-    override val greeting = "فوتبال صوتی. برای شنیدن گزینه‌ها صفحه را لمس کنید. برای انتخاب، دو بار ضربه بزنید."
+    override val greeting = "فوتبال صوتی. برای شنیدن گزینه‌ها انگشتتان را روی صفحه نگه دارید، یا انگشت را بکشید تا بین آن‌ها جابه‌جا شوید. برای شنیدن دوباره‌ی گزینه یک بار ضربه بزنید، و برای انتخاب دو بار."
     override val levelNames = listOf(
         "پیدا کردن توپ",
         "گل زدن",

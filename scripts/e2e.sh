@@ -106,7 +106,7 @@ if [ "$(engine_count)" -eq 0 ]; then
   launch
   reports "the game opened the engine just installed, which is no default" EN 40
 fi
-expect "launch: the app speaks its greeting" SoccerSpeech '^Audio Soccer\. Touch the screen to hear the options' 40
+expect "launch: the app speaks its greeting" SoccerSpeech '^Audio Soccer\. Hold a finger on the screen to hear the options' 40
 
 step "2. a held finger speaks a band"
 hold 1 6
