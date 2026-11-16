@@ -1,6 +1,7 @@
 package dk.cocode.soccer.game
 
 import dk.cocode.soccer.core.game.LevelResult
+import dk.cocode.soccer.core.game.Records
 import dk.cocode.soccer.core.speech.Priority
 import dk.cocode.soccer.core.text.Lang
 import dk.cocode.soccer.core.text.uiStrings
@@ -21,9 +22,9 @@ class MenuItemsTest {
         override fun giveUp() { calls += "giveUp" }
         override fun hearAgain() { calls += "hearAgain" }
     }
-    private val result = LevelResult(2, emptyList(), "Level 2 done.")
+    private val result = LevelResult(2, emptyList(), "Level 2 done.", Records())
 
-    private fun options(s: Screen) = optionsFor(s, ui, { "eSpeak NG" }, choices)
+    private fun options(s: Screen) = optionsFor(s, ui, { "eSpeak NG" }, { n, name -> "$n $name" }, choices)
 
     private fun choose(s: Screen, i: Int): String {
         calls.clear()
@@ -34,7 +35,8 @@ class MenuItemsTest {
     @Test
     fun homeHasTheThreeLevelsThenLearnHelpAndSettings() {
         val o = options(Screen.Home)
-        assertEquals(ui.levelNames + listOf(ui.learnSounds, ui.howToPlay, ui.settings), o.map { it.text })
+        val levels = ui.levelNames.mapIndexed { i, name -> "${i + 1} $name" } // what levelLabel made of each
+        assertEquals(levels + listOf(ui.learnSounds, ui.howToPlay, ui.settings), o.map { it.text })
         assertEquals(listOf("level 1", "level 2", "level 3"), (0..2).map { choose(Screen.Home, it) })
         assertEquals(listOf("open Learn", "open Help", "open Settings"), (3..5).map { choose(Screen.Home, it) })
     }

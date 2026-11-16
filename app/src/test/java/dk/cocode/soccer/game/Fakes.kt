@@ -3,6 +3,7 @@ package dk.cocode.soccer.game
 import dk.cocode.soccer.core.audio.Sound
 import dk.cocode.soccer.core.audio.SoundSink
 import dk.cocode.soccer.core.cues.Buzz
+import dk.cocode.soccer.core.game.Records
 import dk.cocode.soccer.core.text.Lang
 import dk.cocode.soccer.platform.Audio
 import dk.cocode.soccer.platform.Engine
@@ -106,11 +107,20 @@ class FakeSink(private val onPlay: (Sound) -> Unit = {}) : SoundSink {
     }
 }
 
-class FakePrefs(lang: Lang = Lang.EN, engine: String? = null, var failWrites: Boolean = false) : Prefs {
+class FakePrefs(
+    lang: Lang = Lang.EN,
+    engine: String? = null,
+    var failWrites: Boolean = false,
+    records: Records = Records(),
+) : Prefs {
     private val langs = MutableStateFlow(lang)
     private val engines = MutableStateFlow(engine)
+    private val kept = MutableStateFlow(records)
     override val lang: Flow<Lang> = langs
     override val enginePkg: Flow<String?> = engines
+    override val records: Flow<Records> = kept
+
+    fun recordsNow() = kept.value
 
     fun langNow() = langs.value
 
@@ -125,6 +135,11 @@ class FakePrefs(lang: Lang = Lang.EN, engine: String? = null, var failWrites: Bo
     override suspend fun setEngine(pkg: String) {
         if (failWrites) throw IOException("disk full")
         engines.value = pkg
+    }
+
+    override suspend fun setRecords(records: Records) {
+        if (failWrites) throw IOException("disk full")
+        kept.value = records
     }
 }
 

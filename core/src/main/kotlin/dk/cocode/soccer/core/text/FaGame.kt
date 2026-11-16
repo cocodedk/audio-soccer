@@ -1,6 +1,6 @@
 package dk.cocode.soccer.core.text
 
-// فارسی: what the game says, word for word from prototype/js/i18n/fa.js. Formal "شما" throughout and
+// فارسی: what the game says, word for word from prototype/js/i18n/fa.js but for the new records lines. Formal "شما" throughout and
 // a ZWNJ (U+200C) where Persian needs it. Persian digits: digits() turns any ASCII digit that reaches a result into
 // one, and a decimal point into ٫, so every member that takes a parameter goes through it.
 internal object FaGame : GameStrings {
@@ -59,6 +59,11 @@ internal object FaGame : GameStrings {
     override fun summaryDone(level: Int) = digits("مرحله $level تمام شد.")
     override fun summaryTimes(head: String, list: String) = digits("$head زمان‌ها: $list.")
     override val summarySep = "، "
+
+    // records: new, not from the trial (docs/persian-to-check.md)
+    override fun bestTime(time: String) = digits("بهترین زمان $time ثانیه.")
+    override fun newRecord(time: String) = digits("رکورد جدید: $time ثانیه.")
+    override val allWon = "هر سه دور را بردید."
 
     // the sound tour
     override val learnEnd = "صداها همین‌ها بود."

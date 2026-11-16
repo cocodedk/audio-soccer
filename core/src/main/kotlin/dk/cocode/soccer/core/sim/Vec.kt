@@ -25,10 +25,13 @@ fun roundHalfUp(v: Double): Double = floor(v + 0.5)
 // One decimal place, rounded half up on the scaled value (String.format would follow the phone's locale). Shared by
 // the spoken times. This is not JavaScript's toFixed(1) on binary ties: 0.15 and 2.05 sit just
 // below the tie and toFixed rounds them down, while v * 10 lands exactly on the tie here and rounds up.
-internal fun tenths(v: Double): String {
-    val n = roundHalfUp(v * 10).toLong()
-    return "${n / 10}.${n % 10}"
-}
+internal fun tenths(v: Double): String = tenthsText(tenthsOf(v))
+
+// A time in whole tenths of a second, rounded as the spoken times are: what a record keeps.
+internal fun tenthsOf(v: Double): Int = roundHalfUp(v * 10).toInt()
+
+// "7.4" for 74 tenths.
+internal fun tenthsText(n: Int): String = "${n / 10}.${n % 10}"
 
 private val D = sqrt(0.5)
 

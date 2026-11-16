@@ -39,7 +39,7 @@ internal class Talk(
     private var speech: Speech? = null
     private var wantLang = Lang.EN // what the player chose
     private var connecting = false // an engine is being started or switched to
-    private var saveFailed = false // a choice could not be written (the disk is full), so it is not kept: logged once
+    private var saveFailed = false // a choice or a record could not be written (the disk is full), so it is not kept: logged once
     private var deadline = Long.MAX_VALUE // when the engine being waited for is given up on
     private val late = MutableStateFlow(false) // the deadline has passed
 
@@ -132,7 +132,7 @@ internal class Talk(
         return true
     }
 
-    private suspend fun save(write: suspend () -> Unit) {
+    suspend fun save(write: suspend () -> Unit) {
         try {
             write()
         } catch (e: IOException) {

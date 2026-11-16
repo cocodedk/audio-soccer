@@ -1,5 +1,6 @@
 package dk.cocode.soccer.game
 
+import dk.cocode.soccer.core.game.Records
 import dk.cocode.soccer.core.input.Phase
 import dk.cocode.soccer.core.input.PlayInput
 import dk.cocode.soccer.core.input.Touch
@@ -27,13 +28,14 @@ class Rig(
     private val defaultEngine: String? = engines.firstOrNull()?.pkg, // what the system's default stands for; null: it has none
     var states: Map<String?, TtsState> = emptyMap(), // what a given engine reports; null is the system's default
     failWrites: Boolean = false, // the choices cannot be written
+    records: Records = Records(), // the records kept on the phone
 ) {
     val speeches = mutableListOf<FakeSpeech>()
     val reader = FakeReader(readerOn)
     val haptics = FakeHaptics()
     val audio = FakeAudio()
     val sink = FakeSink()
-    val prefs = FakePrefs(lang, savedEngine, failWrites)
+    val prefs = FakePrefs(lang, savedEngine, failWrites, records)
     val log = mutableListOf<String>()
     var now = 0L
     val session = Session(

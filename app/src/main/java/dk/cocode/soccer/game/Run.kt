@@ -17,9 +17,9 @@ private const val INTRO_KEY = "intro"
 private const val INTRO_WAIT_MS = 60000L // how long an intro line may wait behind the one before it
 
 // The level being played, from its start to its summary, and the screens that go with it: Play, Paused, HandOver (a level
-// or a pause that waits for the screen reader to go off) and Summary. The first level a run starts is led in by the drag intro,
-// spoken on the Play screen before the round exists: the level begins once its lines have ended, and a finger meanwhile does
-// nothing, for there is no round to take it.
+// or a pause that waits for the screen reader to go off) and Summary. The records a level leaves go to the book. The first
+// level a run starts is led in by the drag intro, spoken on the Play screen before the round exists: the level begins once
+// its lines have ended, and a finger meanwhile does nothing, for there is no round to take it.
 internal class Run(
     private val stage: Stage,
     private val talk: Talk,
@@ -29,6 +29,7 @@ internal class Run(
     private val sink: SoundSink,
     private val haptics: Haptics,
     private val log: (String) -> Unit,
+    private val book: RecordBook,
 ) {
     private var round: Round? = null
     private var introLevel: Int? = null // the level waiting for the intro to end
@@ -46,7 +47,7 @@ internal class Run(
     }
 
     private fun begin(n: Int) {
-        val r = Round(n, rand, talk, nowMs, sink, haptics, log, ::pause, ::done)
+        val r = Round(n, book.records, rand, talk, nowMs, sink, haptics, log, ::pause, ::done)
         round = r
         r.start()
         mutablePitch.value = r.pitch
@@ -54,6 +55,7 @@ internal class Run(
 
     private fun done(result: LevelResult) {
         round = null
+        book.keep(result.records)
         stage.show(Screen.Summary(result))
     }
 

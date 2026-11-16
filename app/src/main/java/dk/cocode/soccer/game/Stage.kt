@@ -1,5 +1,7 @@
 package dk.cocode.soccer.game
 
+import dk.cocode.soccer.core.game.Records
+import dk.cocode.soccer.core.game.levelOption
 import dk.cocode.soccer.core.input.Menu
 import dk.cocode.soccer.core.input.MenuInput
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,10 +10,12 @@ import kotlinx.coroutines.flow.asStateFlow
 
 // The screen that is up, its options and the cursor over them: what the menus show, and what a touch or a button on them
 // does. Entering a screen is reported to onChange(before, after) once the screen is set, before its options are read.
-// ready: an engine speaks. Until then the options show but nothing is chosen. connect() starts the engine.
+// ready: an engine speaks. Until then the options show but nothing is chosen. connect() starts the engine. records: the player's,
+// which the level options name.
 internal class Stage(
     private val talk: Talk,
     private val choices: Choices,
+    private val records: () -> Records,
     private val log: (String) -> Unit,
     private val onChange: (Screen, Screen) -> Unit,
 ) {
@@ -44,7 +48,7 @@ internal class Stage(
     // The options and the text of the screen, again: the language or the engine changed, or the screen did. The cursor stays.
     fun refresh() {
         val s = current
-        options = optionsFor(s, talk.ui, { talk.engineLabel }, choices)
+        options = optionsFor(s, talk.ui, { talk.engineLabel }, { n, name -> levelOption(n, name, records(), talk.strings) }, choices)
         mutableItems.value = options.map { it.text }
         mutableBody.value = bodyFor(s, talk.ui)
         val index = menu?.index ?: 0

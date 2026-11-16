@@ -2,15 +2,16 @@
 
 **App:** Audio Soccer (`dk.cocode.soccer`)
 **Developer:** CoCode.dk, Babak Bandpey
-**Last updated:** 15 November 2026
+**Last updated:** 16 November 2026
 
 **Audio Soccer collects nothing.** It does not collect, send or share any personal data. It needs no account, and it has
 no network permission, so it cannot connect to the internet.
 
 ## What stays on your phone
 
-The app keeps two settings on your phone: the language (English or Persian) and the speech engine you chose. They are
-kept in a private data store that only this app can read. The app never sends them anywhere. Deleting the app or clearing
+The app keeps two settings on your phone, the language (English or Persian) and the speech engine you chose, and your
+records: the best time in each level and the levels where you won all three rounds. They are kept in a private data store
+that only this app can read. The app never sends them anywhere. Deleting the app or clearing
 its data removes them. The app also tells Android not to back them up, so they go neither to a cloud backup nor to a new phone.
 
 ## Permissions

@@ -235,6 +235,13 @@ replaces the earlier rule that TalkBack always stays on.
   engine, the app opens the first installed one itself. If the phone has no engine at all, the game
   says so on the screen.
 - Pause is always one action away, and the pause menu speaks like every other menu.
+- **A won round gets a fanfare** (owner, 2026-11-16): a short rising run that ends on a chord, about 1.2 s, played when
+  the ball is found in level 1 and on every goal, over the goal's own sound. It sounds under the line the game says ("Got
+  it. 7.4 seconds.", "Goal!"); nothing makes the voice wait for it.
+- **Records** (owner, 2026-11-16): each level keeps its fastest won round, to the tenth of a second that is spoken, and
+  whether all three rounds were once won in one go. The level's option on the menu reads them ("Score a goal. Best 7.4
+  seconds. All three rounds won."), and the summary adds "New record: 7.4 seconds." when the best falls (a level's first
+  win counts) and "All three rounds won." when they were. They are kept on the phone with the settings, nowhere else.
 
 ## Controls: plain touch, screen reader off
 

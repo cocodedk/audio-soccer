@@ -67,8 +67,9 @@ class Session(
         }
     }
 
-    private val stage: Stage = Stage(talk, choices, log, ::screenChanged)
-    private val run: Run = Run(stage, talk, reader, rand, nowMs, sink, haptics, log)
+    private val book = RecordBook(prefs, scope, talk::save)
+    private val stage: Stage = Stage(talk, choices, book::records, log, ::screenChanged)
+    private val run: Run = Run(stage, talk, reader, rand, nowMs, sink, haptics, log, book)
     private val fingers = Fingers(stage, run, reader, nowMs, ::home)
     private val mutableAwake = MutableStateFlow(false)
 
@@ -88,6 +89,7 @@ class Session(
 
     init {
         stage.refresh()
+        book.load(stage::refresh)
         stage.connect()
         scope.launch { reader.on.drop(1).collect(::readerChanged) }
     }

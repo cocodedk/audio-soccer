@@ -4,6 +4,7 @@ import dk.cocode.soccer.core.audio.Sound.BOARD
 import dk.cocode.soccer.core.audio.Sound.BRUSH
 import dk.cocode.soccer.core.audio.Sound.CHIME
 import dk.cocode.soccer.core.audio.Sound.END_WALL
+import dk.cocode.soccer.core.audio.Sound.FANFARE
 import dk.cocode.soccer.core.audio.Sound.GOAL
 import dk.cocode.soccer.core.audio.Sound.KEEPER_STEP
 import dk.cocode.soccer.core.audio.Sound.KICK
@@ -22,7 +23,7 @@ import org.junit.jupiter.api.Test
 class SfxTest {
     private val lengths = mapOf(
         TICK to 0.06, TAP to 0.07, KICK to 0.13, BOARD to 0.1, END_WALL to 0.18, BRUSH to 0.13, STEP to 0.05,
-        KEEPER_STEP to 0.05, CHIME to 0.92, POST to 1.0, SAVE to 0.12, GOAL to 2.8,
+        KEEPER_STEP to 0.05, CHIME to 0.92, POST to 1.0, SAVE to 0.12, GOAL to 2.8, FANFARE to 1.24,
     )
 
     @Test
@@ -85,6 +86,19 @@ class SfxTest {
         assertTrue(out.between(2.4, 2.6).rms() > 0, "the cheer is still going at 2.5 s")
         val cheer = out.between(1.0, 2.0)
         assertTrue(cheer.bandEnergy(900.0, 1300.0) > 3 * cheer.bandEnergy(100.0, 300.0), "a cheer sits near 1.1 kHz")
+    }
+
+    @Test
+    fun theFanfareRisesToAChordAndIsGoneByItsEnd() {
+        val out = playOnce(FANFARE, 2.0)
+        val first = out.between(0.01, 0.1)
+        assertTrue(first.energyAt(392.0) > 20 * first.energyAt(784.0), "it starts on its lowest note")
+        val chord = out.between(0.5, 0.7)
+        assertTrue(chord.energyAt(1047.0) > 20 * chord.energyAt(392.0), "and ends on the chord, the run gone")
+        val mixer = Mixer(1L)
+        mixer.play(FANFARE)
+        mixer.renderSeconds(1.25)
+        assertEquals(0, mixer.voiceCount, "every voice has ended")
     }
 
     @Test

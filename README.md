@@ -13,7 +13,8 @@ using sound alone?
 
 ## The Android app
 
-Version 0.1.0 is the trial's three levels as an app: find the ball, score a goal, beat the keeper, three rounds each. You
+Version 0.1.0 is the trial's three levels as an app: find the ball, score a goal, beat the keeper, three rounds each. A won
+round gets a fanfare, and each level's option on the menu says your best time in it. You
 play on the phone's speaker with the screen reader turned off. The game speaks its own menus, in English or Persian
 (hold a finger on an option to hear it, swipe to move, tap to hear it again, double-tap to choose), through the speech
 engines installed on the phone, for example eSpeak.

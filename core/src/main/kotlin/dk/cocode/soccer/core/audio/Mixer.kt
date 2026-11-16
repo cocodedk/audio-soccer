@@ -9,7 +9,7 @@ import kotlin.random.Random
 const val SAMPLE_RATE = 44100
 
 // The game's sounds. Every one is synthesized (recipes in Sfx.kt); the app has no audio files.
-enum class Sound { RATTLE, TICK, TAP, KICK, BOARD, END_WALL, BRUSH, STEP, CHIME, POST, SAVE, GOAL, KEEPER_STEP }
+enum class Sound { RATTLE, TICK, TAP, KICK, BOARD, END_WALL, BRUSH, STEP, CHIME, POST, SAVE, GOAL, KEEPER_STEP, FANFARE }
 
 // What the soundscape plays into. behind runs the sound through a 2000 Hz lowpass; stretch (0.35 to 1) shortens the chime.
 interface SoundSink {

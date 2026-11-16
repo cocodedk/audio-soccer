@@ -148,5 +148,6 @@ class GameTest {
         assertTrue(h.world.scored, "the player dribbled the ball in")
         assertEquals(listOf(Outcome.SHORT), shots.map { it.outcome })
         assertTrue(Line("Got the ball", key = "got", gapMs = 1500) in h.said, "taking it back is said")
+        assertEquals(1, h.wins, "taking it back wins nothing: the goal is the round's one win")
     }
 }
