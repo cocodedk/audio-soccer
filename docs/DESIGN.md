@@ -5,8 +5,8 @@ Status: fourth draft, 2026-11-12: the match is played with the screen reader off
 
 ## Why this exists
 
-A blind tester of our chess-puzzles app (an Android TalkBack user) asked for a soccer game. Blind and
-low-vision players, they said, "don't have any decent soccer games to play". They want rich audio
+A blind tester of our chess-puzzles app (an Android TalkBack user) asked for a soccer game. Players like
+them, they told us, "don't have any decent soccer games to play". They want rich audio
 effects and a commentator.
 
 Every decision below comes back to one fact: **the player cannot see the screen.** Sound is the

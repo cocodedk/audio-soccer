@@ -26,9 +26,9 @@ The [browser trial](https://soccer.cocode.dk/) needs a computer with a keyboard;
 a phone. Speakers work, and headphones are optional.
 
 1. Open the trial.
-2. Under **Language**, choose English or فارسی (Persian). Everything the trial shows and says
-   follows it. If your browser has no Persian voice, the trial switches to your screen reader by
-   itself and says so.
+2. Under **Language**, choose English or فارسی (Persian). The trial's screens and voice follow it;
+   the results report stays in English. If your browser has no Persian voice, the trial switches to
+   your screen reader by itself and says so.
 3. Under **Sound**, choose **Speakers** (the default) or **Headphones**. With headphones, a
    **Headphone check** button appears: it plays knocks on your left while a voice says "Left",
    then the same on your right.
@@ -141,7 +141,8 @@ The scripts only talk to the emulator (port 5584 unless `PORT` says otherwise), 
 is left alone.
 
 To run the trial on your own computer, start `python3 -m http.server --directory prototype`, then
-open `http://localhost:8000/` for the trial or `http://localhost:8000/phone/` for the phone test.
+open `http://localhost:8000/` for the trial or `http://localhost:8000/phone/` for the phone test. The link
+to the app page works only on the published site.
 Run the trial's logic tests with `node --test prototype/test/*.test.mjs`.
 
 ## Releases

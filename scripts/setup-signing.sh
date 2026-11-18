@@ -49,18 +49,24 @@ echo
 # The password reaches keytool through the environment, never through its arguments.
 export KS_PASS="$PASS"
 if [ ! -e "$KEYSTORE_FILE" ]; then
+  IFS= read -rsp 'The same password again: ' AGAIN || AGAIN=
+  echo
+  [ "$PASS" = "$AGAIN" ] || die "The two passwords differ. Nothing was changed."
   mkdir -p "$(dirname "$KEYSTORE_FILE")"
   keytool -genkeypair -keystore "$KEYSTORE_FILE" -storetype PKCS12 -alias "$KEY_ALIAS" \
     -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Audio Soccer, O=Cocode" \
     -storepass:env KS_PASS -keypass:env KS_PASS >/dev/null 2>&1 || die "keytool could not create $KEYSTORE_FILE"
 fi
 
-info=$(keytool -list -v -keystore "$KEYSTORE_FILE" -alias "$KEY_ALIAS" -storepass:env KS_PASS 2>/dev/null) ||
-  die "Wrong password, no key with the alias '$KEY_ALIAS', or not a keystore. Nothing was uploaded."
-case "$info" in
+# Without -alias, keytool prints the keystore type; with it, the certificate fingerprint.
+kind=$(keytool -list -keystore "$KEYSTORE_FILE" -storepass:env KS_PASS 2>/dev/null) ||
+  die "Wrong password, or not a keystore. Nothing was uploaded."
+case "$kind" in
   *"Keystore type: PKCS12"*) ;;
   *) die "Not a PKCS12 keystore, so the key may have its own password. Nothing was uploaded." ;;
 esac
+info=$(keytool -list -v -keystore "$KEYSTORE_FILE" -alias "$KEY_ALIAS" -storepass:env KS_PASS 2>/dev/null) ||
+  die "No key with the alias '$KEY_ALIAS' in the keystore. Nothing was uploaded."
 digest=$(printf '%s\n' "$info" | sed -n 's/^[[:space:]]*SHA256:[[:space:]]*//p' | head -1 | tr -d ':' | tr 'A-F' 'a-f')
 [ -n "$digest" ] || die "Could not read the certificate SHA-256. Nothing was uploaded."
 

@@ -36,7 +36,7 @@ test('phone/index.html text matches the English table, and every key it uses exi
 });
 
 test('the Pages workflow copies the phone page next to the trial', () => {
-  assert.match(read('../../.github/workflows/deploy-pages.yml'), /cp -r prototype\/phone _site\//);
+  assert.match(read('../../.github/workflows/deploy-pages.yml'), /cp -r [^\n]*prototype\/phone[^\n]*_site\//);
 });
 
 const round = (how, time, extra = {}) => ({ ...closeStats(2, { ...newStats({ player: { x: 8, y: 8 }, ball: { x: 8.5, y: 8 } }), time, ...extra }, how) });
