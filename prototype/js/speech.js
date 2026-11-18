@@ -20,7 +20,7 @@ function synth() {
 const canSpeak = () => !!synth() && typeof SpeechSynthesisUtterance !== 'undefined';
 
 // One listener told the text of each line as it is spoken (or posted to a live region), as onSpoken
-// is: the phone test shows the lines for sighted helpers. It is called after the line has gone to the
+// is: the phone test shows the lines for a sighted friend. It is called after the line has gone to the
 // engine (a microtask), so it can never hold up or change speech.
 let lineListener = null;
 export const onLine = (fn) => { lineListener = fn; };

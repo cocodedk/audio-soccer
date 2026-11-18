@@ -3,6 +3,7 @@ set -eu
 
 # Fast static checks ONLY. The full test suite + 100% coverage gate run at pre-push,
 # not on every commit, so the commit loop stays fast.
-[ -f "$HOME/.soccer-env.sh" ] && . "$HOME/.soccer-env.sh"
+# shellcheck source=/dev/null
+. "$(dirname "$0")/env.sh"
 echo "pre-commit: running fast lint (./gradlew lintDebug)..."
 ./gradlew lintDebug --quiet </dev/null

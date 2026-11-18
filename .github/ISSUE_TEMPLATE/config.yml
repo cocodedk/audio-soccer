@@ -1,0 +1,7 @@
+blank_issues_enabled: true
+contact_links:
+  - name: No GitHub account? Email bb@cocode.dk
+    url: https://github.com/cocodedk/audio-soccer/blob/main/CONTRIBUTING.md#report-a-problem-or-an-idea
+    about: >-
+      Write to bb@cocode.dk. Say which phone you use, what you were doing and what you heard.
+      A sighted friend may write it for you.

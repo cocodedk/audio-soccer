@@ -1,13 +1,16 @@
 <meta charset="utf-8">
-<title>Audio Soccer Trial</title>
+<title>Audio Soccer trial: play football by ear in your browser</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="style.css">
+
+<a class="skip" href="#h-levels" data-i18n="ui.skip">Skip to the levels</a>
 
 <div class="wrap">
   <header class="hero">
     <p class="eyebrow" data-i18n="ui.eyebrow">Trial · keyboard, speakers or headphones</p>
     <h1><span data-i18n="ui.h1a">Audio</span> <em data-i18n="ui.h1b">Soccer</em> <span data-i18n="ui.h1c">trial</span></h1>
     <p class="phone-link"><a href="phone/" data-i18n="ui.phoneLink">On a phone? Open the phone test.</a></p>
+    <p class="app-link"><a href="app/" data-app-link data-i18n="ui.appLink">The Android app is coming. Read about it.</a></p>
     <p class="lede" data-i18n="ui.lede">This needs a computer with a keyboard, not a phone. Speakers work, and headphones are optional. This short test checks one thing: can you find the ball, take it to the goal and score using only your ears? You always face the goal you attack. The ball rattles when it rolls and ticks when it is still, the goal chimes while you have the ball, and the side boards knock when you touch them. A voice tells you what happens. Press Learn the sounds first.</p>
     <p class="notice" id="touch-notice" role="alert" hidden></p>
   </header>
@@ -16,7 +19,7 @@
     <section class="panel" aria-labelledby="h-menu">
       <h2 id="h-menu" data-i18n="ui.play">Play</h2>
       <fieldset class="modes">
-        <legend>Language / زبان</legend>
+        <legend><span lang="en" dir="ltr">Language</span> / <span lang="fa" dir="rtl">زبان</span></legend>
         <label class="check"><input type="radio" name="lang" value="en" checked> <span lang="en" dir="ltr">English</span></label>
         <label class="check"><input type="radio" name="lang" value="fa"> <span lang="fa" dir="rtl">فارسی</span></label>
       </fieldset>
@@ -49,7 +52,7 @@
         <select id="voice"><option value="">Default voice</option></select>
       </div>
       <div class="levels" role="group" aria-labelledby="h-levels">
-        <h3 id="h-levels" data-i18n="ui.levels">Levels, three rounds each</h3>
+        <h3 id="h-levels" tabindex="-1" data-i18n="ui.levels">Levels, three rounds each</h3>
         <button class="btn level" type="button" data-level="1" data-i18n="ui.level1">Level 1: Find the ball</button>
         <button class="btn level" type="button" data-level="2" data-i18n="ui.level2">Level 2: Score</button>
         <button class="btn level" type="button" data-level="3" data-i18n="ui.level3">Level 3: Beat the keeper</button>
@@ -78,7 +81,7 @@
            aria-label="Pitch. H for help." data-i18n-aria="ui.arena">
         <p class="status" id="status" aria-hidden="true">Choose a level to start</p>
         <canvas id="pitch" role="img" data-i18n-aria="ui.canvasLabel"
-                aria-label="Top-down picture of the pitch for sighted helpers. You attack to the right; your left is the top board."></canvas>
+                aria-label="Top-down picture of the pitch, for low-vision players and a sighted friend. You attack to the right; your left is the top board."></canvas>
       </div>
       <label class="check"><input type="checkbox" id="hide-pic"> <span data-i18n="ui.hidePic">Hide the picture, to play by ear</span></label>
     </section>

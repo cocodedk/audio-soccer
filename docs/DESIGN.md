@@ -5,8 +5,8 @@ Status: fourth draft, 2026-11-12: the match is played with the screen reader off
 
 ## Why this exists
 
-A blind tester of our chess-puzzles app (an Android TalkBack user) asked for a soccer game. In their
-words, visually impaired players "don't have any decent soccer games to play". They want rich audio
+A blind tester of our chess-puzzles app (an Android TalkBack user) asked for a soccer game. Blind and
+low-vision players, they said, "don't have any decent soccer games to play". They want rich audio
 effects and a commentator.
 
 Every decision below comes back to one fact: **the player cannot see the screen.** Sound is the
@@ -18,7 +18,7 @@ so every slice goes to them early and their feedback outranks this document.
 - A blind player listening on the phone's own speaker can install the game, start a match and play
   it to the final whistle without sighted help. They turn TalkBack off for the match themselves, and
   from that moment the game speaks everything. No headphones: the tester
-  can't wear them, because they hurt.
+  plays on the phone's speaker.
 - During play they can tell by ear where the ball is, who has it, and where the goal is, without
   stopping to ask.
 - It feels like a real match: crowd, whistle, the ball on the boards, a commentator who reacts.
@@ -105,7 +105,7 @@ good the opponents are. Game speed is its own setting, slow, normal or fast, so 
 
 The listener stands on the player's own footballer, always facing the opponent's goal.
 
-**Speakers are the default.** The tester can't wear headphones, and a phone's two speakers sit a few
+**Speakers are the default.** The tester plays on the phone's speaker, and a phone's two speakers sit a few
 centimetres apart, so left and right mostly blur and 3D placement is lost. Nothing the player needs
 may depend on which ear a sound reaches. Each piece of information has a cue that survives one
 small speaker:
@@ -373,8 +373,8 @@ These go in a later email, most important first:
    browser version forward.)
 2. Is blind-football-style 5-a-side OK, or do they want the feel of regular 11-a-side?
 3. Have they played audio games they loved or hated, especially sports ones, and why?
-4. ~~Do they play with headphones?~~ Answered 2026-11-09: no, headphones hurt their ears. The
-   game is built for speakers.
+4. ~~Do they play with headphones?~~ Answered 2026-11-09: no, they play on the phone's speaker.
+   The game is built for speakers.
 5. ~~Which language should the commentator speak?~~ The owner chose English and Persian on
    2026-11-09. Ask whether the Persian voice sounds right.
 6. Are loud sounds a problem on speakers too? Which ones, and is the capped mix comfortable?

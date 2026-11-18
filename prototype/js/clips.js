@@ -27,7 +27,7 @@ export function loadClips() {
 // missing for good and is spoken. Before that, the caller waits for its clip rather than say it twice.
 export const clipsSettled = () => settled || !audioCtx();
 
-// One listener told each side word as its clip starts (the phone test shows it for sighted helpers).
+// One listener told each side word as its clip starts (the phone test shows it for a sighted friend).
 let clipListener = null;
 export const onClip = (fn) => { clipListener = fn; };
 

@@ -1,0 +1,21 @@
+name: Idea
+description: Something you would like the game to do.
+labels: ["idea"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Tell me your idea. Only the first question must be answered.
+        A sighted friend may fill in this form for you.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What is your idea?
+      description: What you would like the game to do, in your own words.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What would it help you do?
+      description: What is hard or missing today, or what would make the game more fun for you.

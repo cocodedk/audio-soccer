@@ -1,138 +1,188 @@
 # Audio Soccer
 
-**Play the trial:** https://soccer.cocode.dk/
+Audio Soccer is a football game you play by ear, for blind and low-vision players. In three levels
+you find the ball, score a goal and beat the keeper.
 
-An audio-first 5-a-side football game for blind and visually impaired players. Every pass, tackle
-and shot is a sound you can place. The rules borrow from blind football, the Paralympic sport built
-around sound.
+It is an Android app that speaks for itself, in English or Persian. A free trial of the same three
+levels plays in a web browser on a computer.
 
-The real game is an Android app that speaks for itself, so the screen reader can be off during a
-match; its first release is in this repository (see [The Android app](#the-android-app)). The browser
-trial, also here, answers one question: can a blind player find the ball, take it to the goal and score
-using sound alone?
+## Website
 
-## The Android app
+- [Audio Soccer app page, in English](https://soccer.cocode.dk/app/)
+- [Audio Soccer app page, in Persian (فارسی)](https://soccer.cocode.dk/fa/app/)
+- [Browser trial, played with a keyboard](https://soccer.cocode.dk/)
 
-Version 0.1.0 is the trial's three levels as an app: find the ball, score a goal, beat the keeper, three rounds each. A won
-round gets a fanfare, and each level's option on the menu says your best time in it. You
-play on the phone's speaker with the screen reader turned off. The game speaks its own menus, in English or Persian
-(hold a finger on an option to hear it, swipe to move, tap to hear it again, double-tap to choose), through the speech
-engines installed on the phone, for example eSpeak.
-Settings lets you choose which engine. You steer by dragging a finger anywhere on the screen and tap to kick. The app needs
-no internet, has no ads and no tracking, and asks for one permission, vibration. Tilt steering, sharing results and a
-speech-speed setting are left out of 0.1.0. See the [privacy policy](docs/privacy.md).
+## Get the Android app
 
-**Build.** You need JDK 17 (the default JDK on your machine may be newer, so point `JAVA_HOME` at a 17) and the Android SDK,
-whose path goes in `local.properties` as `sdk.dir=...` (not committed).
+The app is not published yet. The first release is being prepared, and so is its listing on
+F-Droid, an app store for free and open-source Android apps. When they are ready, the
+[Audio Soccer app page](https://soccer.cocode.dk/app/) will link to both.
+
+The app needs Android 7.0 or newer.
+
+## Play the browser trial
+
+The [browser trial](https://soccer.cocode.dk/) needs a computer with a keyboard; it does not work on
+a phone. Speakers work, and headphones are optional.
+
+1. Open the trial.
+2. Under **Language**, choose English or فارسی (Persian). Everything the trial shows and says
+   follows it. If your browser has no Persian voice, the trial switches to your screen reader by
+   itself and says so.
+3. Under **Sound**, choose **Speakers** (the default) or **Headphones**. With headphones, a
+   **Headphone check** button appears: it plays knocks on your left while a voice says "Left",
+   then the same on your right.
+4. Press **Learn the sounds** to hear each sound named.
+5. Under **Who reads the game to you**, choose **Built-in voice** or **My screen reader speaks**.
+   You can also set the **Speech speed**.
+6. Press **Level 1: Find the ball**. Focus moves into the game, and the clock starts when you
+   first move.
+7. After a level, press **Copy results** to copy a report of your rounds.
+
+The keys during play:
+
+- Arrow keys: run. Up is toward the goal.
+- Space: kick straight up the pitch. Hold Left or Right while you kick to angle it 15 degrees to
+  that side.
+- W: hear where you are.
+- G: give up the round.
+- H: hear the keys again.
+- `[` and `]`, or `-` and `+`: slower or faster speech.
+- Escape: pause.
+
+If the arrow keys read the page instead of moving you, your screen reader needs to pass the keys to
+the game. The trial page gives two tips: in NVDA or JAWS, press NVDA+Space or turn on forms mode; in
+VoiceOver, turn Quick Nav off by pressing Left and Right together.
+
+**Clear results** deletes the results stored on your computer. Press it once, then again within 15
+seconds to confirm. The level in progress is kept.
+
+### Phone controls test
+
+The [phone controls test](https://soccer.cocode.dk/phone/) is an earlier test of touch controls,
+in an Android phone's browser. You play on the phone's speaker with the screen reader off.
+
+1. With your screen reader on, choose English or فارسی and press **Start**. The game checks that
+   its own voice can speak. If no voice speaks, the page says so and you keep the screen reader on.
+2. When the game asks, turn your screen reader off, then swipe up in the middle of the screen.
+3. In the spoken menu, swipe right or left to move between **Drag to steer**, **Tilt to steer**
+   and **Finish**. Double-tap to choose.
+4. Each way of steering plays the trial's level 2 for three rounds. Tap to kick, tap with two
+   fingers to hear where you are, and tap with three to go back to the menu. The phone buzzes once
+   when the ball comes into reach and twice when you line up with the goal.
+5. Choose **Finish**, then turn your screen reader back on. Your results are on the page, with a
+   **Copy results** button.
+
+## How the app is played
+
+You play on the phone's speaker with the screen reader turned off, and the game speaks for itself.
+It speaks through the speech engines installed on your phone, for example eSpeak NG, and you choose
+one in Settings. If your phone has no speech engine, install one first.
+
+While the screen reader is on, the menus are ordinary buttons it reads, so you can set things up
+first. If the screen reader is still on when a level is about to start, the game asks you to turn it
+off and waits. When you finish, you turn it back on yourself.
+
+With the screen reader off, the game speaks its own menus:
+
+- Hold a finger on the screen to hear an option.
+- Swipe to move between options: quickly with one finger, or at any speed with two.
+- Tap once to hear the current option again.
+- Double-tap to choose.
+
+During play:
+
+- Drag a finger anywhere on the screen to run. Up the screen is toward the goal.
+- Tap to kick.
+- Tap with two fingers to hear where you are.
+- Tap with three fingers to pause.
+
+The phone vibrates when the ball comes into reach and when you line up with the goal. A fanfare
+plays for each round you win. Each level remembers your best time and whether you won all three
+rounds: its menu option tells you, and the summary at the end of the level tells you when you set a
+new record.
+
+If you can see some of the screen, the menus are white text on black with the option in focus in
+yellow, and the pitch is drawn in bright colours on black: you in cyan, the ball in orange, the
+keeper in pink and the goal in yellow.
+
+## Privacy
+
+The app has no internet permission, no ads, no tracking and no analytics. It uses two permissions:
+one to make the phone vibrate, and one added by an Android library that only apps signed with the
+same key can hold.
+
+Your settings and records stay on your phone. They are not backed up, and they are deleted when you
+uninstall the app or clear its data. Read the full [privacy policy](https://soccer.cocode.dk/privacy/).
+
+## Build from source
+
+You need JDK 17 and the Android SDK. If your default JDK is newer, point `JAVA_HOME` at a JDK 17.
+Put the SDK path in `local.properties` as `sdk.dir=...`; that file is not committed.
 
 ```
 ./gradlew buildSmoke
 ```
 
 This runs the tests with the 100% line coverage gate and lint, and builds the debug APK at
-`app/build/outputs/apk/debug/app-debug.apk`. `:core` is the game's logic in pure Kotlin, ported from the trial so the
-numbers and the spoken lines match it, and `:app` is the Android shell around it.
+`app/build/outputs/apk/debug/app-debug.apk`. Install the git hooks with `scripts/install-hooks.sh`.
 
-**Play it on an emulator.** Run `./gradlew buildSmoke` first, then:
+To play the app on an emulator, run `./gradlew buildSmoke` first, then:
 
-- `scripts/emu.sh` starts a headless emulator, installs the debug APK and opens the app. It looks for an AVD named
-  `soccer`. If there is none and no `avdmanager` to make one, name an AVD you have: `AVD=<name> scripts/emu.sh`.
-- `scripts/e2e.sh` plays the game through adb and prints PASS or FAIL for each check. Every verdict comes from the app's own
-  log lines. The first run downloads eSpeak NG from F-Droid, to test a second speech engine.
+- `scripts/emu.sh` starts a headless emulator, installs the debug APK and opens the app. It looks
+  for an AVD named `soccer`. If there is none and no `avdmanager` to make one, name an AVD you
+  have: `AVD=<name> scripts/emu.sh`.
+- `scripts/e2e.sh` plays the game through adb and prints PASS or FAIL for each check. Every verdict
+  comes from the app's own log lines. The first run downloads eSpeak NG from F-Droid, to test a
+  second speech engine.
 - `scripts/emu.sh stop` stops the emulator.
 
-The scripts only talk to the emulator (port 5584 unless `PORT` says otherwise), so a phone on USB is left alone.
+The scripts only talk to the emulator (port 5584 unless `PORT` says otherwise), so a phone on USB
+is left alone.
 
-**Releases.** Nothing is published yet. Each release will be a signed `AudioSoccer.apk` on this repository's GitHub Releases
-page, and the app is meant to go to F-Droid, which builds from this source; the texts it shows are in
-[`fastlane/metadata/android/`](fastlane/metadata/android/). To make a release, raise `VERSION_NAME` and `VERSION_CODE` in
-`gradle.properties`, then run the **Release APK** workflow from the Actions tab. It needs four repository secrets,
-`KEYSTORE_BASE64` (the signing keystore, base64-encoded), `KEYSTORE_PASSWORD`, `KEY_ALIAS` and `KEY_PASSWORD`. It runs the
-tests and the coverage gate, builds the signed APK and tags `v<VERSION_NAME>`. It stops before the tag if a secret is missing
-or that version is already released.
+To run the trial on your own computer, start `python3 -m http.server --directory prototype`, then
+open `http://localhost:8000/` for the trial or `http://localhost:8000/phone/` for the phone test.
+Run the trial's logic tests with `node --test prototype/test/*.test.mjs`.
 
-## The browser trial
+## Releases
 
-You need a computer with a keyboard and a current browser (Chrome, Edge or Firefox). Speakers work,
-and headphones are optional. It works with a screen reader (NVDA, JAWS, VoiceOver) or with the
-browser's own voice.
+Nothing is published yet. Each release will be a signed `AudioSoccer.apk` on this repository's
+[Releases page](https://github.com/cocodedk/audio-soccer/releases). The app is meant to go to
+F-Droid, which builds it from this source and shows the texts in
+[`fastlane/metadata/android/`](fastlane/metadata/android/).
 
-1. Open the trial. Press **Learn the sounds** to hear each sound named.
-2. Choose **Sound**: **Speakers** (the default) or **Headphones**. With speakers nothing is panned
-   left and right. Distance comes through as volume, the ball's tick and the goal's chime beep faster
-   as you close in, and a short recorded word says where your target is, the ball or, once you have
-   it, the goal: "ahead", "left", "right" or "behind". The word plays at once, even while your screen
-   reader is still talking, so it is never late. With headphones the sounds are placed in 3D (HRTF), and a
-   **Headphone check** button appears: you should hear "left" in your left ear, then "right" in your
-   right ear. Loud sounds are capped either way. In speakers mode a short line also says "left board"
-   or "right board" when you come close to a side board, because one speaker cannot show which side
-   the knock is on.
-3. Choose **Language**: English or فارسی (Persian). Everything the game shows and says follows it.
-   The results you copy and send back stay in English. If your browser has no Persian voice, the
-   trial switches to "My screen reader speaks" by itself and says so in Persian, so your own screen
-   reader, which has a Persian voice, reads the game. Choosing English again puts your earlier voice
-   setting back.
-4. Choose whether your screen reader or the browser's voice speaks, and set the speech speed.
-5. Start **Level 1: Find the ball**. Focus moves into the game. The clock starts when you first move.
-6. Arrow keys run, **Space** kicks, **W** says where you are, **G** gives up the round, **H** repeats
-   the keys, **[** and **]** (or **-** and **+**) change the speech speed, **Escape** pauses.
-7. After each level, press **Copy results** and send them back. **Clear results** deletes everything
-   stored on your computer: press it once, and again within 15 seconds to confirm. The level in
-   progress is kept.
+1. Once, the owner runs `scripts/setup-signing.sh` to create the signing key and the four
+   repository secrets: `KEYSTORE_BASE64` (the keystore, base64-encoded), `KEYSTORE_PASSWORD`,
+   `KEY_ALIAS` and `KEY_PASSWORD`. Read the top of the script first: the first signed release fixes
+   the key for good, because every update must be signed with it.
+2. Raise `VERSION_NAME` and `VERSION_CODE` in `gradle.properties`.
+3. Run the **Release APK** workflow on `main` from the Actions tab.
 
-If the arrow keys read the page instead of moving the player, switch your screen reader to focus
-mode (NVDA: NVDA+Space). With VoiceOver, turn Quick Nav off by pressing Left and Right together.
+The workflow runs the tests and the coverage gate, builds the signed APK and tags
+`v<VERSION_NAME>`. It stops before the tag if a secret is missing, if that version is already
+released, or if `VERSION_CODE` is not larger than at the last release.
 
-Three levels, three rounds each: find a still ball, take it to the goal and score, then beat a
-keeper. Space never kicks backward: it kicks straight up the pitch, and holding Left or Right angles
-it 15° to that side. A shot that is already nearly on target gets a small nudge into the goal, so
-lining up with the goal by ear is part of the test.
+## Repository map
 
-## Phone controls test
-
-**Try it on an Android phone:** https://soccer.cocode.dk/phone/
-
-A throwaway test, played on the phone's speaker with the screen reader off. It answers which touch
-steering works by ear, whether vibration helps, and whether the game's own voice is enough to get
-around without the screen reader.
-
-1. With TalkBack on, choose English or فارسی and press **Start**. The game tries up to three voices,
-   your language first, until one really starts speaking, and records each try. If no Persian
-   voice speaks it speaks English and says so; if none speaks at all the page says so and TalkBack
-   stays on.
-2. The game asks you to turn TalkBack off and swipe up. TalkBack would keep that swipe for itself, so
-   when the page gets it, TalkBack is off and the whole screen becomes one touch surface.
-3. A spoken menu: **Drag to steer**, **Tilt to steer**, **Finish**. Swipe right or left to move,
-   double-tap to choose.
-4. Each scheme plays the trial's level 2, three rounds. Drag from where your finger lands (up the
-   screen is toward the goal), or tilt the phone from how you hold it as the round starts. A tap
-   kicks, two fingers say where you are, three go back to the menu. The phone buzzes once when the
-   ball comes into reach and twice when you are lined up with the goal.
-5. **Finish** asks you to turn TalkBack back on and shows the results to copy and send back.
-
-A sighted friend can watch on the screen: it shows where the test is and the gestures that work
-now, the menu, the pitch during a round (up the screen is toward the goal), and the last few spoken
-lines. It is display only and takes no touches.
-
-To run it locally: `python3 -m http.server --directory prototype`, then open
-http://localhost:8000/phone/.
-
-## In this repository
-
+- [`core/`](core/): the game's logic in pure Kotlin, ported from the trial so the numbers and the
+  spoken lines match it.
+- [`app/`](app/): the Android app around that logic.
+- [`prototype/`](prototype/): the browser trial, plain JavaScript modules with no build step. The
+  phone controls test is in [`prototype/phone/`](prototype/phone/).
+- [`site/`](site/): the rest of the website: the app pages in English and Persian, the privacy page,
+  and the trial's page head, footer, share image and sitemap.
+- [`fastlane/metadata/android/`](fastlane/metadata/android/): the store texts F-Droid reads, in
+  English and Persian.
 - [`docs/DESIGN.md`](docs/DESIGN.md): the game design.
-- [`docs/overview.html`](docs/overview.html): an explainer page with a sample attack and a sound gallery.
-- [`prototype/`](prototype/): the browser trial. Plain JavaScript modules, no build step.
-  Run the logic tests with `node --test prototype/test/*.test.mjs`.
-- [`prototype/phone/`](prototype/phone/): the phone controls test, built on the trial's modules.
-- [`core/`](core/) and [`app/`](app/): the Android app, its game logic and its Android shell.
+- [`docs/overview.html`](docs/overview.html): an explainer of the planned full game, with a sample
+  attack and a sound gallery.
+- [`site/privacy/index.html`](site/privacy/index.html): the app's privacy policy, published at
+  <https://soccer.cocode.dk/privacy/> (Persian: `site/fa/privacy/`).
+- [`docs/persian-to-check.md`](docs/persian-to-check.md): the app's Persian text, waiting for a
+  native speaker's check.
 - [`scripts/`](scripts/): the file-length check, the git hooks installer and the emulator scripts.
-- [`fastlane/metadata/android/`](fastlane/metadata/android/): the store texts F-Droid reads, in English and Persian.
-- [`docs/privacy.md`](docs/privacy.md): the app's privacy policy.
-- [`site/`](site/): what GitHub Pages adds around the trial (page head, footer, share image, sitemap).
-
-To run the trial locally: `python3 -m http.server --directory prototype`, then open
-http://localhost:8000/.
 
 ---
 
 Made by [Babak Bandpey](https://linkedin.com/in/babakbandpey) at [Cocode](https://cocode.dk).
+Licensed under [Apache-2.0](LICENSE).

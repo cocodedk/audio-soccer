@@ -1,10 +1,9 @@
 name: CI
 
 on:
-  pull_request:
-    branches: [main]
+  pull_request:           # every PR, whatever its base, so stacked PRs are checked too
   push:
-    branches: [main]   # feature branches run via their PR (synchronize) — avoids double runs
+    branches: [main]      # other branches run via their PR (synchronize), avoiding double runs
 
 permissions:
   contents: read
@@ -14,10 +13,23 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # The job name `verify` is the required status check for main (scripts/setup-repo.sh).
+  # Do not rename it without updating that script.
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Enforce 200-line file cap (CLAUDE.md rule 1)
+        run: ./scripts/check-file-length.sh
+
+      # The browser trial's tests, which deploy-pages.yml runs again before it publishes. The runner's own Node runs them.
+      - name: Test the browser trial
+        run: node --test prototype/test/*.test.mjs
+
+      # The wrapper jar is committed; check it is a genuine Gradle release before running it.
+      - uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
       - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
@@ -25,8 +37,18 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - name: Enforce 200-line file cap (CLAUDE.md rule 1)
-        run: ./scripts/check-file-length.sh
-
       - name: Build, test, coverage gate, lint
         run: ./gradlew buildSmoke --no-daemon
+
+      # A coverage shortfall or a lint error is easier to read in its report than in the log.
+      - name: Keep the reports of a failed run
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reports
+          path: |
+            app/build/reports/**
+            core/build/reports/**
+            build/reports/**
+          if-no-files-found: ignore
+          retention-days: 7
