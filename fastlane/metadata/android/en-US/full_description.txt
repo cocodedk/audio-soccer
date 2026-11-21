@@ -1,11 +1,17 @@
-Audio Soccer is a football game you play by ear. It is made for blind and low-vision players, and everything you need to know comes to you as sound and speech.
+Audio Soccer is a football game you play by ear, made for blind and low-vision players.
 
-There are three levels. In the first you find the ball. In the second you take the ball to the goal and score. In the third you beat the keeper. Each level has three rounds.
+There are three levels. In the first you find the ball. In the second you take the ball to the goal and score. In the third you beat the keeper. Each level has three rounds. A fanfare plays for every round you win. Each level remembers your best time and whether you won all three rounds: the level's menu option tells you, and the summary at the end of the level tells you when you set a new record.
 
-You play on the phone's speaker, with the screen reader turned off. While the screen reader is off, the game speaks its own menus. Touch an option to hear it, and double-tap to choose it. If the screen reader is still on when a level is about to start, the game asks you to turn it off and waits. When you are done, you turn it back on yourself.
+You play on the phone's speaker, with the screen reader turned off. While the screen reader is on, the menus are ordinary buttons it reads, so you can set things up first. If the screen reader is still on when a level is about to start, the game asks you to turn it off and waits. When you are done, you turn it back on yourself.
 
-To run, put a finger anywhere on the screen and drag it the way you want to go. Up the screen is toward the goal. Tap to kick. Tap with two fingers to hear where you are, and with three fingers to pause. The phone buzzes when the ball comes into reach and when you line up with the goal.
+While the screen reader is off, the game speaks its own menus. Hold a finger on the screen to hear an option, swipe to move from one option to the next (quickly with one finger, or at any speed with two), tap once to hear the current option again, and double-tap to choose it.
 
-The game speaks English and Persian. It uses the speech engines installed on your phone, for example eSpeak, and in Settings you can choose which one it uses. If your phone has no speech engine, install one first.
+To run, put a finger anywhere on the screen and drag it the way you want to go. Up the screen is toward the goal. Tap to kick. Tap with two fingers to hear where you are, and with three fingers to pause. The phone vibrates when the ball comes into reach and when you line up with the goal.
 
-The game needs no internet, shows no ads and does no tracking. It asks for one permission, to make the phone vibrate. It keeps two settings, your language and your speech engine, on your phone and nowhere else.
+If you can see some of the screen, the menus are white text on black with the option in focus in yellow, and the pitch is drawn in bright colours on black: you in cyan, the ball in orange, the keeper in pink and the goal in yellow.
+
+The game speaks English and Persian. It uses the speech engines installed on your phone, for example eSpeak NG, and in Settings you choose which one it uses. If your phone has no speech engine, install one first.
+
+The game has no internet permission, no ads, no tracking and no analytics. It uses two permissions: one to make the phone vibrate, and one added by an Android library that only apps signed with the same key can hold. Your settings and records stay on your phone. They are not backed up, and they are deleted when you uninstall the app or clear its data.
+
+It needs Android 7.0 or newer.

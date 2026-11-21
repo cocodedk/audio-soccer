@@ -31,20 +31,25 @@
 
 * { box-sizing: border-box }
 [hidden] { display: none !important }
-body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.55;
+/* 1.0625rem is 17px at the browser's default size, and follows a larger default (low vision). */
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 1.0625rem; line-height: 1.55;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 0 48px }
 .wrap { max-width: 1180px; margin: 0 auto }
 p { margin: 0 }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px }
+/* Skip link: off screen until it has focus, then the first thing on the page. */
+.skip { position: absolute; inset-inline-start: 16px; top: 8px; z-index: 10; padding: 10px 18px; border-radius: 999px;
+  background: var(--accent-fill); color: var(--on-accent); font-weight: 700; text-decoration: none; transform: translateY(-250%) }
+.skip:focus { transform: none }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap }
 
 .hero { padding-block: 32px 24px; display: grid; gap: 12px }
-.eyebrow { font-family: var(--mono); font-size: .78rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted) }
+.eyebrow { font-family: var(--mono); font-size: .875rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted) }
 h1 { font-family: var(--display); font-weight: 900; font-size: clamp(2.8rem, 10vw, 5.6rem); line-height: .88;
   text-transform: uppercase; margin: 0; text-wrap: balance }
 h1 em { font-style: normal; color: var(--accent) }
-.phone-link a { color: inherit; font-weight: 700 }
+.phone-link a, .app-link a { color: inherit; font-weight: 700 }
 .lede { max-width: 66ch; font-size: 1.1rem }
 h2 { font-family: var(--display); font-weight: 800; font-size: clamp(1.8rem, 5vw, 2.4rem); line-height: 1;
   text-transform: uppercase; margin: 0 }
@@ -73,11 +78,12 @@ h3 { font-size: 1.02rem; margin: 0 }
 select { font: 1rem var(--body); padding: 8px 10px; border: 2px solid var(--ink); border-radius: 10px;
   background: var(--surface); color: var(--ink); max-width: 100% }
 .notice { padding: 10px 14px; border: 2px solid var(--accent); border-radius: 10px; font-weight: 700 }
-.check { display: flex; gap: 10px; align-items: center }
-.check input { width: 20px; height: 20px; accent-color: var(--accent-fill); flex: none }
+/* 44px rows are the touch target; --accent (not --accent-fill) is 3:1 or more on the light surface and page. */
+.check { display: flex; gap: 10px; align-items: center; min-height: 44px }
+.check input { width: 1.25rem; height: 1.25rem; accent-color: var(--accent); flex: none }
 
 .keys { margin: 0; padding-inline-start: 1.2em; display: grid; gap: 4px }
-kbd { font-family: var(--mono); font-size: .82rem; padding: 1px 6px; border: 1.5px solid var(--rule);
+kbd { font-family: var(--mono); font-size: .875rem; padding: 1px 6px; border: 1.5px solid var(--rule);
   border-radius: 5px; background: var(--bg); white-space: nowrap; unicode-bidi: isolate }
 
 .arena { background: var(--surface); border: 2px solid var(--rule); border-radius: 14px; padding: 12px;

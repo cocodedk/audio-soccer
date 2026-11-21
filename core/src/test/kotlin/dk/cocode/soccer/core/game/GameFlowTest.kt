@@ -26,7 +26,8 @@ class GameFlowTest {
         val summary = "Level 1 done. Times: not found, not found, not found."
         assertEquals(Line(summary, Priority.HIGH, waitMs = 20000), h.said.last())
         assertEquals(1, h.said.count { it.text == summary })
-        assertEquals(listOf(LevelResult(1, h.game.rounds, summary)), h.done)
+        assertEquals(listOf(LevelResult(1, h.game.rounds, summary, Records())), h.done)
+        assertEquals(0, h.wins, "no round was won")
         assertEquals(Phase.IDLE, h.game.phase)
         assertFalse(h.game.running)
         assertEquals(1, h.game.level)

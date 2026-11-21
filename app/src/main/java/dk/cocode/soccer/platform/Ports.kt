@@ -1,6 +1,7 @@
 package dk.cocode.soccer.platform
 
 import dk.cocode.soccer.core.cues.Buzz
+import dk.cocode.soccer.core.game.Records
 import dk.cocode.soccer.core.speech.Voice
 import dk.cocode.soccer.core.text.Lang
 import kotlinx.coroutines.flow.Flow
@@ -46,10 +47,13 @@ interface Audio {
     fun stop()
 }
 
-// What the player chose. A language not chosen yet follows the phone's; no engine chosen means the system's default.
+// What the player chose, and the records they set. A language not chosen yet follows the phone's; no engine chosen means the
+// system's default.
 interface Prefs {
     val lang: Flow<Lang>
     val enginePkg: Flow<String?>
+    val records: Flow<Records>
     suspend fun setLang(lang: Lang)
     suspend fun setEngine(pkg: String)
+    suspend fun setRecords(records: Records)
 }

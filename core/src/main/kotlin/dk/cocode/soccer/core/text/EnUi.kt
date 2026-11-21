@@ -4,7 +4,7 @@ package dk.cocode.soccer.core.text
 // en-phone.js where it has them, trimmed as the owner approved on 2026-11-13; the rest is new. The kicking tip is
 // the last line of how to play, not part of the intro.
 internal object EnUi : UiStrings {
-    override val greeting = "Audio Soccer. Touch the screen to hear the options. Double-tap to choose."
+    override val greeting = "Audio Soccer. Hold a finger on the screen to hear the options, or swipe to move through them. Tap to hear the option again, double-tap to choose."
     override val levelNames = listOf(
         "Find the ball",
         "Score a goal",

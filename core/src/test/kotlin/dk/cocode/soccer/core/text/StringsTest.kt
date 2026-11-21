@@ -92,7 +92,7 @@ class StringsTest {
     @Test
     fun theLinesTheBriefFixesInEnglish() {
         val ui = uiStrings(Lang.EN)
-        assertEquals("Audio Soccer. Touch the screen to hear the options. Double-tap to choose.", ui.greeting)
+        assertEquals("Audio Soccer. Hold a finger on the screen to hear the options, or swipe to move through them. Tap to hear the option again, double-tap to choose.", ui.greeting)
         assertEquals(listOf("Find the ball", "Score a goal", "Beat the keeper"), ui.levelNames)
         assertEquals("Learn the sounds", ui.learnSounds)
         assertEquals("How to play", ui.howToPlay)

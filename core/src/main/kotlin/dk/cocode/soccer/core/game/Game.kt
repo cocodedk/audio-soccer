@@ -40,6 +40,8 @@ class Game(
     private val strings: GameStrings,
     private val say: (Line) -> Unit,
     private val onLevelDone: (LevelResult) -> Unit,
+    private val records: Records, // the player's, as the level starts
+    private val onWon: () -> Unit, // a round was won: the shell plays the fanfare
 ) {
     var level = 0
         private set
@@ -91,14 +93,15 @@ class Game(
         closed += closeStats(level, stats, ending)
         phase = Phase.BETWEEN
         wait = BETWEEN_ROUNDS
+        if (ending == Ending.SUCCESS) onWon()
         say(Line(text, Priority.HIGH, cut = true))
     }
 
     private fun finishLevel() {
         phase = Phase.IDLE
-        val summary = summarySpeech(level, closed, strings)
-        say(Line(summary, Priority.HIGH, waitMs = LONG_WAIT_MS))
-        onLevelDone(LevelResult(level, closed.toList(), summary))
+        val result = levelResult(level, closed.toList(), records, strings)
+        say(Line(result.summary, Priority.HIGH, waitMs = LONG_WAIT_MS))
+        onLevelDone(result)
     }
 
     // A ball hitting the end wall in front of the goal (levels 2 and 3): a shot is counted and called wide; a dribbled

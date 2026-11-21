@@ -1,4 +1,4 @@
-// What the touch surface shows a sighted helper watching the phone test: where the test is and the
+// What the touch surface shows a sighted friend watching the phone test: where the test is and the
 // gestures that work now, the menu, the pitch during a round, and the lines as they are spoken. Display
 // only: none of it takes a touch (phone.css), and speech.js and clips.js tell it what was said once it is
 // said, so it can never hold up or change a line or a sound.

@@ -1,6 +1,6 @@
 package dk.cocode.soccer.core.text
 
-// English: what the game says. From prototype/js/i18n/en.js, word for word.
+// English: what the game says. From prototype/js/i18n/en.js, word for word, but for the records lines, which are new.
 internal object EnGame : GameStrings {
     // describe.js: clock positions, thirds, where am I, the goal guide
     override fun metres(n: Int) = "$n metre${if (n == 1) "" else "s"}"
@@ -57,6 +57,11 @@ internal object EnGame : GameStrings {
     override fun summaryDone(level: Int) = "Level $level done."
     override fun summaryTimes(head: String, list: String) = "$head Times: $list."
     override val summarySep = ", "
+
+    // records: new, not from the trial
+    override fun bestTime(time: String) = "Best $time seconds."
+    override fun newRecord(time: String) = "New record: $time seconds."
+    override val allWon = "All three rounds won."
 
     // the sound tour
     override val learnEnd = "That is all the sounds."

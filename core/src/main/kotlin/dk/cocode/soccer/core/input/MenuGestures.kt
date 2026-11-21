@@ -8,18 +8,25 @@ sealed interface MenuInput {
     data object Next : MenuInput
     data object Prev : MenuInput
     data object Activate : MenuInput
+    data object Repeat : MenuInput // say again the option the cursor is on
 }
 
-// The touch-to-hear menu, for a player with the screen reader off: what TalkBack itself does. The options are equal
+// The touch-to-hear menu, for a player with the screen reader off, close to what TalkBack does. The options are equal
 // bands down the screen (count() of them over heightDp()).
 //  - A finger still down after TAP_MS explores: Focus(band) at once, and again each time it crosses into another band.
 //  - A stroke of SWIPE_DP or more lifted within TAP_MS is a swipe: right or down is Next, left or up is Prev.
+//  - A stroke that a second finger joins within TAP_MS never explores: when the followed finger lifts after
+//    travelling SWIPE_DP or more it is Next or Prev at any speed, a two-finger swipe as slow as a scroll. Lifted
+//    within TAP_MS it is otherwise judged as one finger would be (a quick two-finger tap is still a tap); later,
+//    nothing. A second finger that lifts before the followed one has moved DEAD_DP was a brush (a thumb or a palm):
+//    the stroke is one finger's again, and explores if it is held.
 //  - A tap followed by a second tap landing within DOUBLE_MS of its lift is Activate, wherever it lands.
-//  - A tap on its own is Focus(band) from tick, once DOUBLE_MS pass with no second tap.
+//  - A tap on its own is Repeat from tick, wherever it lands, once DOUBLE_MS pass with no second tap.
 // Anything else (a stroke that moved DEAD_DP or more without being a swipe, or one lifted after TAP_MS without having
-// explored) yields nothing. Only the first finger down is followed; fingers landing meanwhile are ignored. CANCEL drops
-// the stroke and any waiting tap, whichever finger it names, and reset() does the same. A finger it has not seen is
-// ignored, so a stroke already under way when the screen changed ends quietly.
+// explored) yields nothing. Only the first finger down is followed; a finger landing meanwhile marks it as a two-finger
+// stroke, or makes it explore if it has been down past TAP_MS without a frame saying so. CANCEL drops the stroke and
+// any waiting tap, whichever finger it names, and reset() does the same. A finger it has not seen is ignored, so a
+// stroke already under way when the screen changed ends quietly.
 //
 // Call tick every frame, with the same clock as Touch.tMs: a held finger sends no event at TAP_MS. A tap that is
 // waiting for its second one is also reported by the next finger that lands, if that is later than DOUBLE_MS.
@@ -29,16 +36,13 @@ class MenuGestures(private val count: () -> Int, private val heightDp: () -> Flo
         var y = y0
         var moved = false
         var exploring = false
+        var second: Int? = null // a second finger that joined it before it explored, until it is found to be a brush
+        val twoFinger get() = second != null
         var band = 0 // while exploring, the band last focused
     }
 
-    // A tap in band, lifted at upMs, while a second tap may still come.
-    private class Tap(val band: Int, val upMs: Long) {
-        fun open(nowMs: Long) = nowMs - upMs <= DOUBLE_MS
-    }
-
     private var stroke: Stroke? = null
-    private var tap: Tap? = null
+    private var tapUpMs: Long? = null // the lift of a tap, while a second tap may still come
 
     fun on(phase: Phase, t: Touch): MenuInput? = when (phase) {
         Phase.DOWN -> down(t)
@@ -53,23 +57,29 @@ class MenuGestures(private val count: () -> Int, private val heightDp: () -> Flo
     fun tick(nowMs: Long): MenuInput? {
         val s = stroke
         if (s != null) return hold(s, nowMs)
-        val waiting = tap ?: return null
-        return if (waiting.open(nowMs)) null else settle(waiting)
+        val up = tapUpMs ?: return null
+        if (open(up, nowMs)) return null
+        tapUpMs = null
+        return MenuInput.Repeat
     }
 
     fun reset() {
         stroke = null
-        tap = null
+        tapUpMs = null
     }
 
     private fun down(t: Touch): MenuInput? {
         val s = stroke
-        if (s != null && t.id != s.id) return null
-        val waiting = tap
-        tap = null
-        val second = waiting != null && waiting.open(t.tMs)
+        if (s != null && t.id != s.id) {
+            val focus = hold(s, t.tMs) // past TAP_MS already, though no frame has ticked yet: it explores
+            if (!s.exploring && s.second == null) s.second = t.id
+            return focus
+        }
+        val up = tapUpMs
+        tapUpMs = null
+        val second = up != null && open(up, t.tMs)
         stroke = Stroke(t.id, t.x, t.y, t.tMs, second)
-        return if (waiting != null && !second) MenuInput.Focus(waiting.band) else null
+        return if (up != null && !second) MenuInput.Repeat else null
     }
 
     private fun move(t: Touch): MenuInput? {
@@ -87,39 +97,48 @@ class MenuGestures(private val count: () -> Int, private val heightDp: () -> Flo
     }
 
     private fun up(t: Touch): MenuInput? {
-        val s = stroke
-        if (s == null || t.id != s.id) return null
+        val s = stroke ?: return null
+        if (t.id != s.id) return brushed(s, t)
         stroke = null
-        if (s.exploring || t.tMs - s.t0 > TAP_MS) return null
+        if (s.exploring) return null
+        val inTime = t.tMs - s.t0 <= TAP_MS
         val dx = t.x - s.x0
         val dy = t.y - s.y0
-        return when {
-            hypot(dx, dy) >= SWIPE_DP -> {
-                val along = if (abs(dx) >= abs(dy)) dx else dy
-                if (along > 0) MenuInput.Next else MenuInput.Prev
-            }
-            s.moved || pastDead(dx, dy) -> null
+        val swiped = if (inTime || s.twoFinger) swipe(dx, dy) else null
+        return swiped ?: when {
+            !inTime || s.moved || pastDead(dx, dy) -> null
             s.secondTap -> MenuInput.Activate
             else -> {
-                tap = Tap(bandOf(s.y0), t.tMs)
+                tapUpMs = t.tMs
                 null
             }
         }
     }
 
+    // The second finger lifting before the followed one has moved was a brush: the stroke is one finger's again.
+    private fun brushed(s: Stroke, t: Touch): MenuInput? {
+        if (t.id != s.second || s.moved) return null
+        s.second = null
+        return hold(s, t.tMs)
+    }
+
     // A finger still down after TAP_MS explores: it focuses the band it is in at once.
     private fun hold(s: Stroke, nowMs: Long): MenuInput? {
-        if (s.exploring || nowMs - s.t0 <= TAP_MS) return null
+        if (s.exploring || s.twoFinger || nowMs - s.t0 <= TAP_MS) return null
         s.exploring = true
         s.band = bandOf(s.y)
         return MenuInput.Focus(s.band)
     }
 
-    // The tap that waited for a second one, as the Focus it gives, now that none is coming.
-    private fun settle(waiting: Tap): MenuInput {
-        tap = null
-        return MenuInput.Focus(waiting.band)
+    // A stroke of SWIPE_DP or more, by its main axis: right or down is Next, left or up is Prev. Shorter is nothing.
+    private fun swipe(dx: Float, dy: Float): MenuInput? {
+        if (hypot(dx, dy) < SWIPE_DP) return null
+        val along = if (abs(dx) >= abs(dy)) dx else dy
+        return if (along > 0) MenuInput.Next else MenuInput.Prev
     }
+
+    // A second tap landing at nowMs, after a tap lifted at upMs, makes a double-tap.
+    private fun open(upMs: Long, nowMs: Long) = nowMs - upMs <= DOUBLE_MS
 
     private fun bandOf(y: Float): Int {
         val n = count()

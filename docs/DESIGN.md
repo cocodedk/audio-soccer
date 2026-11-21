@@ -5,8 +5,8 @@ Status: fourth draft, 2026-11-12: the match is played with the screen reader off
 
 ## Why this exists
 
-A blind tester of our chess-puzzles app (an Android TalkBack user) asked for a soccer game. In their
-words, visually impaired players "don't have any decent soccer games to play". They want rich audio
+A blind tester of our chess-puzzles app (an Android TalkBack user) asked for a soccer game. Players like
+them, they told us, "don't have any decent soccer games to play". They want rich audio
 effects and a commentator.
 
 Every decision below comes back to one fact: **the player cannot see the screen.** Sound is the
@@ -18,7 +18,7 @@ so every slice goes to them early and their feedback outranks this document.
 - A blind player listening on the phone's own speaker can install the game, start a match and play
   it to the final whistle without sighted help. They turn TalkBack off for the match themselves, and
   from that moment the game speaks everything. No headphones: the tester
-  can't wear them, because they hurt.
+  plays on the phone's speaker.
 - During play they can tell by ear where the ball is, who has it, and where the goal is, without
   stopping to ask.
 - It feels like a real match: crowd, whistle, the ball on the boards, a commentator who reacts.
@@ -105,7 +105,7 @@ good the opponents are. Game speed is its own setting, slow, normal or fast, so 
 
 The listener stands on the player's own footballer, always facing the opponent's goal.
 
-**Speakers are the default.** The tester can't wear headphones, and a phone's two speakers sit a few
+**Speakers are the default.** The tester plays on the phone's speaker, and a phone's two speakers sit a few
 centimetres apart, so left and right mostly blur and 3D placement is lost. Nothing the player needs
 may depend on which ear a sound reaches. Each piece of information has a cue that survives one
 small speaker:
@@ -221,8 +221,9 @@ replaces the earlier rule that TalkBack always stays on.
   screens, built the same way as in the chess app. This is how the player finds and opens the game.
 - **With TalkBack off**, the game speaks for itself. It notices the change, reads the current
   screen, and from then on speaks the item under focus. The options are equal bands down the
-  screen, and the gestures are the ones a TalkBack user already knows: touch an option to hear it,
-  swipe to move through the options, double-tap anywhere to choose. When TalkBack comes back on,
+  screen, and the gestures are close to the ones a TalkBack user already knows: hold a finger on an
+  option to hear it, swipe to move through the options (quickly with one finger, or at any speed with
+  two), tap once anywhere to hear the current option again, double-tap anywhere to choose. When TalkBack comes back on,
   the game stops speaking the menus.
 - **The match is played with TalkBack off**, with plain touch controls. If TalkBack is on when a
   match is about to start, the game says how to turn it off and waits. A Bluetooth keyboard or
@@ -234,6 +235,13 @@ replaces the earlier rule that TalkBack always stays on.
   engine, the app opens the first installed one itself. If the phone has no engine at all, the game
   says so on the screen.
 - Pause is always one action away, and the pause menu speaks like every other menu.
+- **A won round gets a fanfare** (owner, 2026-11-16): a short rising run that ends on a chord, about 1.2 s, played when
+  the ball is found in level 1 and on every goal, over the goal's own sound. It sounds under the line the game says ("Got
+  it. 7.4 seconds.", "Goal!"); nothing makes the voice wait for it.
+- **Records** (owner, 2026-11-16): each level keeps its fastest won round, to the tenth of a second that is spoken, and
+  whether all three rounds were once won in one go. The level's option on the menu reads them ("Score a goal. Best 7.4
+  seconds. All three rounds won."), and the summary adds "New record: 7.4 seconds." when the best falls (a level's first
+  win counts) and "All three rounds won." when they were. They are kept on the phone with the settings, nowhere else.
 
 ## Controls: plain touch, screen reader off
 
@@ -365,8 +373,8 @@ These go in a later email, most important first:
    browser version forward.)
 2. Is blind-football-style 5-a-side OK, or do they want the feel of regular 11-a-side?
 3. Have they played audio games they loved or hated, especially sports ones, and why?
-4. ~~Do they play with headphones?~~ Answered 2026-11-09: no, headphones hurt their ears. The
-   game is built for speakers.
+4. ~~Do they play with headphones?~~ Answered 2026-11-09: no, they play on the phone's speaker.
+   The game is built for speakers.
 5. ~~Which language should the commentator speak?~~ The owner chose English and Persian on
    2026-11-09. Ask whether the Persian voice sounds right.
 6. Are loud sounds a problem on speakers too? Which ones, and is the capped mix comfortable?

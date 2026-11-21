@@ -8,6 +8,7 @@
      resolve the same served from prototype/ and on Pages. This page's own files are under phone/. -->
 <base href="../">
 <title>Audio Soccer phone test</title>
+<meta name="description" content="A short test of Audio Soccer on a phone: football played by ear with the screen reader off, for blind and low-vision players.">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="phone/phone.css">
 </head>
@@ -15,12 +16,13 @@
 <div class="wrap phone" id="page">
   <header class="hero">
     <h1 data-i18n="phone.ui.h1">Phone controls test</h1>
+    <p class="phone-link"><a href="./" data-i18n="phone.ui.back">Back to the Audio Soccer trial</a></p>
     <p class="lede" data-i18n="phone.ui.lede">This short test tries touch controls with the screen reader off. Use the phone speaker, not headphones. Keep your screen reader on for now and press Start. The game checks its own voice, then asks you to turn the screen reader off. From then on the game speaks for itself. At the end it asks you to turn the screen reader back on.</p>
   </header>
 
   <main class="panel">
     <fieldset class="modes">
-      <legend>Language / زبان</legend>
+      <legend><span lang="en" dir="ltr">Language</span> / <span lang="fa" dir="rtl">زبان</span></legend>
       <label class="check"><input type="radio" name="lang" value="en" checked> <span lang="en" dir="ltr">English</span></label>
       <label class="check"><input type="radio" name="lang" value="fa"> <span lang="fa" dir="rtl">فارسی</span></label>
     </fieldset>
@@ -40,7 +42,7 @@
   <div class="sr" id="live-assertive" aria-live="assertive"></div>
 </div>
 
-<!-- With the screen reader off, the whole screen is one touch surface. The view on it is for sighted helpers
+<!-- With the screen reader off, the whole screen is one touch surface. The view on it is for a sighted friend
      (phone/js/view.js): it takes no touches, so every touch still reaches the surface. -->
 <div class="surface" id="surface" hidden>
   <div class="view">

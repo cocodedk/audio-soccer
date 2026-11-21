@@ -102,6 +102,7 @@ class SessionPlayTest {
         }
         assertTrue(r.log.contains("event Goal"))
         assertTrue(Sound.GOAL in r.sink.plays)
+        assertEquals("the won round's fanfare", 1, r.sink.plays.count { it == Sound.FANFARE })
         assertEquals(r.game.goal, r.spoken.last())
     }
 

@@ -13,7 +13,7 @@ data class Touch(val id: Int, val x: Float, val y: Float, val tMs: Long)
 internal const val DEAD_DP = 24f // a finger within this of where it landed has not moved
 internal const val TAP_MS = 300L // a finger lifted within this, without moving, is a tap
 internal const val CHORD_MS = 150L // fingers landing this close together belong to one tap
-internal const val SWIPE_DP = 60f // a one-finger stroke at least this long is a swipe
+internal const val SWIPE_DP = 60f // a stroke at least this long is a swipe
 internal const val DOUBLE_MS = 350L // a second tap landing within this of the first one's lift is a double-tap
 
 // True once an offset from where a finger landed has left the dead zone.

@@ -23,6 +23,7 @@ const val TICK_BEHIND_MAKEUP = 1.3 // what the dull filter takes from a tick beh
 const val STEP_GAIN = 0.22
 const val CHIME_GAIN = 0.4
 const val CHIME_FULL_BEAT = 2.0 // s: the goal chime at its slowest beat is played at its full length, a quicker beat shortens it
+const val FANFARE_GAIN = 0.6 // a won round's fanfare (Game's onWon), which sounds under the line the game says
 
 private const val STEP_EVERY = 0.35
 private const val KEEPER_STEP_EVERY = 0.42

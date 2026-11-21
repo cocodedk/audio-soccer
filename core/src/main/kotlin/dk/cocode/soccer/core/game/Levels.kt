@@ -28,6 +28,9 @@ private val LEVELS = listOf(
     LevelSpec(keeper = true, endsOn = End.GOAL),
 )
 
+// How many levels there are, numbered from 1.
+val LEVEL_COUNT: Int = LEVELS.size
+
 internal fun levelSpec(level: Int): LevelSpec = LEVELS[level - 1]
 
 internal class RoundSetup(val player: Vec, val ball: Vec, val hasBall: Boolean, val keeper: Boolean)
@@ -71,8 +74,8 @@ data class RoundStats(
 // How a round ended: won, given up (G), or the time cap.
 enum class Ending { SUCCESS, GIVE_UP, TIMEOUT }
 
-// What a finished level hands the shell: its closed rounds and the summary line that was spoken.
-data class LevelResult(val level: Int, val rounds: List<RoundStats>, val summary: String)
+// What a finished level hands the shell: its closed rounds, the summary line that was spoken and the records it leaves.
+data class LevelResult(val level: Int, val rounds: List<RoundStats>, val summary: String, val records: Records)
 
 internal fun newStats(setup: RoundSetup) = RoundStats(dist(setup.ball, setup.player), setup.ball.x < setup.player.x)
 
