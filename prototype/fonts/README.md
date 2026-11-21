@@ -11,9 +11,12 @@ the page, and it would see the player's IP). Loaded by the `@font-face` rules at
 | `big-shoulders-display-latin-800-normal.woff2` | Big Shoulders Display 800 | `@fontsource/big-shoulders-display@5.3.0` |
 | `big-shoulders-display-latin-900-normal.woff2` | Big Shoulders Display 900 | `@fontsource/big-shoulders-display@5.3.0` |
 | `ibm-plex-mono-latin-500-normal.woff2` | IBM Plex Mono 500 | `@fontsource/ibm-plex-mono@5.3.0` |
+| `vazirmatn-arabic-400-normal.woff2` | Vazirmatn 400 (Arabic script) | `@fontsource/vazirmatn@5.3.0` |
+| `vazirmatn-arabic-700-normal.woff2` | Vazirmatn 700 (Arabic script) | `@fontsource/vazirmatn@5.3.0` |
 
-Downloaded from `https://cdn.jsdelivr.net/npm/@fontsource/<family>@5.3.0/files/<file>` on 2026-11-09.
+Downloaded from `https://cdn.jsdelivr.net/npm/@fontsource/<family>@5.3.0/files/<file>` on 2026-11-09 (Vazirmatn on
+2026-11-18, for the Persian site pages under site/fa/).
 
-All three families are licensed under the SIL Open Font License 1.1
+All four families are licensed under the SIL Open Font License 1.1
 (<https://openfontlicense.org>): Atkinson Hyperlegible by the Braille Institute, Big Shoulders
-Display by Patric King and the City of Chicago, IBM Plex Mono by IBM.
+Display by Patric King and the City of Chicago, IBM Plex Mono by IBM, Vazirmatn by Saber Rastikerdar.

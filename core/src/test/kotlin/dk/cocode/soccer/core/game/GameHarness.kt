@@ -15,13 +15,14 @@ val LEFT = arrows("Left")
 
 private const val FRAME = 0.05
 
-// A game with a seeded start, the lines it said and the levels it finished.
+// A game with a seeded start, the lines it said, the rounds it won and the levels it finished.
 // game.test.mjs runs game.js under node with no sound or speech engine: here the lines are just collected.
-class GameHarness(seed: Int = 1, lang: Lang = Lang.EN) {
+class GameHarness(seed: Int = 1, lang: Lang = Lang.EN, records: Records = Records()) {
     val strings = gameStrings(lang)
     val said = mutableListOf<Line>()
     val done = mutableListOf<LevelResult>()
-    val game = Game(seeded(seed), strings, { said += it }, { done += it })
+    var wins = 0 // rounds won
+    val game = Game(seeded(seed), strings, { said += it }, { done += it }, records) { wins += 1 }
     val world: World get() = checkNotNull(game.world)
 
     fun texts() = said.map { it.text }

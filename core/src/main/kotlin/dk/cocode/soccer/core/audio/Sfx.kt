@@ -9,6 +9,8 @@ import kotlin.random.Random
 
 private val CLANG_HZ = doubleArrayOf(523.0, 1287.0, 2093.0, 3011.0)
 private val WHISTLE_HZ = doubleArrayOf(2900.0, 3060.0)
+private val FANFARE_HZ = doubleArrayOf(392.0, 523.0, 659.0, 784.0) // G4 C5 E5 G5
+private const val FANFARE_STEP = 0.11 // s between the notes of its run
 
 // The recipes of prototype/js/sfx.js, speakers path only (no panner, so mono). Each one adds the voices of one sound to
 // the mixer's list (each noise voice with a generator of its own from rng); the volume and the lowpass for a sound from behind belong to the whole call. The gains, times and
@@ -33,6 +35,7 @@ internal class Sfx(private val rng: Random, private val voices: MutableList<Voic
             Sound.POST -> clang()
             Sound.SAVE -> save()
             Sound.GOAL -> goal()
+            Sound.FANFARE -> fanfare()
         }
     }
 
@@ -132,6 +135,16 @@ internal class Sfx(private val rng: Random, private val voices: MutableList<Voic
         burst(dur = 2.2, freq = 2600.0, q = 0.8, gain = 0.05, attack = 0.3)
         volume = whole * 0.3
         whistle()
+    }
+
+    // A won round: a quick rising run, then G5 and C6 together, ringing out. Not in the trial, which has no fanfare.
+    private fun fanfare() {
+        for (i in FANFARE_HZ.indices) {
+            tone(FANFARE_HZ[i], FANFARE_HZ[i], 0.16, 0.22, TRIANGLE, at = i * FANFARE_STEP, attack = 0.01)
+        }
+        val chord = FANFARE_HZ.size * FANFARE_STEP
+        tone(FANFARE_HZ.last(), FANFARE_HZ.last(), 0.8, 0.18, TRIANGLE, at = chord, attack = 0.01)
+        tone(1047.0, 1047.0, 0.8, 0.14, TRIANGLE, at = chord, attack = 0.01)
     }
 
     // Two oscillators a little apart, each with a 27 Hz vibrato, held for 0.3 s.

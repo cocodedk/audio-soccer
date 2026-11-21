@@ -1,5 +1,7 @@
 package dk.cocode.soccer.game
 
+import dk.cocode.soccer.core.audio.FANFARE_GAIN
+import dk.cocode.soccer.core.audio.Sound
 import dk.cocode.soccer.core.audio.SoundSink
 import dk.cocode.soccer.core.audio.Soundscape
 import dk.cocode.soccer.core.cues.Cues
@@ -8,6 +10,7 @@ import dk.cocode.soccer.core.game.Action
 import dk.cocode.soccer.core.game.Game
 import dk.cocode.soccer.core.game.LevelResult
 import dk.cocode.soccer.core.game.Phase
+import dk.cocode.soccer.core.game.Records
 import dk.cocode.soccer.core.input.PlayGestures
 import dk.cocode.soccer.core.input.PlayInput
 import dk.cocode.soccer.core.input.Touch
@@ -23,11 +26,13 @@ private const val POSITION_EVERY = 1.0 // seconds between the player's position 
 // Where the pieces on the pitch are, for drawing: the world as the screen needs it.
 data class Pitch(val player: Vec, val ball: Vec, val keeper: Vec?, val hasBall: Boolean)
 
-// One level in play: the game, and what the shell adds around it each frame. The game's events go to the soundscape, the line-up
-// and the log, the cues speak what they see, and the line-up buzzes the phone. Each of them is told at the start of a round
-// what the round starts with. The caller clears the speech queue before start(), which speaks the first round's intro.
+// One level in play: the game, and what the shell adds around it each frame. A won round plays the fanfare. The game's events
+// go to the soundscape, the line-up and the log, the cues speak what they see, and the line-up buzzes the phone. Each of them
+// is told at the start of a round what the round starts with. The caller clears the speech queue before start(), which
+// speaks the first round's intro.
 internal class Round(
     val level: Int,
+    records: Records, // the player's, as the level starts
     rand: Random,
     talk: Talk,
     private val nowMs: () -> Long,
@@ -37,7 +42,7 @@ internal class Round(
     private val onPause: () -> Unit,
     onDone: (LevelResult) -> Unit,
 ) {
-    private val game = Game(rand, talk.strings, talk::say, onDone)
+    private val game = Game(rand, talk.strings, talk::say, onDone, records) { sink.play(Sound.FANFARE, FANFARE_GAIN) }
     private val cues = Cues(talk.strings, talk::say, talk.queue::isSaying, nowMs)
     private val soundscape = Soundscape(sink)
     private val lineUp = LineUp()
@@ -95,7 +100,8 @@ internal class Round(
         gestures.tick(nowMs())?.let(::play)
         val playing = game.phase == Phase.PLAY
         val events = game.update(dt, dir)
-        for (e in events) log("event ${e::class.simpleName}")
+        // A data class's toString starts with its name, which R8 leaves alone ("Kick(x=…" logs as "event Kick").
+        for (e in events) log("event ${e.toString().substringBefore('(')}")
         val w = game.world
         if (playing && w != null) {
             soundscape.update(w, dt, events)

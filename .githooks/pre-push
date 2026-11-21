@@ -58,7 +58,8 @@ if [ "$pushing_commits" -eq 0 ]; then
 fi
 
 # ── Part 3: full verification gate (runs once per push) ───────────────────────
-[ -f "$HOME/.soccer-env.sh" ] && source "$HOME/.soccer-env.sh"
+# shellcheck source=/dev/null
+source .githooks/env.sh
 
 echo "pre-push: checking file lengths (<= 200)"
 ./scripts/check-file-length.sh

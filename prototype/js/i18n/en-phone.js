@@ -6,6 +6,7 @@ export default {
     h1: 'Phone controls test',
     lede: 'This short test tries touch controls with the screen reader off. Use the phone speaker, not headphones. Keep your screen reader on for now and press Start. The game checks its own voice, then asks you to turn the screen reader off. From then on the game speaks for itself. At the end it asks you to turn the screen reader back on.',
     start: 'Start',
+    back: 'Back to the Audio Soccer trial',
   },
   check: 'Hello. This is the game voice.',
   english: 'The game could not speak Persian on this phone, so it speaks English.',
@@ -26,7 +27,7 @@ export default {
   noTilt: 'The game cannot read the tilt of this phone. Back to the menu.',
   done: 'Turn your screen reader back on. Your results are on the page.',
   copyBlocked: 'Copying was blocked. The text is selected, so you can copy it yourself.',
-  // What the touch surface shows a sighted helper (read, not heard). g: the gestures that work now.
+  // What the touch surface shows a sighted friend (read, not heard). g: the gestures that work now.
   view: {
     handover: 'Turn the screen reader off',
     menu: 'Menu',

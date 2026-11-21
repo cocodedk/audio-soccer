@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import dk.cocode.soccer.core.game.Records
 import dk.cocode.soccer.core.text.Lang
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -93,6 +94,17 @@ class SettingsTest {
         val settings = Settings(broken, Lang.FA)
         assertEquals(Lang.FA, settings.lang.first())
         assertNull(settings.enginePkg.first())
+    }
+
+    @Test
+    fun theRecordsAreKeptAndStartEmpty() = runTest {
+        val settings = Settings(store(), Lang.EN)
+        assertEquals(Records(), settings.records.first())
+        settings.setRecords(Records(mapOf(1 to 98, 3 to 210), setOf(1)))
+        assertEquals(Records(mapOf(1 to 98, 3 to 210), setOf(1)), settings.records.first())
+        settings.setRecords(Records(mapOf(1 to 82, 3 to 210), setOf(1, 3)))
+        assertEquals(Records(mapOf(1 to 82, 3 to 210), setOf(1, 3)), settings.records.first())
+        assertEquals("an unparsable file: none", Records(), Settings(store(garbage = true), Lang.EN).records.first())
     }
 
     @Test

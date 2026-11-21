@@ -1,0 +1,87 @@
+name: Accessibility problem
+description: Something you could not hear, find or do, with the screen reader on or off.
+labels: ["accessibility"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Tell me what got in your way. Only the first two questions must be answered; the others help me find the cause.
+        A sighted friend may fill in this form for you.
+  - type: textarea
+    id: trying
+    attributes:
+      label: What were you trying to do?
+      description: For example, choose a level, find the ball, or change the voice in Settings.
+    validations:
+      required: true
+  - type: textarea
+    id: heard
+    attributes:
+      label: What did you hear, or not hear?
+      description: >-
+        What the game said or played, and what was missing, unclear or too quiet.
+        Write it as well as you remember.
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did it happen?
+      description: The Android app, the browser trial or the phone controls test. The last two are on the Audio Soccer website.
+      options:
+        - "The Android app"
+        - "The browser trial on a computer"
+        - "The phone controls test in a phone's browser"
+  - type: dropdown
+    id: screen-reader-state
+    attributes:
+      label: Was your screen reader on or off?
+      description: Choose the last option if the problem came while you were turning it off or back on.
+      options:
+        - "Off"
+        - "On"
+        - "I was turning it off or on"
+  - type: dropdown
+    id: screen-reader
+    attributes:
+      label: Which screen reader do you use?
+      description: The one you usually use, even if it was off at the time. If you choose Other, name it in the last box.
+      options:
+        - "TalkBack"
+        - "Jieshuo"
+        - "Other"
+  - type: checkboxes
+    id: vision
+    attributes:
+      label: Do you use magnification or large text?
+      description: Tick any that you use on this phone. Leave both empty if you use neither.
+      options:
+        - label: "Magnification"
+        - label: "Large text or a larger display size"
+  - type: dropdown
+    id: language
+    attributes:
+      label: Which language does the game speak?
+      description: The language you hear in the game.
+      options:
+        - "English"
+        - "Persian (فارسی)"
+  - type: input
+    id: voice
+    attributes:
+      label: Which voice does the game use?
+      description: >-
+        The game's Settings says it as Voice, followed by a name, for example eSpeak NG.
+        Leave it empty if you are not sure.
+  - type: input
+    id: phone
+    attributes:
+      label: Phone model and Android version
+      description: >-
+        Both are shown in the phone's Settings under About phone. For the browser trial on a computer,
+        write your computer's system and browser instead. Leave it empty if you are not sure.
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else?
+      description: Anything that might help, such as the name of your screen reader if you chose Other.

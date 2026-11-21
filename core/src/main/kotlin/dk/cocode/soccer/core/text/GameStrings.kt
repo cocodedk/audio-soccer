@@ -58,6 +58,12 @@ interface GameStrings {
     fun summaryTimes(head: String, list: String): String
     val summarySep: String
 
+    // records, which the trial does not have: a level's best time on its menu option, a new one and all three rounds won in
+    // the summary (and on the option)
+    fun bestTime(time: String): String
+    fun newRecord(time: String): String
+    val allWon: String
+
     // the sound tour
     val learnEnd: String
     val learnCalls: String

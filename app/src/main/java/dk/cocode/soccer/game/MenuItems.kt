@@ -27,11 +27,18 @@ internal interface Choices {
     fun hearAgain()
 }
 
-// The options of a screen, in order. engineLabel is asked for the name of the speech engine in use, by the Settings screen only.
-internal fun optionsFor(screen: Screen, ui: UiStrings, engineLabel: () -> String, c: Choices): List<Option> {
+// The options of a screen, in order. engineLabel is asked for the name of the speech engine in use, by the Settings screen only;
+// levelLabel for a level's option on Home, given the level and its name.
+internal fun optionsFor(
+    screen: Screen,
+    ui: UiStrings,
+    engineLabel: () -> String,
+    levelLabel: (Int, String) -> String,
+    c: Choices,
+): List<Option> {
     val back = Option(ui.backToMenu, c::home)
     return when (screen) {
-        Screen.Home -> ui.levelNames.mapIndexed { i, name -> Option(name) { c.startLevel(i + 1) } } + listOf(
+        Screen.Home -> ui.levelNames.mapIndexed { i, name -> Option(levelLabel(i + 1, name)) { c.startLevel(i + 1) } } + listOf(
             Option(ui.learnSounds) { c.open(Screen.Learn) },
             Option(ui.howToPlay) { c.open(Screen.Help) },
             Option(ui.settings) { c.open(Screen.Settings) },
