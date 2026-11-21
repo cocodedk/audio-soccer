@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Project: Audio Soccer, an Android soccer game for blind players, played with the screen reader off:
+Project: Audio Soccer, an Android football game for blind and low-vision players, played with the screen reader off:
 the game speaks for itself. Kotlin + Jetpack Compose, multi-module (`:core` pure-Kotlin logic +
 `:app` Android shell). Built and run entirely from the CLI. The design is in `docs/DESIGN.md`; the
 browser prototype in `prototype/` is the source of truth for the simulation, the strings and the
@@ -12,7 +12,7 @@ Non-negotiable. Apply to every change.
 
 ### 1. 200-line file cap
 No code file may exceed **200 lines** (total, including blanks and comments). Applies to every
-`.kt`, `.kts`, and script file. When a file approaches the limit, split it by responsibility into
+`.kt`, `.kts`, script, `.js`, `.mjs`, `.css`, `.html` and `.yml` file (`docs/overview.html` is exempt). When a file approaches the limit, split it by responsibility into
 smaller files (extract composables, mappers, helpers, etc.). Enforced by `scripts/check-file-length.sh`
 in the pre-push hook and in CI.
 

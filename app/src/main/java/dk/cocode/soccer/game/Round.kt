@@ -100,7 +100,8 @@ internal class Round(
         gestures.tick(nowMs())?.let(::play)
         val playing = game.phase == Phase.PLAY
         val events = game.update(dt, dir)
-        for (e in events) log("event ${e::class.simpleName}")
+        // A data class's toString starts with its name, which R8 leaves alone ("Kick(x=…" logs as "event Kick").
+        for (e in events) log("event ${e.toString().substringBefore('(')}")
         val w = game.world
         if (playing && w != null) {
             soundscape.update(w, dt, events)

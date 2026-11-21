@@ -74,11 +74,32 @@ class MenuGesturesTwoFingerTest {
     fun theSecondFingerLiftingFirstDoesNotEndTheStroke() {
         r.down(1, 200, 300, 0)
         r.down(2, 280, 300, 30)
-        r.up(2, 280, 300, 100)
+        r.move(1, 200, 340, 80) // the fingers are on their way
+        r.up(2, 280, 340, 100)
         r.move(1, 200, 450, 500)
         r.tick(500)
         r.up(1, 200, 600, 1000)
         assertEquals(listOf(Next), r.got)
+    }
+
+    // A thumb or a palm brushing the glass while a finger rests on an option does not keep it from exploring.
+    @Test
+    fun aSecondFingerThatLiftsBeforeTheFirstHasMovedWasABrush() {
+        r.down(1, 200, 450, 0)
+        r.down(2, 280, 450, 100)
+        r.up(2, 280, 450, 200)
+        r.tick(TAP_MS + 10)
+        assertEquals(listOf(Focus(1)), r.got, "it explores once held")
+    }
+
+    @Test
+    fun aBrushLiftedAfterTheTapTimeLetsTheFirstFingerExploreAtOnceAndAThirdFingerIsNotFollowed() {
+        r.down(1, 200, 150, 0)
+        r.down(2, 280, 150, 100)
+        r.tick(TAP_MS + 10) // still a two-finger stroke: nothing
+        r.tap(3, 400, 150) // a third finger is not followed
+        r.up(2, 280, 150, 500)
+        assertEquals(listOf(Focus(0)), r.got)
     }
 
     @Test

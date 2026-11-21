@@ -1,9 +1,11 @@
 // English page text, one entry per data-i18n element of index.html (a test keeps the two in step).
 export default {
-  title: 'Audio Soccer Trial',
+  title: 'Audio Soccer trial: play football by ear in your browser',
   eyebrow: 'Trial · keyboard, speakers or headphones',
   h1a: 'Audio', h1b: 'Soccer', h1c: 'trial',
   phoneLink: 'On a phone? Open the phone test.',
+  appLink: 'The Android app is coming. Read about it.',
+  skip: 'Skip to the levels',
   lede: 'This needs a computer with a keyboard, not a phone. Speakers work, and headphones are optional. This short test checks one thing: can you find the ball, take it to the goal and score using only your ears? You always face the goal you attack. The ball rattles when it rolls and ticks when it is still, the goal chimes while you have the ball, and the side boards knock when you touch them. A voice tells you what happens. Press Learn the sounds first.',
   play: 'Play',
   sound: 'Sound', speakers: 'Speakers', headphones: 'Headphones',
@@ -27,7 +29,7 @@ export default {
   kNvda: 'NVDA or JAWS: if arrows read the page, press NVDA+Space or turn on forms mode.',
   kVo: 'VoiceOver: turn Quick Nav off by pressing Left and Right arrows together.',
   pitch: 'Pitch', arena: 'Pitch. H for help.',
-  canvasLabel: 'Top-down picture of the pitch for sighted helpers. You attack to the right; your left is the top board.',
+  canvasLabel: 'Top-down picture of the pitch, for low-vision players and a sighted friend. You attack to the right; your left is the top board.',
   hidePic: 'Hide the picture, to play by ear',
   results: 'Results', resultsLabel: 'Results to send us', copy: 'Copy results',
   clear: 'Clear results',
