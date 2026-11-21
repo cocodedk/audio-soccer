@@ -127,8 +127,13 @@ jobs:
           [ -n "$APKSIGNER" ] || { echo "apksigner not found in the Android SDK" >&2; exit 1; }
           certs=$("$APKSIGNER" verify --print-certs AudioSoccer.apk)
           printf '%s\n' "$certs"
-          DIGEST=$(printf '%s\n' "$certs" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          # Read the stable end of the line, not its label, which changes with the build-tools version: up to 36 it is
+          # "Signer #1 certificate ...", from 37 "V2 Signer: certificate ..." or "V3.0 Signer: certificate ...". The source
+          # stamp is not the signer. Every line left must name the same certificate, so a second signer or a rotated key
+          # stops the release instead of printing one of them.
+          DIGEST=$(printf '%s\n' "$certs" | grep -v '^Source Stamp' | sed -n 's/^.*certificate SHA-256 digest: //p' | sort -u)
           [ -n "$DIGEST" ] || { echo "apksigner printed no certificate SHA-256" >&2; exit 1; }
+          [ "$(printf '%s\n' "$DIGEST" | wc -l)" -eq 1 ] || { printf 'More than one signing certificate:\n%s\n' "$DIGEST" >&2; exit 1; }
           echo "Signing certificate SHA-256: $DIGEST"
           printf '### Signing certificate\n\nSHA-256: %s\n' "$DIGEST" >> "$GITHUB_STEP_SUMMARY"
 
