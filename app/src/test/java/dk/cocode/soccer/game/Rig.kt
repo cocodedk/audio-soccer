@@ -73,9 +73,10 @@ class Rig(
 
     fun choose(text: String) = session.choose(items.indexOf(text).also { check(it >= 0) { "no option $text in $items" } })
 
-    // Starts level n from Home with the screen reader off. The first level of a run waits for the drag intro (see beginRound).
+    // Starts level n from Home with the screen reader off, whether or not its option shows a record. The first level of a run waits for the drag intro (see beginRound).
     fun start(n: Int) {
-        choose(en.levelNames[n - 1])
+        check(screen == Screen.Home) { "not on Home: $screen" }
+        session.choose(n - 1) // Home lists the levels first, in order
         if (screen is Screen.Play && session.pitch.value == null) beginRound()
     }
 

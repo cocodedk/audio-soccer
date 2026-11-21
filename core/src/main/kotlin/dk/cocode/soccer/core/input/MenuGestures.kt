@@ -18,7 +18,8 @@ sealed interface MenuInput {
 //  - A stroke that a second finger joins within TAP_MS never explores: when the followed finger lifts after
 //    travelling SWIPE_DP or more it is Next or Prev at any speed, a two-finger swipe as slow as a scroll. Lifted
 //    within TAP_MS it is otherwise judged as one finger would be (a quick two-finger tap is still a tap); later,
-//    nothing.
+//    nothing. A second finger that lifts before the followed one has moved DEAD_DP was a brush (a thumb or a palm):
+//    the stroke is one finger's again, and explores if it is held.
 //  - A tap followed by a second tap landing within DOUBLE_MS of its lift is Activate, wherever it lands.
 //  - A tap on its own is Repeat from tick, wherever it lands, once DOUBLE_MS pass with no second tap.
 // Anything else (a stroke that moved DEAD_DP or more without being a swipe, or one lifted after TAP_MS without having
@@ -35,7 +36,8 @@ class MenuGestures(private val count: () -> Int, private val heightDp: () -> Flo
         var y = y0
         var moved = false
         var exploring = false
-        var twoFinger = false // a second finger joined it before it explored
+        var second: Int? = null // a second finger that joined it before it explored, until it is found to be a brush
+        val twoFinger get() = second != null
         var band = 0 // while exploring, the band last focused
     }
 
@@ -70,7 +72,7 @@ class MenuGestures(private val count: () -> Int, private val heightDp: () -> Flo
         val s = stroke
         if (s != null && t.id != s.id) {
             val focus = hold(s, t.tMs) // past TAP_MS already, though no frame has ticked yet: it explores
-            if (!s.exploring) s.twoFinger = true
+            if (!s.exploring && s.second == null) s.second = t.id
             return focus
         }
         val up = tapUpMs
@@ -95,8 +97,8 @@ class MenuGestures(private val count: () -> Int, private val heightDp: () -> Flo
     }
 
     private fun up(t: Touch): MenuInput? {
-        val s = stroke
-        if (s == null || t.id != s.id) return null
+        val s = stroke ?: return null
+        if (t.id != s.id) return brushed(s, t)
         stroke = null
         if (s.exploring) return null
         val inTime = t.tMs - s.t0 <= TAP_MS
@@ -111,6 +113,13 @@ class MenuGestures(private val count: () -> Int, private val heightDp: () -> Flo
                 null
             }
         }
+    }
+
+    // The second finger lifting before the followed one has moved was a brush: the stroke is one finger's again.
+    private fun brushed(s: Stroke, t: Touch): MenuInput? {
+        if (t.id != s.second || s.moved) return null
+        s.second = null
+        return hold(s, t.tMs)
     }
 
     // A finger still down after TAP_MS explores: it focuses the band it is in at once.
