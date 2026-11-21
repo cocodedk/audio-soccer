@@ -6,6 +6,7 @@ import { LANGS, tr, trList, entry } from './tables.js';
 export { LANGS };
 export const LANG_TAG = { en: 'en-GB', fa: 'fa-IR' }; // speech utterance language
 export const DIR = { en: 'ltr', fa: 'rtl' };
+export const APP_PATH = { en: 'app/', fa: 'fa/app/' }; // the Android app page, from the site root (a path, so not in the tables)
 
 let lang = (() => { const l = loadPref('lang'); return LANGS.includes(l) ? l : 'en'; })();
 const listeners = [];

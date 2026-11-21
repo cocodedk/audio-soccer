@@ -1,0 +1,147 @@
+package dk.cocode.soccer.game
+
+import dk.cocode.soccer.core.audio.Sound
+import dk.cocode.soccer.core.audio.SoundSink
+import dk.cocode.soccer.core.cues.Buzz
+import dk.cocode.soccer.core.game.Records
+import dk.cocode.soccer.core.text.Lang
+import dk.cocode.soccer.platform.Audio
+import dk.cocode.soccer.platform.Engine
+import dk.cocode.soccer.platform.Haptics
+import dk.cocode.soccer.platform.Prefs
+import dk.cocode.soccer.platform.Reader
+import dk.cocode.soccer.platform.Speech
+import dk.cocode.soccer.platform.TtsState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import java.io.IOException
+
+// A speech engine that records what it is told. Each line it is given counts as spoken at once.
+class FakeSpeech(
+    val pkg: String?,
+    initial: TtsState = TtsState.READY,
+    private val voices: Set<Lang> = setOf(Lang.EN, Lang.FA),
+    private val installed: List<Engine> = emptyList(),
+    private val defaultPkg: String? = installed.firstOrNull()?.pkg, // what asking for no engine in particular gets
+) : Speech {
+    override val state = MutableStateFlow(initial)
+    val said = mutableListOf<String>()
+    var hold = false // a line is not finished until release() says so
+    private val held = ArrayDeque<() -> Unit>()
+    var shutdowns = 0
+    var language: Lang? = null
+    val calls = mutableListOf<String>() // "stop" and "language", in the order the engine was told
+    val stops get() = calls.count { it == "stop" }
+
+    override fun engines() = installed
+
+    override fun currentEngine() = pkg ?: defaultPkg
+
+    override fun useLanguage(lang: Lang): Lang = (if (lang in voices) lang else Lang.EN).also {
+        language = it
+        calls += "language"
+    }
+
+    override fun speak(text: String, pitch: Float, onDone: () -> Unit) {
+        said += text
+        if (hold) held += onDone else onDone()
+    }
+
+    // The engine finishes the oldest line it was holding.
+    fun release() {
+        held.removeFirstOrNull()?.invoke()
+    }
+
+    override fun stop() {
+        calls += "stop"
+    }
+
+    // As the real engine: one shut down is no engine, and whoever waited for it to settle is let go.
+    override fun shutdown() {
+        shutdowns += 1
+        state.value = TtsState.NO_ENGINE
+    }
+}
+
+class FakeReader(on: Boolean = false) : Reader {
+    override val on = MutableStateFlow(on)
+}
+
+class FakeHaptics : Haptics {
+    val buzzes = mutableListOf<Buzz>()
+
+    override fun buzz(b: Buzz) {
+        buzzes += b
+    }
+}
+
+class FakeAudio : Audio {
+    val calls = mutableListOf<String>()
+
+    override fun start() {
+        calls += "start"
+    }
+
+    override fun stop() {
+        calls += "stop"
+    }
+}
+
+class FakeSink(private val onPlay: (Sound) -> Unit = {}) : SoundSink {
+    val plays = mutableListOf<Sound>()
+    val behinds = mutableListOf<Boolean>()
+    val stretches = mutableListOf<Double>()
+    var silences = 0
+
+    override fun play(sound: Sound, gain: Double, behind: Boolean, stretch: Double) {
+        plays += sound
+        behinds += behind
+        stretches += stretch
+        onPlay(sound)
+    }
+
+    override fun crowd(level: Double) = Unit
+
+    override fun silence() {
+        silences += 1
+    }
+}
+
+class FakePrefs(
+    lang: Lang = Lang.EN,
+    engine: String? = null,
+    var failWrites: Boolean = false,
+    records: Records = Records(),
+) : Prefs {
+    private val langs = MutableStateFlow(lang)
+    private val engines = MutableStateFlow(engine)
+    private val kept = MutableStateFlow(records)
+    override val lang: Flow<Lang> = langs
+    override val enginePkg: Flow<String?> = engines
+    override val records: Flow<Records> = kept
+
+    fun recordsNow() = kept.value
+
+    fun langNow() = langs.value
+
+    fun enginePkgNow() = engines.value
+
+    // A write that fails changes nothing, as a DataStore whose file cannot be written.
+    override suspend fun setLang(lang: Lang) {
+        if (failWrites) throw IOException("disk full")
+        langs.value = lang
+    }
+
+    override suspend fun setEngine(pkg: String) {
+        if (failWrites) throw IOException("disk full")
+        engines.value = pkg
+    }
+
+    override suspend fun setRecords(records: Records) {
+        if (failWrites) throw IOException("disk full")
+        kept.value = records
+    }
+}
+
+val ESPEAK = Engine("org.espeak", "eSpeak NG")
+val GOOGLE = Engine("com.google.tts", "Google")

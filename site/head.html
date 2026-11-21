@@ -3,41 +3,59 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Play football by ear. A free browser trial for blind and visually impaired players: find the ball, score and beat a keeper using only sound, with a keyboard and speakers or headphones.">
+<!-- The page title is prototype/index.html's own <title>; the trial's script later sets it from prototype/js/i18n
+     (en-ui.js, fa-ui.js) when the language changes. -->
+<meta name="description" content="Play football by ear in your browser. A free trial for blind and low-vision players: find the ball, score and beat the keeper by sound, with a keyboard.">
 <link rel="canonical" href="https://soccer.cocode.dk/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#1E5A47">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Audio Soccer">
-<meta property="og:title" content="Audio Soccer Trial: play football by ear">
-<meta property="og:description" content="A free browser trial for blind and visually impaired players. Find the ball, score and beat a keeper using only sound.">
+<meta property="og:title" content="Audio Soccer trial: play football by ear">
+<meta property="og:description" content="A free browser trial for blind and low-vision players. Find the ball, score and beat the keeper by sound alone, with a keyboard and speakers or headphones.">
 <meta property="og:url" content="https://soccer.cocode.dk/">
 <meta property="og:image" content="https://soccer.cocode.dk/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Audio Soccer: a top-down football pitch with sound rings spreading from the ball.">
+<meta property="og:image:alt" content="Audio Soccer. Play football by ear. A free game for blind and low-vision players, on Android phones and in the browser. Speakers are enough; headphones are optional. A ball sends sound rings across a green pitch.">
 <meta property="og:locale" content="en_GB">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Audio Soccer Trial: play football by ear">
-<meta name="twitter:description" content="A free browser trial for blind and visually impaired players. Find the ball, score and beat a keeper using only sound.">
 <meta name="twitter:image" content="https://soccer.cocode.dk/og.png">
-<meta name="twitter:image:alt" content="Audio Soccer: a top-down football pitch with sound rings spreading from the ball.">
+<meta name="twitter:image:alt" content="Audio Soccer. Play football by ear. A free game for blind and low-vision players, on Android phones and in the browser. Speakers are enough; headphones are optional. A ball sends sound rings across a green pitch.">
+<!-- SEO keywords:
+     primary:   audio football game for blind players
+     secondary: accessible browser game, blind and low-vision players, football by ear
+     intent:    informational (try it now) -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "VideoGame",
-  "name": "Audio Soccer Trial",
+  "name": "Audio Soccer trial",
   "url": "https://soccer.cocode.dk/",
-  "description": "A browser trial of an audio-first 5-a-side football game for blind and visually impaired players. Find the ball, score and beat a keeper using only sound.",
+  "description": "A browser trial of a football game you play by ear, for blind and low-vision players. Find the ball, score and beat the keeper using only sound, with a keyboard.",
   "genre": ["Sports", "Audio game"],
   "gamePlatform": "Web browser",
   "playMode": "SinglePlayer",
   "inLanguage": ["en", "fa"],
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "isAccessibleForFree": true,
   "accessMode": ["auditory"],
   "accessModeSufficient": "auditory",
   "image": "https://soccer.cocode.dk/og.png",
-  "author": { "@type": "Person", "name": "Babak Bandpey", "url": "https://linkedin.com/in/babakbandpey" },
-  "publisher": { "@type": "Organization", "name": "Cocode", "url": "https://cocode.dk" }
+  "author": { "@type": "Person", "name": "Babak Bandpey", "url": "https://cocode.dk", "sameAs": ["https://linkedin.com/in/babakbandpey", "https://github.com/cocodedk"] },
+  "publisher": { "@type": "Organization", "name": "Cocode", "url": "https://cocode.dk" },
+  "codeRepository": "https://github.com/cocodedk/audio-soccer"
 }
 </script>
+<style>
+  /* site/foot.html carries an English and a Persian block. The trial switches <html lang> between en and
+     fa, and these rules show the matching block with no script. Colours are the trial's own variables. */
+  .site-foot { max-width: 1180px; margin: 2rem auto 0; padding-block: 1.5rem 2.5rem; border-top: 1px solid var(--rule); font-size: 1rem }
+  html[lang="fa"] .site-foot .foot-en, html:not([lang="fa"]) .site-foot .foot-fa { display: none }
+  .site-foot ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .25rem 1.25rem }
+  .site-foot a { color: inherit }
+  .site-foot nav a { display: inline-flex; align-items: center; min-height: 2.75rem; font-weight: 700 }
+  .site-foot nav a[aria-current="page"] { text-decoration: none }
+  .site-foot p { margin-top: .75rem }
+  .site-foot p a { display: inline-block; padding-block: .7rem }
+</style>

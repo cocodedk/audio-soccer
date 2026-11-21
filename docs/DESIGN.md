@@ -5,8 +5,8 @@ Status: fourth draft, 2026-11-12: the match is played with the screen reader off
 
 ## Why this exists
 
-A blind tester of our chess-puzzles app (an Android TalkBack user) asked for a soccer game. In their
-words, visually impaired players "don't have any decent soccer games to play". They want rich audio
+A blind tester of our chess-puzzles app (an Android TalkBack user) asked for a soccer game. Players like
+them, they told us, "don't have any decent soccer games to play". They want rich audio
 effects and a commentator.
 
 Every decision below comes back to one fact: **the player cannot see the screen.** Sound is the
@@ -18,7 +18,7 @@ so every slice goes to them early and their feedback outranks this document.
 - A blind player listening on the phone's own speaker can install the game, start a match and play
   it to the final whistle without sighted help. They turn TalkBack off for the match themselves, and
   from that moment the game speaks everything. No headphones: the tester
-  can't wear them, because they hurt.
+  plays on the phone's speaker.
 - During play they can tell by ear where the ball is, who has it, and where the goal is, without
   stopping to ask.
 - It feels like a real match: crowd, whistle, the ball on the boards, a commentator who reacts.
@@ -105,7 +105,7 @@ good the opponents are. Game speed is its own setting, slow, normal or fast, so 
 
 The listener stands on the player's own footballer, always facing the opponent's goal.
 
-**Speakers are the default.** The tester can't wear headphones, and a phone's two speakers sit a few
+**Speakers are the default.** The tester plays on the phone's speaker, and a phone's two speakers sit a few
 centimetres apart, so left and right mostly blur and 3D placement is lost. Nothing the player needs
 may depend on which ear a sound reaches. Each piece of information has a cue that survives one
 small speaker:
@@ -131,8 +131,8 @@ small speaker:
   own reader.
 - **Exact position, on demand**: Ask gives clock positions and metres (see Finding your way).
 - **Touch, on the phone**: vibration that costs the ears nothing. A short buzz when the ball is in
-  reach, a different one when you are lined up with the goal. The phone controls test (0b) checks
-  whether the buzzes help.
+  reach, a different one when you are lined up with the goal. Whether the buzzes help is for the
+  tester to say from playing the app (0c), which replaced the phone controls test (0b).
 
 **Headphones are an optional extra** for players who like them. A sound setting switches on stereo
 placement, and true 3D placement (HRTF) where it is available. They never add information the
@@ -220,40 +220,43 @@ replaces the earlier rule that TalkBack always stays on.
 - **With TalkBack on**, menus, settings, results and the sound gallery are ordinary Android
   screens, built the same way as in the chess app. This is how the player finds and opens the game.
 - **With TalkBack off**, the game speaks for itself. It notices the change, reads the current
-  screen, and from then on speaks the item under focus. The gestures are the ones a TalkBack user
-  already knows: swipe to move through the options, double-tap to choose. When TalkBack comes back
-  on, the game stops speaking the menus.
+  screen, and from then on speaks the item under focus. The options are equal bands down the
+  screen, and the gestures are close to the ones a TalkBack user already knows: hold a finger on an
+  option to hear it, swipe to move through the options (quickly with one finger, or at any speed with
+  two), tap once anywhere to hear the current option again, double-tap anywhere to choose. When TalkBack comes back on,
+  the game stops speaking the menus.
 - **The match is played with TalkBack off**, with plain touch controls. If TalkBack is on when a
   match is about to start, the game says how to turn it off and waits. A Bluetooth keyboard or
   gamepad works either way.
 - **The game's menu voice** is the phone's own speech engine through Android's text-to-speech, the
-  same Persian voice the player already hears from TalkBack, with no network. If that voice can't be
-  reached, the fixed lines ship as recorded clips from the commentary pipeline. Which one it is
-  depends on the tester's answer about their phone's voice (asked 2026-11-12).
+  same voice the player already hears from TalkBack, with no network. The tester's answer (2026-11-15)
+  is that their engine is eSpeak NG, so the menus need no recorded clips. Settings lists the speech
+  engines installed on the phone, and the player chooses one of them. When Android has no default
+  engine, the app opens the first installed one itself. If the phone has no engine at all, the game
+  says so on the screen.
 - Pause is always one action away, and the pause menu speaks like every other menu.
+- **A won round gets a fanfare** (owner, 2026-11-16): a short rising run that ends on a chord, about 1.2 s, played when
+  the ball is found in level 1 and on every goal, over the goal's own sound. It sounds under the line the game says ("Got
+  it. 7.4 seconds.", "Goal!"); nothing makes the voice wait for it.
+- **Records** (owner, 2026-11-16): each level keeps its fastest won round, to the tenth of a second that is spoken, and
+  whether all three rounds were once won in one go. The level's option on the menu reads them ("Score a goal. Best 7.4
+  seconds. All three rounds won."), and the summary adds "New record: 7.4 seconds." when the best falls (a level's first
+  win counts) and "All three rounds won." when they were. They are kept on the phone with the settings, nowhere else.
 
 ## Controls: plain touch, screen reader off
 
 This used to be the hardest unknown. With TalkBack on, Android turns single-finger touches into
 exploration and eats swipes, so the earlier drafts planned workarounds. With TalkBack off during a
 match the game gets ordinary touches, and the question shrinks to which scheme feels best by ear.
-It is still settled on the tester's own phone before the real game is built.
+The candidates were weighed in the phone controls test (0b), which the app itself (0c) has replaced:
+the tester plays the real game on their phone. What shipped in 0.1.0 is drag; tilt is deferred.
 
-Candidates for the phone controls test (0b), in my order of preference:
-
-1. **Drag to steer.** Touch anywhere and drag: the direction of the drag from where the finger
-   landed is the steering direction, and lifting the finger stops. A tap with a second finger
-   kicks. No spot on the screen has to be found.
-2. **Tilt to steer** (accelerometer), with a tap to kick.
-3. **A Bluetooth keyboard or gamepad.** This is supported regardless, as the most reliable option.
-
-The test also settles where "ask" and "pause" live in the touch scheme. The result picks the
-default scheme; the others can stay as options if they work.
-
-**Not confirmed yet:** the tester wrote about screen readers in general. Whether turning TalkBack off
-and on is as easy on their phone as on the computer was asked on 2026-11-12. If it isn't, the
-TalkBack-on candidates from the third draft (a joystick read from touch-exploration events, tilt, a
-keyboard) come back.
+1. **Drag to steer** (in 0.1.0). Touch anywhere and drag: the direction of the drag from where the
+   finger landed is the steering direction, and lifting the finger stops. Any finger taps to kick,
+   even while another steers, so no spot on the screen has to be found. Two fingers tapping say
+   where you are, and three pause.
+2. **Tilt to steer** (accelerometer), with a tap to kick. Deferred: it is not in 0.1.0.
+3. **A Bluetooth keyboard or gamepad.** Wanted regardless, as the most reliable option.
 
 ## After v1: 3D audio for headphone players
 
@@ -342,8 +345,16 @@ Each slice goes to the tester and waits for their feedback before the next one s
     APK instead. Output: the chosen control scheme, whether the buzzes help, and whether the game's
     own voice is enough to get around without the screen reader.
 
-(The old slice 0c, a 3D audio library test on Android, is dropped: the game no longer depends on 3D
-audio. See "After v1".)
+0c. **The app's first release, 0.1.0** (built, in `core/` and `app/`): the trial's three levels as an
+    Android app, with drag steering. It replaces the phone controls test: the tester plays the real
+    game on the phone's speaker with the screen reader off, in English and Persian, instead of a
+    throwaway page. Its menus and speech engines are as described under "Menus, the screen reader
+    and the match screen". Tilt, results sharing and a speech-speed setting were left out of 0.1.0.
+    All sound is synthesized in code and all speech comes from the phone's engine, so the app ships
+    no audio files.
+
+(An earlier plan had a slice 0c here, a 3D audio library test on Android. It is dropped: the game no
+longer depends on 3D audio. See "After v1".)
 
 1. **Penalty shootout**: five penalties each, taking and saving. As the taker, pick a direction and
    time the shot. As the keeper, listen to the run-up and dive. This proves the audio engine,
@@ -362,14 +373,16 @@ These go in a later email, most important first:
    browser version forward.)
 2. Is blind-football-style 5-a-side OK, or do they want the feel of regular 11-a-side?
 3. Have they played audio games they loved or hated, especially sports ones, and why?
-4. ~~Do they play with headphones?~~ Answered 2026-11-09: no, headphones hurt their ears. The
-   game is built for speakers.
+4. ~~Do they play with headphones?~~ Answered 2026-11-09: no, they play on the phone's speaker.
+   The game is built for speakers.
 5. ~~Which language should the commentator speak?~~ The owner chose English and Persian on
    2026-11-09. Ask whether the Persian voice sounds right.
 6. Are loud sounds a problem on speakers too? Which ones, and is the capped mix comfortable?
-7. Is turning TalkBack off and back on as easy on the phone as on the computer? (Asked 2026-11-12.)
-8. Which Persian voice or speech engine does their phone use? (Asked 2026-11-12. If the game can
-   use it, the menus speak offline in the voice they know.)
+7. ~~Is turning TalkBack off and back on as easy on the phone as on the computer?~~ Answered
+   2026-11-15: yes, for most players it is easy. (Asked 2026-11-12.)
+8. ~~Which Persian voice or speech engine does their phone use?~~ Answered 2026-11-15: eSpeak NG.
+   (Asked 2026-11-12.) The game uses the phone's own engine, so the menus speak offline in the
+   voice they know.
 
 ## Left to the builder
 

@@ -1,0 +1,26 @@
+# Audio Soccer
+
+> A football game you play by ear, made for blind and low-vision players. The Android app is played with the screen reader turned off: the game speaks its own menus in English or Persian through the phone's speech engine. A browser trial lets anyone try the game with a keyboard.
+
+- The first Android release and the F-Droid listing are being prepared; no download exists yet. The app page will link to them when they are ready.
+- The app needs Android 7.0 or newer and a speech engine such as eSpeak NG. It has no internet permission, no ads and no tracking.
+- Three levels: find the ball, score a goal and beat the keeper. Each level has three rounds.
+- Made by Babak Bandpey, Cocode (https://cocode.dk). Source code under the Apache-2.0 licence.
+
+## Pages
+
+- [Android app](https://soccer.cocode.dk/app/): what the app is, what you need, how a game goes, the touch gestures, and how to get it
+- [Android app, in Persian](https://soccer.cocode.dk/fa/app/): the same page in Persian
+- [Browser trial](https://soccer.cocode.dk/): play the three levels in a desktop browser with a keyboard, in English or Persian
+- [Phone controls test](https://soccer.cocode.dk/phone/): try the touch controls on a phone, with the screen reader off
+- [Privacy policy](https://soccer.cocode.dk/privacy/): the app collects nothing; settings and records stay on the phone
+- [Privacy policy, in Persian](https://soccer.cocode.dk/fa/privacy/): the same policy in Persian
+
+## Source
+
+- [Source code](https://github.com/cocodedk/audio-soccer): the Android app (Kotlin), the browser trial and this site
+- [README](https://github.com/cocodedk/audio-soccer/blob/main/README.md): how to build and run the app and the trial
+
+## Optional
+
+- [Releases](https://github.com/cocodedk/audio-soccer/releases): where the first release will appear

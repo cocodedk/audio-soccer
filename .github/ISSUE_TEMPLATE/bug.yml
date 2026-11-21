@@ -1,0 +1,47 @@
+name: Bug
+description: The game crashed, froze or did something wrong.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Tell me what went wrong. Only the first question must be answered; the others help me find the cause.
+        A sighted friend may fill in this form for you.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Say what you did and what the game did, including anything it said, if you remember.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+      description: What the game should have done instead.
+  - type: textarea
+    id: steps
+    attributes:
+      label: How can I make it happen again?
+      description: The steps that lead to the problem, one per line, if you know them.
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did it happen?
+      description: The Android app, the browser trial or the phone controls test. The last two are on the Audio Soccer website.
+      options:
+        - "The Android app"
+        - "The browser trial on a computer"
+        - "The phone controls test in a phone's browser"
+  - type: input
+    id: phone
+    attributes:
+      label: Phone model
+      description: >-
+        The make and model, as shown in the phone's Settings under About phone.
+        For the browser trial on a computer, write your computer's system and browser instead.
+  - type: input
+    id: android
+    attributes:
+      label: Android version
+      description: Shown in the phone's Settings under About phone. Leave it empty if you are not sure.
